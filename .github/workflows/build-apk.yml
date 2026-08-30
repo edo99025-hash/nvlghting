@@ -31,9 +31,23 @@ jobs:
         shell: bash
         run: |
           set -e
-          test -f index.html
           mkdir -p www
-          cp index.html www/index.html
+          if [ -f www/index.html ]; then
+            echo "Found www/index.html"
+          elif [ -f www/nova.html ]; then
+            echo "Found www/nova.html, copying to www/index.html"
+            cp www/nova.html www/index.html
+          elif [ -f index.html ]; then
+            echo "Found index.html at repo root, copying to www/index.html"
+            cp index.html www/index.html
+          elif [ -f nova.html ]; then
+            echo "Found nova.html at repo root, copying to www/index.html"
+            cp nova.html www/index.html
+          else
+            echo "ERROR: no HTML entry point found."
+            echo "Expected one of: www/index.html, www/nova.html, index.html, nova.html"
+            exit 1
+          fi
 
       - name: Add Android platform
         run: npx cap add android
