@@ -26,11 +26,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare web entry point
+      - name: Verify web entry point
         shell: bash
         run: |
-          test -f www/nova.html
-          cp www/nova.html www/index.html
+          test -f www/index.html
+          echo "Using www/index.html"
 
       - name: Add Android platform
         run: npx cap add android
