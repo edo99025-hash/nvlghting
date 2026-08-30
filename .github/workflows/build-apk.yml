@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,7 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Install dependencies
         run: npm install
@@ -28,63 +32,80 @@ jobs:
       - name: Configure Android permissions
         shell: bash
         run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
           python3 - <<'PY'
           from pathlib import Path
           p=Path("android/app/src/main/AndroidManifest.xml")
           s=p.read_text()
-          perms = '''    <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.RECORD_AUDIO" />
-              <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-          '''
-          s=s.replace('</manifest>', perms + '\n</manifest>')
+          for perm in [
+              '    <uses-permission android:name="android.permission.INTERNET" />',
+              '    <uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />'
+          ]:
+              if perm not in s:
+                  s=s.replace("</manifest>", perm+"\n</manifest>")
           p.write_text(s)
           PY
 
-      - name: Configure immersive full screen
+      - name: Configure immersive fullscreen
         shell: bash
         run: |
           MAIN="android/app/src/main/java/com/nova/lighting/MainActivity.java"
           mkdir -p "$(dirname "$MAIN")"
           cat > "$MAIN" <<'JAVA'
           package com.nova.lighting;
-
           import android.os.Bundle;
           import android.view.View;
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
-              @Override
-              public void onCreate(Bundle savedInstanceState) {
+              @Override public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   hideSystemUI();
               }
-
               private void hideSystemUI() {
                   getWindow().getDecorView().setSystemUiVisibility(
-                      View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                      | View.SYSTEM_UI_FLAG_FULLSCREEN
-                      | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                      | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                      | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                      | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                  );
+                      View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+                      View.SYSTEM_UI_FLAG_FULLSCREEN |
+                      View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                      View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                      View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                      View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
               }
-
-              @Override
-              public void onWindowFocusChanged(boolean hasFocus) {
+              @Override public void onWindowFocusChanged(boolean hasFocus) {
                   super.onWindowFocusChanged(hasFocus);
                   if (hasFocus) hideSystemUI();
               }
           }
           JAVA
 
-      - name: Sync web files
+          mkdir -p android/app/src/main/res/values
+          cat > android/app/src/main/res/values/styles.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="NovaFullscreenTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:windowActionModeOverlay">true</item>
+                  <item name="android:navigationBarColor">@android:color/black</item>
+                  <item name="android:windowLightNavigationBar">false</item>
+              </style>
+          </resources>
+          XML
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("android/app/src/main/AndroidManifest.xml")
+          s=p.read_text()
+          if 'android:theme="@style/NovaFullscreenTheme"' not in s:
+              s=s.replace("<application", '<application android:theme="@style/NovaFullscreenTheme"', 1)
+          p.write_text(s)
+          PY
+
+      - name: Sync Nova
         run: npx cap sync android
 
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
