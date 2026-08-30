@@ -1,10 +1,6 @@
-import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: 'com.nova.lighting',
-  appName: 'Nova Lighting',
-  webDir: 'www',
-  bundledWebRuntime: false
-};
-
-export default config;
+{
+  "appId": "com.nova.lighting",
+  "appName": "Nova Lighting",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
