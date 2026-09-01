@@ -330,4 +330,3 @@ jobs:
           name: Nova Lighting Build #${{ github.run_number }}
           files: electron/dist/NovaLighting-Windows-${{ github.run_number }}.exe
 
-
