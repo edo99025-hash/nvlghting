@@ -6,7 +6,7 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -54,6 +54,52 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      - name: Apply Android app icon
+        shell: bash
+        run: |
+          set -e
+          SRC="assets/icon-source.png"
+          test -f "$SRC"
+
+          declare -A LEGACY=( [mdpi]=48 [hdpi]=72 [xhdpi]=96 [xxhdpi]=144 [xxxhdpi]=192 )
+          declare -A FORE=( [mdpi]=108 [hdpi]=162 [xhdpi]=216 [xxhdpi]=324 [xxxhdpi]=432 )
+
+          for density in "${!LEGACY[@]}"; do
+            dir="android/app/src/main/res/mipmap-$density"
+            mkdir -p "$dir"
+            convert "$SRC" -resize "${LEGACY[$density]}x${LEGACY[$density]}" "$dir/ic_launcher.png"
+            convert "$SRC" -resize "${LEGACY[$density]}x${LEGACY[$density]}" "$dir/ic_launcher_round.png"
+            convert "$SRC" -resize "${FORE[$density]}x${FORE[$density]}" "$dir/ic_launcher_foreground.png"
+          done
+
+          mkdir -p android/app/src/main/res/mipmap-anydpi-v26
+          cat > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background"/>
+              <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+          </adaptive-icon>
+          XML
+          cp android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml \
+             android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+          python3 - <<'PY'
+          import re, glob, os
+          files = glob.glob('android/app/src/main/res/values/*.xml')
+          pattern = re.compile(r'(<color name="ic_launcher_background">)(#[0-9A-Fa-f]{6,8})(</color>)')
+          found = False
+          for f in files:
+              s = open(f).read()
+              if pattern.search(s):
+                  open(f, 'w').write(pattern.sub(r'\1#000000\3', s))
+                  found = True
+                  break
+          if not found:
+              os.makedirs('android/app/src/main/res/values', exist_ok=True)
+              with open('android/app/src/main/res/values/ic_launcher_background.xml', 'w') as f:
+                  f.write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#000000</color>\n</resources>\n')
+          PY
+
       - name: Configure Android permissions
         shell: bash
         run: |
@@ -73,7 +119,32 @@ jobs:
           p.write_text(s)
           PY
 
-      - name: Configure immersive fullscreen
+      - name: Sync Nova
+        run: npx cap sync android
+
+      - name: Encrypt web assets
+        shell: bash
+        run: |
+          set -e
+          KEY_HEX=$(openssl rand -hex 32)
+          IV_HEX=$(openssl rand -hex 16)
+
+          mkdir -p android/app/src/main/res/raw
+          openssl enc -aes-256-cbc -K "$KEY_HEX" -iv "$IV_HEX" \
+            -in www/index.html \
+            -out android/app/src/main/res/raw/nova_data.bin
+
+          # Ganti index.html polos yang disalin cap sync dengan file kosong (decoy),
+          # supaya extract APK biasa (unzip/apktool) tidak nemu source code aslinya.
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Nova</title></head><body></body></html>' \
+            > android/app/src/main/assets/public/index.html
+
+          KEY_JAVA=$(python3 -c "print(','.join('(byte)0x'+'$KEY_HEX'[i:i+2] for i in range(0,64,2)))")
+          IV_JAVA=$(python3 -c "print(','.join('(byte)0x'+'$IV_HEX'[i:i+2] for i in range(0,32,2)))")
+          echo "KEY_JAVA=$KEY_JAVA" >> "$GITHUB_ENV"
+          echo "IV_JAVA=$IV_JAVA" >> "$GITHUB_ENV"
+
+      - name: Configure MainActivity (fullscreen + encrypted asset loading)
         shell: bash
         run: |
           MAIN=$(find android/app/src/main/java -name MainActivity.java | head -n 1)
@@ -84,13 +155,53 @@ jobs:
 
           import android.os.Bundle;
           import android.view.View;
+          import android.webkit.WebView;
           import com.getcapacitor.BridgeActivity;
 
+          import java.io.ByteArrayOutputStream;
+          import java.io.InputStream;
+          import javax.crypto.Cipher;
+          import javax.crypto.spec.IvParameterSpec;
+          import javax.crypto.spec.SecretKeySpec;
+
           public class MainActivity extends BridgeActivity {
+
+              private static final byte[] NOVA_KEY = { $KEY_JAVA };
+              private static final byte[] NOVA_IV  = { $IV_JAVA };
+
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   hideSystemUI();
+                  loadEncryptedApp();
+              }
+
+              private void loadEncryptedApp() {
+                  try {
+                      int resId = getResources().getIdentifier("nova_data", "raw", getPackageName());
+                      InputStream in = getResources().openRawResource(resId);
+                      ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                      byte[] tmp = new byte[8192];
+                      int n;
+                      while ((n = in.read(tmp)) != -1) buf.write(tmp, 0, n);
+                      in.close();
+
+                      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                      cipher.init(Cipher.DECRYPT_MODE,
+                              new SecretKeySpec(NOVA_KEY, "AES"),
+                              new IvParameterSpec(NOVA_IV));
+                      byte[] html = cipher.doFinal(buf.toByteArray());
+
+                      WebView webView = getBridge().getWebView();
+                      webView.loadDataWithBaseURL(
+                              "https://localhost/",
+                              new String(html, "UTF-8"),
+                              "text/html",
+                              "UTF-8",
+                              null);
+                  } catch (Exception e) {
+                      e.printStackTrace();
+                  }
               }
 
               private void hideSystemUI() {
@@ -111,9 +222,6 @@ jobs:
               }
           }
           JAVA
-
-      - name: Sync Nova
-        run: npx cap sync android
 
       - name: Build APK
         working-directory: android
@@ -136,3 +244,101 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Nova Lighting Build #${{ github.run_number }}
           files: android/app/build/outputs/apk/debug/NovaLighting-${{ github.run_number }}.apk
+
+  build-windows:
+    needs: build-android
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare web files
+        shell: bash
+        run: |
+          set -e
+          mkdir -p www
+          if [ -f www/index.html ]; then
+            echo "Found www/index.html"
+          elif [ -f www/nova.html ]; then
+            echo "Found www/nova.html, copying to www/index.html"
+            cp www/nova.html www/index.html
+          elif [ -f index.html ]; then
+            echo "Found index.html at repo root, copying to www/index.html"
+            cp index.html www/index.html
+          elif [ -f nova.html ]; then
+            echo "Found nova.html at repo root, copying to www/index.html"
+            cp nova.html www/index.html
+          else
+            echo "ERROR: no HTML entry point found."
+            echo "Expected one of: www/index.html, www/nova.html, index.html, nova.html"
+            exit 1
+          fi
+
+      - name: Stage app files for Electron
+        shell: bash
+        run: |
+          set -e
+          mkdir -p electron/app
+          cp www/index.html electron/app/index.html
+
+      - name: Encrypt Electron app assets
+        shell: bash
+        run: |
+          set -e
+          KEY_HEX=$(openssl rand -hex 32)
+          IV_HEX=$(openssl rand -hex 16)
+
+          openssl enc -aes-256-cbc -K "$KEY_HEX" -iv "$IV_HEX" \
+            -in electron/app/index.html \
+            -out electron/app/nova_data.bin
+
+          # Ganti index.html asli dengan decoy kosong, dan tanam key/iv ke main.js
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Nova</title></head><body></body></html>' \
+            > electron/app/index.html
+
+          sed -i "s/__NOVA_KEY_HEX__/$KEY_HEX/" electron/main.js
+          sed -i "s/__NOVA_IV_HEX__/$IV_HEX/" electron/main.js
+
+      - name: Apply Windows exe icon
+        shell: bash
+        run: |
+          set -e
+          mkdir -p electron/build
+          convert assets/icon-source.png -define icon:auto-resize=256,128,64,48,32,16 electron/build/icon.ico
+
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm install
+
+      - name: Build Windows portable exe
+        working-directory: electron
+        run: npm run dist
+
+      - name: Rename exe for release
+        shell: bash
+        run: |
+          set -e
+          EXE=$(find electron/dist -maxdepth 1 -iname "*.exe" | head -n 1)
+          test -n "$EXE"
+          cp "$EXE" "electron/dist/NovaLighting-Windows-${{ github.run_number }}.exe"
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nova-Lighting-Windows
+          path: electron/dist/NovaLighting-Windows-${{ github.run_number }}.exe
+
+      - name: Attach Windows exe to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Nova Lighting Build #${{ github.run_number }}
+          files: electron/dist/NovaLighting-Windows-${{ github.run_number }}.exe
