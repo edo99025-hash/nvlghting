@@ -119,7 +119,7 @@ input.num{background:#07090c;border:1px solid var(--border2);border-radius:3px;c
 
 /* ===== PAGE: GERAKAN ===== */
 #pgGerakan{flex-direction:column}
-.ger-tabs{display:flex;gap:2px;padding:5px 8px;background:#0a0c10;border-bottom:1px solid var(--border);flex-shrink:0}
+.ger-tabs{display:flex;gap:2px;padding:5px 8px;background:#0a0c10;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;align-items:center}
 .ger-tab{padding:4px 12px;border-radius:3px 3px 0 0;border:1px solid var(--border2);background:var(--btn);color:var(--lbl);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;cursor:pointer;transition:all .1s;border-bottom:none}
 .ger-tab.active{background:var(--panel2);border-color:var(--amber);color:var(--amber)}
 .ger-page{display:none;overflow-y:auto;flex-direction:column}
@@ -138,6 +138,53 @@ input.num{background:#07090c;border:1px solid var(--border2);border-radius:3px;c
 .ch-num{font-size:8px;letter-spacing:.15em;color:var(--lbl);font-family:'Share Tech Mono',monospace}
 .ch-name{font-size:9px;font-weight:600;color:var(--disp);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Share Tech Mono',monospace}
 .ch-type{font-size:7px;letter-spacing:.1em;color:var(--teal)}
+.ch-card.fn-gerakan .ch-type{color:var(--purple)}
+.ch-card.fn-strobo .ch-type{color:var(--red)}
+.ch-card.fn-standby .ch-type{color:var(--blue)}
+
+/* Channel Tab Bar (Tab 1,2,3... untuk channel multifungsi) — versi inline
+   di baris .ger-tabs (nempel di CHANNEL/KF EDITOR/STANDBY/STROBO) */
+.chtab-bar-inline{display:flex;align-items:center;gap:2px;margin-left:auto;flex-wrap:nowrap}
+.chtab-bar-inline .chtab-btn{padding:2px 6px;font-size:8px;min-width:16px}
+.chtab-bar-inline .chtab-wrap{display:flex;align-items:center;position:relative}
+.chtab-bar-inline .chtab-del{width:10px;height:10px;font-size:6px;margin-left:-4px}
+.chtab-bar-inline .chtab-add{padding:2px 6px;font-size:9px}
+/* Versi kecil dipakai juga di halaman MODE MAIN, di atas grid channel */
+.chtab-bar-main{display:flex;align-items:center;gap:3px}
+.chtab-bar-main .chtab-btn{padding:3px 8px;font-size:9px;min-width:22px}
+.chtab-bar-main .chtab-wrap{display:flex;align-items:center;position:relative}
+.chtab-bar-main .chtab-del{width:12px;height:12px;font-size:7px;margin-left:-5px}
+.chtab-bar-main .chtab-add{padding:3px 8px;font-size:10px}
+.chtab-bar-main .chtab-lbl{font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;letter-spacing:.1em;margin-right:2px}
+
+/* Channel Tab Bar (Tab 1,2,3... untuk channel multifungsi) */
+.chtab-bar{display:flex;align-items:center;gap:4px;padding:5px 8px;background:#0a0c10;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.chtab-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--border2);background:var(--btn);color:var(--lbl);font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;transition:all .1s;min-width:26px}
+.chtab-btn.active{background:rgba(255,170,0,.15);border-color:var(--amber);color:var(--amber);box-shadow:0 0 6px rgba(255,170,0,.2)}
+.chtab-wrap{display:flex;align-items:center;position:relative}
+.chtab-del{margin-left:-6px;width:14px;height:14px;border-radius:50%;border:1px solid var(--border2);background:var(--console);color:var(--red);font-size:8px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1}
+.chtab-del:hover{border-color:var(--red);background:rgba(255,51,85,.15)}
+.chtab-add{padding:4px 9px;border-radius:4px;border:1px dashed var(--border2);background:transparent;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:700;cursor:pointer}
+.chtab-add:hover{border-color:var(--green);background:rgba(34,255,136,.08)}
+.chtab-hint{font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;padding:0 8px 4px;flex-shrink:0}
+
+/* Multifungsi: pilih FN channel (Gerakan/Strobo/Standby) */
+.chfn-row{display:flex;gap:4px;padding:0 0 6px}
+.chfn-btn{flex:1;padding:6px 2px;border-radius:4px;border:1px solid var(--border2);background:var(--btn);color:var(--lbl);font-family:'Chakra Petch',monospace;font-size:9px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:all .1s}
+.chfn-btn.active[data-fn="gerakan"]{background:rgba(204,68,255,.15);border-color:var(--purple);color:var(--purple)}
+.chfn-btn.active[data-fn="strobo"]{background:rgba(255,51,85,.15);border-color:var(--red);color:var(--red)}
+.chfn-btn.active[data-fn="standby"]{background:rgba(51,136,255,.15);border-color:var(--blue);color:var(--blue)}
+
+/* Confirm Dialog (overwrite fungsi channel / hapus tab) */
+.confirm-dlg-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+.confirm-dlg{background:var(--console);border:1px solid var(--border2);border-radius:8px;padding:16px;max-width:320px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.confirm-dlg-title{font-family:'Chakra Petch',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--amber);margin-bottom:8px}
+.confirm-dlg-msg{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);line-height:1.6;margin-bottom:14px}
+.confirm-dlg-btns{display:flex;gap:8px}
+.confirm-dlg-btn{flex:1;padding:8px 4px;border-radius:5px;font-family:'Chakra Petch',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;border:1px solid var(--border2)}
+.confirm-dlg-btn.cancel{background:var(--btn);color:var(--text)}
+.confirm-dlg-btn.ok{background:rgba(34,255,136,.15);border-color:var(--green);color:var(--green)}
+.confirm-dlg-btn.danger{background:rgba(255,51,85,.15);border-color:var(--red);color:var(--red)}
 
 /* KF editor */
 .kf-wrap{display:flex;flex-direction:column;padding:0 8px 20px}
@@ -304,6 +351,9 @@ body.ls-ctrl-mode #pgMain{overflow-y:auto!important;height:100%!important;}
 .ch-play-btn:hover{border-color:var(--teal);background:var(--bh)}
 .ch-play-btn.fire{border-color:var(--amber);background:#1a1206;box-shadow:0 0 8px rgba(255,170,0,.4);animation:fire-pulse .3s ease-out}
 .ch-play-btn.on{border-color:var(--green);background:#0a1810;box-shadow:0 0 8px rgba(34,255,136,.3)}
+.ch-play-btn.fn-gerakan .cpb-type{color:var(--purple)}
+.ch-play-btn.fn-strobo .cpb-type{color:var(--red)}
+.ch-play-btn.fn-standby .cpb-type{color:var(--blue)}
 @keyframes fire-pulse{0%{transform:scale(1.04)}100%{transform:scale(1)}}
 .cpb-num{font-size:6px;letter-spacing:.04em;color:var(--lbl);font-family:'Share Tech Mono',monospace}
 .cpb-name{font-size:8px;font-weight:700;color:var(--bright);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-family:'Chakra Petch',monospace;line-height:1.1}
@@ -1133,6 +1183,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
         <button class="ger-tab" id="gt2" onclick="setGerTab(2)">STANDBY</button>
         <button class="ger-tab" id="gt3" onclick="setGerTab(3)">STROBO</button>
         <button class="ger-tab" id="gt4" onclick="setGerTab(4)">VIDEO TRON</button>
+        <div class="chtab-bar-inline" id="chTabBar"><!-- Generated by buildChTabBar() --></div>
       </div>
 
 
@@ -1144,11 +1195,34 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
             <div class="lbl">Channel yg diedit</div>
             <select class="csel" id="chEditSel" style="flex:1"></select>
           </div>
+          <!-- Pemilih FUNGSI channel — HANYA muncul di Tab 2 dst (channel multifungsi) -->
+          <div id="chFnRow" class="chfn-row" style="display:none">
+            <button class="chfn-btn" data-fn="gerakan" onclick="setChFn('gerakan')">↔ GERAKAN</button>
+            <button class="chfn-btn" data-fn="strobo" onclick="setChFn('strobo')">⚡ STROBO</button>
+            <button class="chfn-btn" data-fn="standby" onclick="setChFn('standby')">⏸ STANDBY</button>
+          </div>
           <div class="row">
             <div class="lbl">Nama</div>
             <input type="text" class="txt" id="chName" placeholder="Nama channel..." style="flex:1">
           </div>
-          <div class="row">
+          <!-- ═══ Panel khusus fungsi STROBO (tab 2+, saat fn=strobo) ═══ -->
+          <div id="chFnStroboPanel" style="display:none;background:#150008;border:1.5px solid #4a1020;border-radius:7px;padding:8px 10px;margin-bottom:8px">
+            <div style="font-size:9px;letter-spacing:.18em;color:var(--red);font-family:'Chakra Petch',monospace;font-weight:700;border-bottom:1px solid #2a0510;padding-bottom:4px;margin-bottom:8px">⚡ STROBO CHANNEL INI</div>
+            <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;margin-bottom:6px">Buka tab STROBO untuk atur pola/step-nya. Channel ini tinggal jadi tombol pemicu (trigger) pola strobo yang dipilih di bawah.</div>
+            <div class="row">
+              <div class="lbl">Pola Strobo</div>
+              <select class="csel" id="chFnStroboSel" style="flex:1"></select>
+            </div>
+          </div>
+          <!-- ═══ Panel khusus fungsi STANDBY (tab 2+, saat fn=standby) ═══ -->
+          <div id="chFnStandbyPanel" style="display:none;background:#020814;border:1.5px solid #103050;border-radius:7px;padding:8px 10px;margin-bottom:8px">
+            <div style="font-size:9px;letter-spacing:.18em;color:var(--blue);font-family:'Chakra Petch',monospace;font-weight:700;border-bottom:1px solid #051a2a;padding-bottom:4px;margin-bottom:8px">⏸ STANDBY CHANNEL INI</div>
+            <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;margin-bottom:6px">Menekan channel ini akan me-load posisi beam saat ini (pan/tilt/warna/prisma) sebagai standby.</div>
+            <button class="btn on-t" id="chFnStandbyCaptureBtn" onclick="captureChFnStandby()" style="width:100%">💾 SIMPAN POSISI SAAT INI KE CHANNEL INI</button>
+            <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;margin-top:5px" id="chFnStandbyInfo">Belum ada posisi tersimpan</div>
+          </div>
+          <!-- ═══ Panel Isi (khusus fungsi GERAKAN) — di Tab 1 selalu tampil, di Tab 2+ hanya saat fn=gerakan ═══ -->
+          <div id="chTypeRow" class="row">
             <div class="lbl">Isi</div>
             <select class="csel" id="chType" style="flex:1">
               <option value="none">— Kosong —</option>
@@ -1554,6 +1628,22 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
                 <option value="prism16">PRISM8</option>
                 <option value="fan">FAN</option>
               </select>
+              <!-- Setting Angle & Spread KHUSUS mode gobo yg dipilih di KF ini —
+                   nulis ke state.goboSettings[mode] yang SAMA dgn di halaman
+                   SETTING, jadi kalau kamu ubah di sini otomatis ke-update juga
+                   di SETTING (dan sebaliknya). Cuma muncul saat Prisma KF ON. -->
+              <div id="kfGoboCustomRow" style="display:none;margin-top:5px;padding:5px;background:rgba(0,212,255,.06);border:1px solid var(--border2);border-radius:5px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                  <span style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace">Angle</span>
+                  <span style="font-size:8px;color:var(--teal);font-family:'Share Tech Mono',monospace" id="kfGoboAngleV">16°</span>
+                </div>
+                <input type="range" class="sldr" id="kfGoboAngle" min="2" max="60" step="0.5" value="16" style="width:100%;margin-bottom:4px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                  <span style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace">Spread</span>
+                  <span style="font-size:8px;color:var(--teal);font-family:'Share Tech Mono',monospace" id="kfGoboSpreadV">3.5</span>
+                </div>
+                <input type="range" class="sldr" id="kfGoboSpread" min="0.5" max="20" step="0.1" value="3.5" style="width:100%">
+              </div>
             </div>
             <!-- ROTATE -->
             <div style="flex:1;background:#0a1215;border-radius:5px;padding:5px;border:1px solid var(--border)">
@@ -2027,7 +2117,10 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
 
       <!-- ROW 1: CHANNEL GERAKAN (5x2 grid) -->
       <div class="mm-sec">
-        <div class="mm-h">CHANNEL <span id="mActiveChDisp">—</span></div>
+        <div class="mm-h" style="justify-content:space-between">
+          <div class="chtab-bar-main" id="chTabBarMain"><!-- Generated by buildChTabBar() --></div>
+          <span>CHANNEL <span id="mActiveChDisp">—</span></span>
+        </div>
         <div class="ch-play-grid" id="mChGrid"></div>
       </div>
 
@@ -2122,6 +2215,11 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
             <!-- SYNC FIXTURES ke layer editor -->
             <div style="margin-bottom:5px">
               <button class="btn" onclick="if(window._e3dRegisterAllFixtures){window._e3dRegisterAllFixtures();setStatus('✅ Fixture disync ke Editor 3D');}" style="width:100%;font-size:9px;border-color:var(--teal);color:var(--teal)">🔄 SYNC FIXTURE KE EDITOR 3D</button>
+            </div>
+
+            <!-- Toggle grid kotak-kotak lantai -->
+            <div style="margin-bottom:5px">
+              <button class="btn" id="e3dGridToggleBtn" onclick="if(window.gb_toggleGrid)gb_toggleGrid();" style="width:100%;font-size:9px;border-color:var(--teal);color:var(--teal)">👁 GRID: ON</button>
             </div>
 
             <!-- VIDEO TRON (VT Jockey — spawn/select/transform di sini; effect & media di halaman Gerakan) -->
@@ -3640,6 +3738,11 @@ function setGerTab(n){
     if(tb)tb.classList.toggle('active',i===n);
     if(pg)pg.classList.toggle('active',i===n);
   });
+  // Tab channel multifungsi (1/2/3.../+) cuma relevan di sub-tab CHANNEL —
+  // sembunyikan di KF EDITOR/STANDBY/STROBO/VIDEO TRON supaya tidak nyangkut
+  // dan bikin bingung di halaman yang tidak terkait channel sama sekali.
+  const chTabBarEl=document.getElementById('chTabBar');
+  if(chTabBarEl) chTabBarEl.style.display=(n===0)?'flex':'none';
   if(n===1){renderKFTimeline(state.kfActiveSlot);buildKFBeamBtns();syncKFSlidersToSelection();}
   if(n===2){renderSbyGrid();buildSbyBeamBtns();}
   if(n===3){
@@ -3983,6 +4086,10 @@ const state={
     star:   {spread:3.5, angle:16},   // STAR
     dots:   {spread:3.5, angle:16},   // DOTS
     cross:  {spread:3.5, angle:16},   // CROSS
+    // p8fan: mode KHUSUS milik preset PARGOY 8 MIRING — TERPISAH dari 'fan'
+    // (mode FAN biasa milik user) supaya custom angle/spread FAN user TIDAK
+    // PERNAH ketiban/ketimpa config P8, apapun urutan save/reload/pindah channel-nya.
+    p8fan:  {spread:2.4, angle:15},
   },
   presetSpeed:1.0, beamRenderMode:'realistic',
   time:0, presetActive:new Array(PRESET_NAMES.length).fill(false),
@@ -4000,6 +4107,13 @@ const state={
   // Channels
   channels:Array(10).fill(null).map((_,i)=>({name:'',type:'none',value:null})),
   activeChannel:null,
+  // Extra Channel Tabs (Tab 2, 3, dst) — tiap channel di sini MULTIFUNGSI:
+  // bisa jadi gerakan / strobo / standby. Tab 1 (index 0) TIDAK ada di sini,
+  // tab 1 tetap pakai state.channels di atas seperti semula.
+  activeChTab:0, // 0 = Tab 1 (channel asli). >=1 = index ke chTabs (chTabs[activeChTab-1])
+  chTabs:[], // masing2: {name, channels:[{fn,name,gerakan,strobo,standby}x10], activeCh:null}
+  _multiChActive:null, // {tabArrIdx, chIdx} channel multifungsi yg lagi ON (Tab 2+)
+  _multiChGerakanCfg:null, // config gerakan channel multifungsi yg lagi ON (dibaca preset 22/23/24)
   // Standby
   standbySlots:Array(4).fill(null).map((_,i)=>({name:`Standby ${i+1}`,positions:[]})),
   activeStandby:null,
@@ -4290,6 +4404,13 @@ function buildGoboGrid(){
       updateGoboPrismaState();
       if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
       if(currentPage===2)buildMainGoboGrid();
+      // FIX: sebelumnya milih kartu prisma/gobo cuma tersimpan di memori
+      // (state.goboMode/prismaMode) — baru benar-benar ke-tulis ke
+      // localStorage kalau user habis itu menyentuh slider Angle/Spread.
+      // Kalau user cuma pilih kartu lalu pindah halaman/app di-background,
+      // pilihannya belum ke-save dan balik ke default saat direstore.
+      // Simpan langsung begitu kartu dipilih.
+      if(typeof masterSave==='function') masterSave();
     });
     grid.appendChild(card);
   });
@@ -5282,48 +5403,7 @@ const SKEY='jawir_v3';
 //  2) menyediakan link fallback yang bisa di-tap manual kalau
 //     auto-download tetap gak jalan (WebView yang benar2 block attr download)
 //  3) memberi status jelas ke user via setStatus jika tersedia
-async function novaDownloadFile(blob, filename){
-  // ---- APK NATIVE (Capacitor) — blob <a download> TIDAK didukung WebView ----
-  // Ini sebabnya tombol download preset/project keliatan "berhasil" tapi
-  // file gak pernah benar2 tersimpan di HP. Di dalam APK, tulis file lewat
-  // Filesystem plugin (API native Android), lalu buka share sheet supaya
-  // user bisa pilih simpan ke Files/Drive/WhatsApp/dll.
-  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()){
-    try{
-      var base64Data = await new Promise(function(resolve, reject){
-        var reader = new FileReader();
-        reader.onloadend = function(){ resolve(String(reader.result).split(',')[1]); };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      var plugins = window.Capacitor.Plugins || {};
-      var Filesystem = plugins.Filesystem;
-      var Directory = (window.Capacitor.Directory) || {Documents:'DOCUMENTS'};
-      if(!Filesystem) throw new Error('Filesystem plugin tidak tersedia');
-      await Filesystem.writeFile({
-        path: filename,
-        data: base64Data,
-        directory: Directory.Documents,
-        recursive: true
-      });
-      if(typeof setStatus==='function'){
-        setStatus('✅ Tersimpan ke Documents/'+filename);
-      }
-      if(plugins.Share){
-        try{
-          var uriResult = await Filesystem.getUri({directory: Directory.Documents, path: filename});
-          await plugins.Share.share({ title: filename, url: uriResult.uri });
-        }catch(shareErr){ /* share opsional, gagal share bukan masalah — file sudah tersimpan */ }
-      }
-      return;
-    }catch(nativeErr){
-      if(typeof setStatus==='function'){
-        setStatus('⚠️ Gagal simpan native: '+(nativeErr && nativeErr.message ? nativeErr.message : nativeErr));
-      }
-      // lanjut ke fallback browser di bawah sebagai upaya terakhir
-    }
-  }
-
+function novaDownloadFile(blob, filename){
   var url = URL.createObjectURL(blob);
   var autoOk = false;
   try{
@@ -5832,7 +5912,7 @@ function presetOffset(p,t,i){
       const fanTilt21=-10+Math.sin(t*1.4*speed+ph21)*28;
       return{pan:fanPan21,tilt:fanTilt21};}
     case 22:{// SWEEP L-R — per-beam delay, sweep kiri-kanan berurutan seperti chase
-      const _swlrch=(state.activeChannel!=null&&state.channels[state.activeChannel])||null;
+      const _swlrch=(state.activeChannel!=null&&state.channels[state.activeChannel])||state._multiChGerakanCfg||null;
       const _swlrPA=_swlrch?.swLRPanAmp!==undefined?_swlrch.swLRPanAmp:65;
       const _swlrPC=_swlrch?.swLRPanCenter!==undefined?_swlrch.swLRPanCenter:0;
       const _swlrTC=_swlrch?.swLRTiltCenter!==undefined?_swlrch.swLRTiltCenter:-12;
@@ -5845,7 +5925,7 @@ function presetOffset(p,t,i){
       const tilt22=_swlrTC+Math.sin(norm22*Math.PI*2*0.5)*_swlrTA;
       return{pan:pan22,tilt:tilt22};}
     case 23:{// SWEEP U-D — per-beam delay, sweep atas-bawah berurutan
-      const _swudch=(state.activeChannel!=null&&state.channels[state.activeChannel])||null;
+      const _swudch=(state.activeChannel!=null&&state.channels[state.activeChannel])||state._multiChGerakanCfg||null;
       const _swudTC=_swudch?.swUDTiltCenter!==undefined?_swudch.swUDTiltCenter:-2;
       const _swudTA=_swudch?.swUDTiltAmp!==undefined?_swudch.swUDTiltAmp:38;
       const _swudPS=_swudch?.swUDPanSpread!==undefined?_swudch.swUDPanSpread:9;
@@ -5859,22 +5939,21 @@ function presetOffset(p,t,i){
     case 24:{// PARGOY 8 MIRING — sesuai referensi KF6, rotate per-beam dari config channel
       const tb24=t*1.4*speed;
       // Baca config dari channel aktif
-      const _p8ch=(state.activeChannel!=null&&state.channels[state.activeChannel])||null;
+      const _p8ch=(state.activeChannel!=null&&state.channels[state.activeChannel])||state._multiChGerakanCfg||null;
       const _p8cfg=_p8ch?.p8miring||null;
       const _tc=_p8ch?.p8tiltCenter!==undefined?_p8ch.p8tiltCenter:-10.5;
       const _ta=_p8ch?.p8tiltAmp!==undefined?_p8ch.p8tiltAmp:1.5;
       // Baca panCenter & panAmp (baru)
       const _pc=_p8ch?.p8panCenter!==undefined?_p8ch.p8panCenter:0;
       const _pa=_p8ch?.p8panAmp!==undefined?_p8ch.p8panAmp:2;
-      // Terapkan fan spread & angle dari config P8 channel
+      // Terapkan fan spread & angle dari config P8 channel — ditulis ke mode
+      // 'p8fan' TERPISAH (bukan 'fan'), jadi TIDAK PERNAH menyentuh setting
+      // FAN custom milik user, apapun yang terjadi (reload, save, ganti channel).
       const _pfs=_p8ch?.p8fanSpread!==undefined?_p8ch.p8fanSpread:2.4;
       const _pfa=_p8ch?.p8fanAngle!==undefined?_p8ch.p8fanAngle:15;
-      // FIX: backup setting FAN asli milik user (SEKALI aja per aktivasi) sebelum ditimpa
-      // preset ini, supaya bisa dikembalikan lagi begitu pindah ke Gerakan lain (lihat playChannel()).
-      if(state.goboSettings && state.goboSettings.fan && !state._p8FanBackup){
-        state._p8FanBackup = {spread: state.goboSettings.fan.spread, angle: state.goboSettings.fan.angle};
-      }
-      if(state.goboSettings&&state.goboSettings.fan){state.goboSettings.fan.spread=_pfs;state.goboSettings.fan.angle=_pfa;}
+      if(!state.goboSettings.p8fan) state.goboSettings.p8fan={spread:2.4,angle:15};
+      state.goboSettings.p8fan.spread=_pfs;
+      state.goboSettings.p8fan.angle=_pfa;
       const tilt24=_tc+Math.sin(tb24*2+Math.PI/4)*_ta;
       const pan24=_pc+Math.sin(tb24)*_pa;
       // Baca rotate config per-beam
@@ -5886,7 +5965,7 @@ function presetOffset(p,t,i){
       const _p8db=_p8ch?.p8dirBeams||[];
       const _pan24final=(_p8dm==='split'&&_p8db.includes(i))?(_pc-Math.sin(tb24)*_pa):pan24;
       return{pan:_pan24final,tilt:tilt24,
-        goboMode:'fan',prismaMode:'fan_flat',
+        goboMode:'p8fan',prismaMode:'fan_flat',
         rotateMode:'manual',rotateAngle:rotAngle24,rotateEnabled:true};}
     default:return{pan:0,tilt:0};
   }
@@ -5916,7 +5995,7 @@ function _buildChDirBeamRow() {
   if (!row) return;
   row.innerHTML = '';
   const chIdx = Number(document.getElementById('chEditSel')?.value || 0);
-  const ch = state.channels[chIdx];
+  const ch = getEditCh(chIdx);
   const flipBeams = ch?.dirBeams || [];
   state.heads.forEach((h, i) => {
     const btn = document.createElement('button');
@@ -5925,7 +6004,7 @@ function _buildChDirBeamRow() {
     btn.style.cssText = 'width:28px;height:28px;border-radius:4px;font-family:Share Tech Mono,monospace;font-size:9px;font-weight:700;cursor:pointer;touch-action:manipulation;transition:all .09s;border:1px solid ' +
       (isFlip ? 'var(--red);background:#1a0808;color:var(--red);box-shadow:0 0 4px rgba(255,51,85,.3)' : 'var(--border2);background:var(--btn);color:var(--lbl)');
     btn.onclick = () => {
-      const c2 = state.channels[Number(document.getElementById('chEditSel')?.value || 0)];
+      const c2 = getEditCh(Number(document.getElementById('chEditSel')?.value || 0));
       if (!c2.dirBeams) c2.dirBeams = [];
       const idx = c2.dirBeams.indexOf(i);
       if (idx >= 0) c2.dirBeams.splice(idx, 1);
@@ -5939,7 +6018,7 @@ function _buildChDirBeamRow() {
 
 function _setChDir(mode) {
   const chIdx = Number(document.getElementById('chEditSel')?.value || 0);
-  const ch = state.channels[chIdx];
+  const ch = getEditCh(chIdx);
   if (!ch) return;
   ch.dirMode = mode;
   if (!ch.dirBeams) ch.dirBeams = [];
@@ -5956,7 +6035,7 @@ function _setChDir(mode) {
 
 function _chDirSelHalf(which) {
   const chIdx = Number(document.getElementById('chEditSel')?.value || 0);
-  const ch = state.channels[chIdx];
+  const ch = getEditCh(chIdx);
   if (!ch) return;
   const total = state.heads.length;
   const half = Math.floor(total / 2);
@@ -5975,7 +6054,7 @@ var _p8dirMode = 'normal'; // 'normal' | 'split'
 
 function _saveP8Dir() {
   const chIdx = Number(document.getElementById('chEditSel')?.value || 0);
-  const ch = state.channels[chIdx];
+  const ch = getEditCh(chIdx);
   if (!ch) return;
   ch.p8dirMode = _p8dirMode;
   ch.p8dirBeams = _p8dirBeams.slice();
@@ -5984,7 +6063,7 @@ function _saveP8Dir() {
 
 function _loadP8Dir() {
   const chIdx = Number(document.getElementById('chEditSel')?.value || 0);
-  const ch = state.channels[chIdx];
+  const ch = getEditCh(chIdx);
   _p8dirMode = ch?.p8dirMode || 'normal';
   _p8dirBeams = ch?.p8dirBeams ? ch.p8dirBeams.slice() : [];
   _syncP8DirUI();
@@ -6487,6 +6566,19 @@ function playKF(si, _fromChannel){
   state.presetActive.fill(false);
   // Jangan reset activeChannel kalau dipanggil dari playChannel
   if(!_fromChannel) state.activeChannel=null;
+  // FIX: _goboUserOverride memaksa applyKFFrame() mengabaikan gobo/prisma yang
+  // di-capture di tiap frame KF (lihat applyKFFrame di updateKFPlayback) — kalau
+  // user sebelumnya sempat pilih gobo manual di SETTING/MAIN, animasi KF yang
+  // baru di-play jadi tidak menampilkan gobo/prisma sesuai yang dicapture.
+  // Matikan sementara selama KF playing, restore begitu KF berhenti. Backup
+  // dipakai bersama dgn toggle KF Prisma (lihat blok kfPrismaToggle) — jangan
+  // ditimpa ulang kalau backup sudah ada (misal Prisma toggle sudah nyimpen duluan).
+  if(!state.kfPlay.playing){
+    if(state._kfGoboOverrideBackup===undefined || state._kfGoboOverrideBackup===null){
+      state._kfGoboOverrideBackup = state._goboUserOverride;
+    }
+    state._goboUserOverride = false;
+  }
   state.kfPlay={playing:true,slotIdx:si,startTime:performance.now()};
   document.querySelectorAll('#kfSlotRow .kf-sb').forEach((b,i)=>b.classList.toggle('playing',i===si));
   document.getElementById('kfPlay').classList.add('on');
@@ -6505,6 +6597,13 @@ function stopKF(){
   // (kecuali CS strobe sedang playing — biarkan CS yang handle)
   if(!csPlayState.playing){
     state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
+  }
+  // Restore _goboUserOverride ke kondisi sebelum KF diplay/Prisma-ON (lihat
+  // playKF & blok kfPrismaToggle) — hanya kalau toggle KF Prisma juga sudah OFF,
+  // supaya tidak konflik kalau keduanya sama2 pegang backup yg sama.
+  if(!kfPrismaOn && state._kfGoboOverrideBackup!==undefined && state._kfGoboOverrideBackup!==null){
+    state._goboUserOverride = state._kfGoboOverrideBackup;
+    state._kfGoboOverrideBackup = null;
   }
   document.querySelectorAll('#kfSlotRow .kf-sb').forEach(b=>b.classList.remove('playing'));
   const pb=document.getElementById('kfPlay');if(pb)pb.classList.remove('on');
@@ -6648,23 +6747,67 @@ function buildChGrid(){
   if(!grid)return;
   grid.innerHTML='';
   const sel=document.getElementById('chEditSel');
-  if(sel&&!sel.options.length){for(let i=0;i<10;i++){const o=document.createElement('option');o.value=i;o.textContent=`Ch ${i+1}`;sel.appendChild(o);}}
-  state.channels.forEach((ch,i)=>{
-    const card=document.createElement('div');
-    card.className='ch-card'+(state.activeChannel===i?' active':'');
-    card.dataset.chi=i;
-    card.innerHTML='<div class="ch-num">CH '+(i+1)+'</div><div class="ch-name">'+(ch.name||'—')+'</div><div class="ch-type">'+(ch.type==='none'?'EMPTY':ch.type.toUpperCase())+'</div>';
-    card.addEventListener('click',()=>{
-      if(document.getElementById('chEditSel'))document.getElementById('chEditSel').value=i;
-      loadChEditor(i);
+  const isTab1=state.activeChTab===0;
+  // Selalu regenerate opsi select supaya label "Ch 1..10" konsisten tiap ganti tab
+  // (tapi simpan & restore value yg sedang dipilih supaya tidak "loncat" balik ke Ch1)
+  if(sel){
+    const _prevVal=sel.value;
+    sel.innerHTML='';for(let i=0;i<10;i++){const o=document.createElement('option');o.value=i;o.textContent=`Ch ${i+1}`;sel.appendChild(o);}
+    if(_prevVal!==''&&_prevVal!==null) sel.value=_prevVal;
+  }
+  const fnRow=document.getElementById('chFnRow');
+  if(fnRow) fnRow.style.display=isTab1?'none':'flex';
+
+  if(isTab1){
+    state.channels.forEach((ch,i)=>{
+      const card=document.createElement('div');
+      card.className='ch-card'+(state.activeChannel===i?' active':'');
+      card.dataset.chi=i;
+      card.innerHTML='<div class="ch-num">CH '+(i+1)+'</div><div class="ch-name">'+(ch.name||'—')+'</div><div class="ch-type">'+(ch.type==='none'?'EMPTY':ch.type.toUpperCase())+'</div>';
+      card.addEventListener('click',()=>{
+        if(document.getElementById('chEditSel'))document.getElementById('chEditSel').value=i;
+        loadChEditor(i);
+      });
+      grid.appendChild(card);
     });
-    grid.appendChild(card);
-  });
+  } else {
+    const tab=state.chTabs[state.activeChTab-1];
+    const chans=tab?tab.channels:[];
+    chans.forEach((mc,i)=>{
+      const card=document.createElement('div');
+      const isEmpty=!mc.fn||mc.fn==='none';
+      card.className='ch-card'+(tab.activeCh===i?' active':'')+(isEmpty?'':' fn-'+mc.fn);
+      card.dataset.chi=i;
+      const typeLabel=isEmpty?'EMPTY':mc.fn.toUpperCase();
+      card.innerHTML='<div class="ch-num">CH '+(i+1)+'</div><div class="ch-name">'+(mc.name||'—')+'</div><div class="ch-type">'+typeLabel+'</div>';
+      card.addEventListener('click',()=>{
+        playMultiCh(state.activeChTab-1,i);
+      });
+      card.addEventListener('dblclick',()=>{
+        // Double-tap kartu = buka editor channel itu (biar tap tunggal tetap untuk main/play)
+        if(document.getElementById('chEditSel'))document.getElementById('chEditSel').value=i;
+        loadChEditor(i);
+      });
+      grid.appendChild(card);
+    });
+  }
   const pSel=document.getElementById('chPresetSel');
   if(pSel&&pSel.options.length!==PRESET_NAMES.length){pSel.innerHTML='';PRESET_NAMES.forEach((n,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`P${i+1}: ${n}`;pSel.appendChild(o);});}
 }
 function loadChEditor(i){
-  const ch=state.channels[i];
+  const mc=getEditMultiCh(i); // null kalau Tab 1
+  const isTab1=state.activeChTab===0;
+  if(mc) mc; // no-op, keep var used
+  if(!isTab1){
+    const tab=state.chTabs[state.activeChTab-1];
+    if(tab) tab.activeCh=i;
+  } else {
+    // (activeChannel utk Tab1 TIDAK diubah di sini — tetap seperti semula,
+    // biar konsisten dgn perilaku play/aktif channel mixer utama)
+  }
+  // Sinkronkan tombol FN (hanya relevan di Tab 2+)
+  syncChFnButtons(i);
+  const ch=getEditCh(i);
   const nm=document.getElementById('chName');if(nm)nm.value=ch.name;
   const tp=document.getElementById('chType');if(tp){tp.value=ch.type;updateChTypePanel(ch.type);}
   if(ch.type==='preset'&&ch.value!=null){const ps=document.getElementById('chPresetSel');if(ps){ps.value=ch.value;
@@ -6752,7 +6895,257 @@ function loadChEditor(i){
   // Load animasi Martin
   const maEl=document.getElementById('chMartinAnim');
   if(maEl) maEl.value = ch.martinAnim || 'off';
+  updateChFnPanels(i);
 }
+
+// ── Multifungsi (Tab 2+): pilih fungsi channel & panel terkait ──────────
+function syncChFnButtons(i){
+  const row=document.getElementById('chFnRow');
+  if(!row)return;
+  const mc=getEditMultiCh(i);
+  const fn=mc?(mc.fn==='none'?null:mc.fn):null;
+  row.querySelectorAll('.chfn-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.fn===fn);
+  });
+}
+function updateChFnPanels(i){
+  const isTab1=state.activeChTab===0;
+  const typeRow=document.getElementById('chTypeRow');
+  const assignPreset=document.getElementById('chAssignPreset');
+  const assignKF=document.getElementById('chAssignKF');
+  const dirPanel=document.getElementById('chDirPanel');
+  const stroboPanel=document.getElementById('chFnStroboPanel');
+  const standbyPanel=document.getElementById('chFnStandbyPanel');
+  if(isTab1){
+    // Tab 1: perilaku asli, panel multifungsi selalu tersembunyi
+    if(stroboPanel)stroboPanel.style.display='none';
+    if(standbyPanel)standbyPanel.style.display='none';
+    if(typeRow)typeRow.style.display='flex';
+    return;
+  }
+  const mc=getEditMultiCh(i);
+  const fn=mc?mc.fn:'none';
+  if(stroboPanel)stroboPanel.style.display=(fn==='strobo')?'block':'none';
+  if(standbyPanel)standbyPanel.style.display=(fn==='standby')?'block':'none';
+  // Form "Isi" (preset/KF/arah) hanya relevan kalau fn = gerakan (atau belum dipilih fn)
+  const showGerakanForm=(fn==='gerakan');
+  if(typeRow)typeRow.style.display=showGerakanForm?'flex':'none';
+  if(!showGerakanForm){
+    if(assignPreset)assignPreset.style.display='none';
+    if(assignKF)assignKF.style.display='none';
+    if(dirPanel)dirPanel.style.display='none';
+  }
+  if(fn==='strobo') fillChFnStroboSel(mc);
+  if(fn==='standby') updateChFnStandbyInfo(mc);
+}
+function setChFn(fn){
+  const i=Number(document.getElementById('chEditSel')?.value||0);
+  const mc=getEditMultiCh(i);
+  if(!mc)return;
+  const prevFn=mc.fn;
+  const hasOldData = prevFn && prevFn!=='none' &&
+    ((prevFn==='gerakan' && mc.gerakan && mc.gerakan.type && mc.gerakan.type!=='none') ||
+     (prevFn==='strobo'  && mc.strobo  && mc.strobo.slotIdx!=null) ||
+     (prevFn==='standby' && mc.standby && mc.standby.positions && mc.standby.positions.length));
+  if(hasOldData && prevFn!==fn){
+    showConfirmDialog({
+      title:'GANTI FUNGSI CHANNEL?',
+      message:'CH '+(i+1)+' ini sudah punya data <b>'+prevFn.toUpperCase()+'</b>. Ganti ke <b>'+fn.toUpperCase()+'</b> akan MENGHAPUS data '+prevFn.toUpperCase()+' tersebut.',
+      okText:'HAPUS & GANTI',
+      okDanger:true,
+      onOk:()=>{ applyChFn(i,mc,fn); },
+      onCancel:()=>{ /* batal, tidak ada perubahan */ }
+    });
+    return;
+  }
+  applyChFn(i,mc,fn);
+}
+function applyChFn(i,mc,fn){
+  const prevFn=mc.fn;
+  if(prevFn!==fn){
+    // Bersihkan data fungsi lama yg tidak dipakai lagi
+    if(prevFn==='gerakan') mc.gerakan=mkEmptyGerakanData();
+    if(prevFn==='strobo') mc.strobo=null;
+    if(prevFn==='standby') mc.standby=null;
+  }
+  mc.fn=fn;
+  if(fn==='gerakan' && !mc.gerakan) mc.gerakan=mkEmptyGerakanData();
+  if(fn==='strobo' && !mc.strobo) mc.strobo={slotIdx:null};
+  if(fn==='standby' && !mc.standby) mc.standby=null;
+  saveChannels();
+  syncChFnButtons(i);
+  updateChFnPanels(i);
+  buildChGrid();
+  setStatus('CH '+(i+1)+' diset jadi '+fn.toUpperCase());
+}
+function fillChFnStroboSel(mc){
+  const sel=document.getElementById('chFnStroboSel');
+  if(!sel)return;
+  if(sel.options.length!==state.csStrobeChannels.length){
+    sel.innerHTML='';
+    state.csStrobeChannels.forEach((s,idx)=>{
+      const o=document.createElement('option');o.value=idx;o.textContent='CS'+(idx+1)+': '+(s.name||'');sel.appendChild(o);
+    });
+    sel.onchange=()=>{
+      const i=Number(document.getElementById('chEditSel')?.value||0);
+      const m=getEditMultiCh(i);
+      if(m){ if(!m.strobo)m.strobo={}; m.strobo.slotIdx=Number(sel.value); saveChannels(); buildChGrid(); }
+    };
+  }
+  if(mc && mc.strobo && mc.strobo.slotIdx!=null) sel.value=mc.strobo.slotIdx;
+}
+function updateChFnStandbyInfo(mc){
+  const info=document.getElementById('chFnStandbyInfo');
+  if(!info)return;
+  if(mc && mc.standby && mc.standby.positions && mc.standby.positions.length){
+    info.textContent=mc.standby.positions.length+' beam tersimpan — "'+(mc.name||'')+'"';
+  } else {
+    info.textContent='Belum ada posisi tersimpan';
+  }
+}
+function captureChFnStandby(){
+  const i=Number(document.getElementById('chEditSel')?.value||0);
+  const mc=getEditMultiCh(i);
+  if(!mc)return;
+  const doCapture=()=>{
+    mc.standby={
+      positions: state.heads.map(h=>({pan:parseFloat(h.pan.toFixed(2)),tilt:parseFloat(h.tilt.toFixed(2)),color:h.color})),
+      prismaMode: state.prismaMode,
+      goboMode: state.goboMode,
+      prismaRotate: state.prismaRotate,
+      rotateMode: state.rotateMode||'auto',
+      rotateSpeed: state.rotateSpeed!==undefined?state.rotateSpeed:0.4,
+      goboSettingsSnapshot: JSON.parse(JSON.stringify(state.goboSettings||{}))
+    };
+    saveChannels();
+    updateChFnStandbyInfo(mc);
+    buildChGrid();
+    setStatus('CH '+(i+1)+': posisi standby disimpan');
+  };
+  if(mc.standby && mc.standby.positions && mc.standby.positions.length){
+    showConfirmDialog({
+      title:'TIMPA POSISI STANDBY?',
+      message:'CH '+(i+1)+' sudah punya posisi standby tersimpan. Timpa dengan posisi saat ini?',
+      okText:'TIMPA',
+      okDanger:true,
+      onOk:doCapture
+    });
+  } else {
+    doCapture();
+  }
+}
+// ── Mainkan channel multifungsi (klik kartu di grid, tab 2+) ──────────
+// Catatan penting: preset/gobo/prisma di aplikasi ini adalah GLOBAL SINGLE
+// STATE (cuma bisa 1 "channel gerakan" yg aktif dalam satu waktu, dipakai
+// bersama oleh Tab 1 lewat state.activeChannel). Supaya channel multifungsi
+// di Tab 2+ bisa dimainkan tanpa merusak Tab 1/mixer utama, dipakai flag
+// terpisah state._multiChActive = {tabArrIdx, chIdx} dan TIDAK menyentuh
+// state.activeChannel / state.presetActive index milik Tab 1.
+function playMultiCh(tabArrIdx,i){
+  const tab=state.chTabs[tabArrIdx];
+  if(!tab)return;
+  const mc=tab.channels[i];
+  if(!mc||!mc.fn||mc.fn==='none'){ setStatus('CH '+(i+1)+' kosong'); return; }
+  const active=state._multiChActive;
+  const isSameActive = active && active.tabArrIdx===tabArrIdx && active.chIdx===i;
+  if(isSameActive){
+    // Tap lagi channel yg sama = OFF
+    turnOffMultiCh();
+    tab.activeCh=null;
+    buildChGrid();
+    buildMainChannelGrid();
+    setStatus('CH '+(i+1)+' OFF');
+    return;
+  }
+  tab.activeCh=i;
+  state._multiChActive={tabArrIdx,chIdx:i};
+  if(mc.fn==='gerakan' && mc.gerakan){
+    playMultiChGerakan(mc.gerakan,i);
+  } else if(mc.fn==='strobo' && mc.strobo && mc.strobo.slotIdx!=null){
+    if(typeof playCSSeq==='function') playCSSeq(mc.strobo.slotIdx);
+  } else if(mc.fn==='standby' && mc.standby){
+    playMultiChStandby(mc.standby);
+  }
+  buildChGrid();
+  buildMainChannelGrid();
+  setStatus('CH '+(i+1)+' ('+mc.fn.toUpperCase()+'): '+(mc.name||''));
+}
+function turnOffMultiCh(){
+  state._multiChActive=null;
+  state._multiChGerakanCfg=null;
+  state.presetActive.fill(false);
+  state.csBeamMuted=[];
+  state.goboMode='off';state.prismaMode='none';state.gobo=false;
+  state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;h.rotateEnabled=undefined;h.angle=state.angle;});
+  state.goboAngle=state.angle;
+  if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
+  if(currentPage===2 && typeof buildMainGoboGrid==='function')buildMainGoboGrid();
+  if(window._m3SetRGBAnim) window._m3SetRGBAnim(null);
+  if(typeof csPlayState!=='undefined' && csPlayState.playing && typeof stopCSSeq==='function') stopCSSeq();
+}
+// Mainkan data gerakan (preset/kf) milik channel multifungsi, memakai
+// mekanisme yang sama dengan playChannel() tapi tanpa menyentuh
+// state.channels/state.activeChannel (biar Tab 1 & mixer utama tidak kesenggol).
+function playMultiChGerakan(g,i){
+  if(!g||g.type==='none')return;
+  state._multiChGerakanCfg=g; // dibaca oleh render preset 22/23/24 (Sweep/P8) sbg fallback config
+  if(state.kfPlay && state.kfPlay.playing && typeof stopKF==='function')stopKF();
+  // Reset dulu (sama seperti playChannel)
+  state.presetActive.fill(false);
+  state.csBeamMuted=[];
+  state.goboMode='off';state.prismaMode='none';state.gobo=false;
+  state.goboInnerColor=false;state.doubleColor=false;state._goboUserOverride=false;
+  state.goboAngle=state.angle;
+  if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
+  const _keepRotate = state._rotateUserOverride && state.prismaRotate;
+  state.heads.forEach(h=>{
+    h.goboMode=undefined;h.prismaMode=undefined;h.rotateEnabled=undefined;h.angle=state.angle;
+    if(!_keepRotate) h.prismRotation=0;
+  });
+  const chSpeed=g.speed!==undefined?g.speed:1.0;
+  if(window._m3SetRGBAnim) window._m3SetRGBAnim(g.martinAnim && g.martinAnim!=='off' ? g.martinAnim : null);
+  if(g.type==='preset'&&g.value!=null){
+    state.presetActive[g.value]=true;
+    state.presetSpeed=chSpeed;
+    state.controlMode='auto';
+  } else if(g.type==='kf'&&g.value!=null){
+    if(typeof playKF==='function'){ playKF(g.value,true); state.kfPlay.speedMult=chSpeed; }
+  }
+  const _chColor=(g.color&&g.color!=='#ffffff')?g.color:(state.globalColor||'#ffffff');
+  state.globalColor=_chColor;
+  state.heads.forEach(h=>{ if(!h._csCustomColor) h.color=_chColor; });
+  const gc=document.getElementById('sGlobalColor');if(gc)gc.value=_chColor;
+  const gcv=document.getElementById('sGlobalColorV');if(gcv)gcv.style.background=_chColor;
+  if(g.prismaRotate!==undefined){
+    state.prismaRotate=g.prismaRotate===true;
+    state.rotateMode='auto';
+    if(g.rotateSpeed!==undefined) state.rotateSpeed=g.rotateSpeed;
+    if(typeof syncMainPrismaRotateBtn==='function')syncMainPrismaRotateBtn();
+  }
+  if(currentPage===2 && typeof buildMainGoboGrid==='function')buildMainGoboGrid();
+}
+function playMultiChStandby(s){
+  if(!s||!s.positions||!s.positions.length)return;
+  if(state.kfPlay && state.kfPlay.playing && typeof stopKF==='function')stopKF();
+  s.positions.forEach((p,j)=>{if(state.heads[j]){state.heads[j].targetPan=p.pan;state.heads[j].targetTilt=p.tilt;if(p.color)state.heads[j].color=p.color;}});
+  if(s.goboSettingsSnapshot){
+    Object.keys(s.goboSettingsSnapshot).forEach(function(k){ state.goboSettings[k]={...s.goboSettingsSnapshot[k]}; });
+  }
+  if(s.goboMode!==undefined){
+    state.goboMode=s.goboMode;
+    state.prismaMode=s.prismaMode||'none';
+    if(typeof updateGoboPrismaState==='function')updateGoboPrismaState();
+    if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
+    if(typeof syncMainGoboBtns==='function')syncMainGoboBtns();
+  }
+  if(s.prismaRotate!==undefined){
+    state.prismaRotate=s.prismaRotate;
+    state.rotateMode=s.rotateMode||'auto';
+    state.rotateSpeed=s.rotateSpeed!==undefined?s.rotateSpeed:0.4;
+    if(typeof syncMainPrismaRotateBtn==='function')syncMainPrismaRotateBtn();
+  }
+}
+
 function updateChTypePanel(type){
   document.getElementById('chAssignPreset').style.display=type==='preset'?'block':'none';
   document.getElementById('chAssignKF').style.display=type==='kf'?'block':'none';
@@ -6794,7 +7187,7 @@ let _p8editBeam=null; // beam index yg sedang di-edit custom
 
 function buildP8BeamGrid(){
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   const cfg=ensureP8Config(ch);
   const grid=document.getElementById('p8beamGrid');
   if(!grid)return;
@@ -6833,7 +7226,7 @@ function updateP8CustomRow(){
   row.style.display='flex';
   if(lbl)lbl.textContent=_p8editBeam+1;
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   const cfg=ensureP8Config(ch);
   const angle=cfg[_p8editBeam]?.a||0;
   if(slider)slider.value=angle;
@@ -6842,7 +7235,7 @@ function updateP8CustomRow(){
 
 function saveP8Config(){
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   ensureP8Config(ch);
   saveChannels();
 }
@@ -6852,14 +7245,14 @@ if(sl)sl.addEventListener('input',e=>{
   const v=Number(e.target.value);
   if(vl)vl.textContent=v+'°';
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  state.channels[chIdx].p8tiltCenter=v;saveChannels();
+  getEditCh(chIdx).p8tiltCenter=v;saveChannels();
 });}
 {const sl=document.getElementById('p8tiltAmp');const vl=document.getElementById('p8tiltAmpVal');
 if(sl)sl.addEventListener('input',e=>{
   const v=Number(e.target.value);
   if(vl)vl.textContent='±'+v+'°';
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  state.channels[chIdx].p8tiltAmp=v;saveChannels();
+  getEditCh(chIdx).p8tiltAmp=v;saveChannels();
 });}
 // Pan kanan-kiri sliders — live apply
 {const sl=document.getElementById('p8panCenter');const vl=document.getElementById('p8panCenterVal');
@@ -6867,14 +7260,14 @@ if(sl)sl.addEventListener('input',e=>{
   const v=Number(e.target.value);
   if(vl)vl.textContent=v+'°';
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  state.channels[chIdx].p8panCenter=v;saveChannels();
+  getEditCh(chIdx).p8panCenter=v;saveChannels();
 });}
 {const sl=document.getElementById('p8panAmp');const vl=document.getElementById('p8panAmpVal');
 if(sl)sl.addEventListener('input',e=>{
   const v=Number(e.target.value);
   if(vl)vl.textContent='±'+v+'°';
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  state.channels[chIdx].p8panAmp=v;saveChannels();
+  getEditCh(chIdx).p8panAmp=v;saveChannels();
 });}
 // Prisma Fan spread & angle — live apply
 {const sl=document.getElementById('p8fanSpread');const vl=document.getElementById('p8fanSpreadVal');
@@ -6882,7 +7275,7 @@ if(sl)sl.addEventListener('input',e=>{
   const v=Number(e.target.value);
   if(vl)vl.textContent=v;
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  state.channels[chIdx].p8fanSpread=v;
+  getEditCh(chIdx).p8fanSpread=v;
   // update global goboSettings.fan spread agar langsung terasa
   if(state.goboSettings&&state.goboSettings.fan)state.goboSettings.fan.spread=v;
   saveChannels();
@@ -6892,7 +7285,7 @@ if(sl)sl.addEventListener('input',e=>{
   const v=Number(e.target.value);
   if(vl)vl.textContent=v+'°';
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  state.channels[chIdx].p8fanAngle=v;
+  getEditCh(chIdx).p8fanAngle=v;
   if(state.goboSettings&&state.goboSettings.fan)state.goboSettings.fan.angle=v;
   saveChannels();
 });}
@@ -6913,7 +7306,7 @@ if(sl)sl.addEventListener('input',e=>{
       const v=Number(e.target.value);
       if(vl)vl.textContent=pre+v+suf;
       const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-      state.channels[chIdx][key]=v;saveChannels();
+      getEditCh(chIdx)[key]=v;saveChannels();
     });
   });
   // swUDPanSpread — display as ×N
@@ -6922,7 +7315,7 @@ if(sl)sl.addEventListener('input',e=>{
     const v=Number(e.target.value);
     if(vlPS)vlPS.textContent='×'+v;
     const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-    state.channels[chIdx].swUDPanSpread=v;saveChannels();
+    getEditCh(chIdx).swUDPanSpread=v;saveChannels();
   });
 })();
 
@@ -6933,7 +7326,7 @@ if(sl)sl.addEventListener('input',e=>{
   if(vl)vl.textContent=v+'°';
   if(_p8editBeam===null)return;
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   
   ch.p8miring[_p8editBeam].a=v;
   buildP8BeamGrid();
@@ -6943,21 +7336,21 @@ if(sl)sl.addEventListener('input',e=>{
 // ALL 0° / ALL 90° / DEFAULT buttons
 {const b0=document.getElementById('p8setAll0');if(b0)b0.addEventListener('click',()=>{
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   ensureP8Config(ch);
   ch.p8miring.forEach(bc=>{bc.m='0';bc.a=0;});
   _p8editBeam=null;updateP8CustomRow();buildP8BeamGrid();saveP8Config();
 });}
 {const b9=document.getElementById('p8setAll90');if(b9)b9.addEventListener('click',()=>{
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   ensureP8Config(ch);
   ch.p8miring.forEach(bc=>{bc.m='90';bc.a=90;});
   _p8editBeam=null;updateP8CustomRow();buildP8BeamGrid();saveP8Config();
 });}
 {const bd=document.getElementById('p8setDefault');if(bd)bd.addEventListener('click',()=>{
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   ch.p8miring=getP8Default();
   _p8editBeam=null;updateP8CustomRow();buildP8BeamGrid();saveP8Config();
 });}
@@ -6978,7 +7371,7 @@ if(sl)sl.addEventListener('input',e=>{
   if(isP8){buildP8BeamGrid();updateP8CustomRow();_loadP8Dir();}
   // Load sweep values when switching to sweep preset
   const chIdx=Number(document.getElementById('chEditSel')?.value||0);
-  const ch=state.channels[chIdx];
+  const ch=getEditCh(chIdx);
   if(isSwLR){
     const _sPA=ch.swLRPanAmp!==undefined?ch.swLRPanAmp:65;
     const _sPC=ch.swLRPanCenter!==undefined?ch.swLRPanCenter:0;
@@ -7010,9 +7403,9 @@ if(sl)sl.addEventListener('input',e=>{
   _cpr.textContent='↻ ROTATE '+(on?'ON':'OFF');
   // Auto-save ke channel yang sedang diedit
   const i=Number(document.getElementById('chEditSel')?.value||0);
-  if(state.channels[i]){
-    state.channels[i].prismaRotate=on;
-    state.channels[i].rotateSpeed=Number(document.getElementById('chRotateSpeed')?.value||0.4);
+  if(getEditCh(i)){
+    getEditCh(i).prismaRotate=on;
+    getEditCh(i).rotateSpeed=Number(document.getElementById('chRotateSpeed')?.value||0.4);
     saveChannels();
   }
 });}
@@ -7021,7 +7414,7 @@ if(sl)sl.addEventListener('input',e=>{
   const _v=Number(e.target.value);
   const _vEl=document.getElementById('chRotateSpeedV');if(_vEl)_vEl.textContent=_v.toFixed(1)+'x';
   const i=Number(document.getElementById('chEditSel')?.value||0);
-  if(state.channels[i]){state.channels[i].rotateSpeed=_v;saveChannels();}
+  if(getEditCh(i)){getEditCh(i).rotateSpeed=_v;saveChannels();}
 });}
 // ════════════════════════════════════════════════════════════════════
 // SPEED GERAKAN PER CHANNEL — satu pintu masuk terpusat.
@@ -7032,8 +7425,20 @@ if(sl)sl.addEventListener('input',e=>{
 window._chSpeedSaveTimers = window._chSpeedSaveTimers || {};
 function setChannelSpeed(idx, v, opts){
   opts = opts || {};
-  if(!state.channels || !state.channels[idx]) return;
   v = Number(v);
+  // Tab 2+ (channel multifungsi sedang diedit): jalur ringan, tidak
+  // menyentuh mixer/fader Tab 1 sama sekali.
+  if(state.activeChTab!==0){
+    const _ch=getEditCh(idx);
+    if(!_ch) return;
+    _ch.speed=v;
+    const cs=document.getElementById('chSpeed'), csv=document.getElementById('chSpeedV');
+    if(cs) cs.value=v;
+    if(csv) csv.textContent=v.toFixed(1)+'×';
+    if(!opts.skipSave) saveChannels();
+    return;
+  }
+  if(!state.channels || !state.channels[idx]) return;
   state.channels[idx].speed = v;
 
   // Live preview: HANYA kalau idx ini memang channel yang sedang aktif/main
@@ -7115,15 +7520,17 @@ if(_cs)_cs.addEventListener('input',e=>{
 {const _cma=document.getElementById('chMartinAnim');if(_cma)_cma.addEventListener('change',e=>{
   const v=e.target.value;
   const i=Number(document.getElementById('chEditSel')?.value||0);
-  if(state.channels[i]){
-    state.channels[i].martinAnim=v;
+  const _ch=getEditCh(i);
+  if(_ch){
+    _ch.martinAnim=v;
     saveChannels();
-    if(state.activeChannel===i && window._m3SetRGBAnim) window._m3SetRGBAnim(v!=='off'?v:null);
+    if(state.activeChTab===0 && state.activeChannel===i && window._m3SetRGBAnim) window._m3SetRGBAnim(v!=='off'?v:null);
   }
 });}
 sbtn('chSaveBtn',()=>{
   const i=Number(document.getElementById('chEditSel').value);
-  const ch=state.channels[i];
+  const isTab1=state.activeChTab===0;
+  const ch=getEditCh(i);
   ch.name=document.getElementById('chName').value;
   ch.type=document.getElementById('chType').value;
   if(ch.type==='preset')ch.value=Number(document.getElementById('chPresetSel').value);
@@ -7138,13 +7545,21 @@ sbtn('chSaveBtn',()=>{
   const prBtn=document.getElementById('chPrismaRotate');
   ch.prismaRotate=prBtn?prBtn.classList.contains('on'):false;
   ch.rotateSpeed=Number(document.getElementById('chRotateSpeed')?.value||0.4);
+  // Kalau Tab 2+: nama channel & fn juga disinkronkan ke object multifungsi
+  if(!isTab1){
+    const mc=getEditMultiCh(i);
+    if(mc){
+      mc.name=ch.name;
+      if(!mc.fn||mc.fn==='none'){ mc.fn='gerakan'; syncChFnButtons(i); }
+    }
+  }
   buildChGrid();
   if(currentPage===2)buildMainPage();
   saveChannels();
   setStatus(`Channel ${i+1} saved: ${ch.name}`);
 });
 function saveChannels(){
-  const d=ls();d.channels=state.channels;d.standbySlots=state.standbySlots;ss(d);
+  const d=ls();d.channels=state.channels;d.standbySlots=state.standbySlots;d.chTabs=state.chTabs;ss(d);
 }
 function loadChannels(){
   const d=ls();
@@ -7158,8 +7573,166 @@ function loadChannels(){
     // Trim to 4
     if(state.standbySlots.length>4) state.standbySlots=state.standbySlots.slice(0,4);
   }
+  if(d.chTabs && Array.isArray(d.chTabs)) state.chTabs=d.chTabs;
 }
 loadChannels();
+
+// ========================================================
+// EXTRA CHANNEL TABS (Tab 2, 3, dst) — CHANNEL MULTIFUNGSI
+// ========================================================
+function mkEmptyMultiCh(){
+  return {fn:'none', name:'', gerakan:null, strobo:null, standby:null};
+}
+function mkEmptyGerakanData(){
+  return {name:'',type:'none',value:null};
+}
+// getEditCh(i) — dipakai di SELURUH form editor CHANNEL (yang sumbernya dari
+// select #chEditSel). Kalau Tab 1 (asli) → balikin state.channels[i] SAMA
+// PERSIS seperti semula (tidak ada perubahan perilaku). Kalau Tab 2+ dan
+// fn channel itu = 'gerakan' → balikin objek gerakan milik channel
+// multifungsi itu (dibuat kalau belum ada) supaya form Isi/Preset/KF/Arah
+// yang sudah ada bisa dipakai ulang tanpa duplikasi kode.
+function getEditCh(i){
+  if(state.activeChTab===0) return state.channels[i];
+  const tab=state.chTabs[state.activeChTab-1];
+  if(!tab) return state.channels[i];
+  const mc=tab.channels[i];
+  if(!mc) return state.channels[i];
+  if(!mc.gerakan) mc.gerakan=mkEmptyGerakanData();
+  return mc.gerakan;
+}
+// Channel multifungsi yang sedang diedit (object {fn,name,gerakan,strobo,standby})
+function getEditMultiCh(i){
+  if(state.activeChTab===0) return null;
+  const tab=state.chTabs[state.activeChTab-1];
+  return tab?tab.channels[i]:null;
+}
+function mkNewChTab(name){
+  return {
+    name: name || ('TAB '+(state.chTabs.length+2)),
+    channels: Array(10).fill(null).map(()=>mkEmptyMultiCh()),
+    activeCh: null
+  };
+}
+function addChTab(){
+  state.chTabs.push(mkNewChTab());
+  state.activeChTab = state.chTabs.length; // pindah ke tab baru
+  saveChannels();
+  buildChTabBar();
+  setActiveChTab(state.activeChTab);
+  setStatus('Tab '+(state.chTabs.length+1)+' ditambahkan');
+}
+function delChTab(tabIdx){
+  // tabIdx: index ke chTabs (bukan activeChTab). Tab 1 (asli) tidak bisa dihapus.
+  if(tabIdx<0||tabIdx>=state.chTabs.length)return;
+  const removedName = state.chTabs[tabIdx].name;
+  state.chTabs.splice(tabIdx,1);
+  // Kalau tab yang aktif adalah yang dihapus atau setelahnya, sesuaikan index
+  if(state.activeChTab === tabIdx+1){
+    state.activeChTab = 0;
+  } else if(state.activeChTab > tabIdx+1){
+    state.activeChTab--;
+  }
+  saveChannels();
+  buildChTabBar();
+  setActiveChTab(state.activeChTab);
+  setStatus('Tab "'+removedName+'" dihapus');
+}
+function confirmDelChTab(tabIdx){
+  const tab=state.chTabs[tabIdx];
+  if(!tab)return;
+  showConfirmDialog({
+    title:'HAPUS TAB?',
+    message:'Tab "'+tab.name+'" beserta semua channel di dalamnya akan dihapus permanen.',
+    okText:'HAPUS',
+    okDanger:true,
+    onOk:()=>delChTab(tabIdx)
+  });
+}
+// Ambil array 10 channel yang sedang aktif ditampilkan (baik Tab 1 asli maupun tab tambahan)
+function getActiveChannelsArray(){
+  if(state.activeChTab===0) return state.channels;
+  const t=state.chTabs[state.activeChTab-1];
+  return t?t.channels:state.channels;
+}
+function setActiveChTab(idx){
+  state.activeChTab = idx;
+  saveChannels();
+  buildChTabBar();
+  buildChGrid();
+  buildMainChannelGrid();
+  // Reset selector ke channel pertama tab ini & muat editornya
+  const sel=document.getElementById('chEditSel');
+  if(sel){ sel.value=0; }
+  loadChEditor(0);
+}
+function buildChTabBar(){
+  renderChTabBarInto(document.getElementById('chTabBar'), true);
+  renderChTabBarInto(document.getElementById('chTabBarMain'), false);
+}
+function renderChTabBarInto(bar, showManage){
+  if(!bar)return;
+  bar.innerHTML='';
+  // Tab 1 (asli, tidak bisa dihapus)
+  const b1=document.createElement('button');
+  b1.className='chtab-btn'+(state.activeChTab===0?' active':'');
+  b1.textContent='1';
+  b1.title='Tab 1';
+  b1.onclick=()=>setActiveChTab(0);
+  bar.appendChild(b1);
+  // Tab 2, 3, dst
+  state.chTabs.forEach((t,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='chtab-wrap';
+    const b=document.createElement('button');
+    b.className='chtab-btn'+(state.activeChTab===i+1?' active':'');
+    b.textContent=String(i+2);
+    b.title=t.name;
+    b.onclick=()=>setActiveChTab(i+1);
+    wrap.appendChild(b);
+    if(showManage){
+      const x=document.createElement('button');
+      x.className='chtab-del';
+      x.textContent='✕';
+      x.title='Hapus '+t.name;
+      x.onclick=(e)=>{e.stopPropagation();confirmDelChTab(i);};
+      wrap.appendChild(x);
+    }
+    bar.appendChild(wrap);
+  });
+  // Tombol tambah tab — hanya di halaman Gerakan
+  if(showManage){
+    const add=document.createElement('button');
+    add.className='chtab-add';
+    add.textContent='+';
+    add.title='Tambah tab baru';
+    add.onclick=()=>addChTab();
+    bar.appendChild(add);
+  }
+}
+
+// ── Dialog konfirmasi generik (dipakai utk hapus tab & overwrite fungsi channel) ──
+function showConfirmDialog(opts){
+  let ov=document.getElementById('confirmDlgOv');
+  if(ov)ov.remove();
+  ov=document.createElement('div');
+  ov.id='confirmDlgOv';
+  ov.className='confirm-dlg-ov';
+  ov.innerHTML=`
+    <div class="confirm-dlg">
+      <div class="confirm-dlg-title">${opts.title||'KONFIRMASI'}</div>
+      <div class="confirm-dlg-msg">${opts.message||''}</div>
+      <div class="confirm-dlg-btns">
+        <button class="confirm-dlg-btn cancel" id="confirmDlgCancel">${opts.cancelText||'BATAL'}</button>
+        <button class="confirm-dlg-btn ${opts.okDanger?'danger':'ok'}" id="confirmDlgOk">${opts.okText||'YA'}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close=()=>{ov.remove();};
+  document.getElementById('confirmDlgCancel').onclick=()=>{ if(opts.onCancel)opts.onCancel(); close(); };
+  document.getElementById('confirmDlgOk').onclick=()=>{ if(opts.onOk)opts.onOk(); close(); };
+  ov.addEventListener('click',(e)=>{ if(e.target===ov){ if(opts.onCancel)opts.onCancel(); close(); } });
+}
 
 function playChannel(i){
   const ch=state.channels[i];
@@ -7169,16 +7742,6 @@ function playChannel(i){
   if(window._m3State && window._m3State.textMode){
     if(window._m3SetTextMode) window._m3SetTextMode(false);
     if(typeof _syncMartTextPanels==='function') _syncMartTextPanels();
-  }
-  // FIX: kalau sebelumnya Pargoy 8 Miring lagi jalan (nge-override angle FAN sementara),
-  // pindah/ganti ke Gerakan lain (atau matikan channel) → kembalikan setting FAN asli user,
-  // supaya FAN gak "lidi" lagi pas dipakai di Gerakan lain / Standby setelahnya.
-  if(state._p8FanBackup){
-    if(state.goboSettings && state.goboSettings.fan){
-      state.goboSettings.fan.spread = state._p8FanBackup.spread;
-      state.goboSettings.fan.angle  = state._p8FanBackup.angle;
-    }
-    state._p8FanBackup = null;
   }
   if(state.activeChannel===i){
     state.activeChannel=null;state.presetActive.fill(false);
@@ -7347,15 +7910,6 @@ function loadStandby(i){
   state.presetActive.fill(false);state.activeChannel=null;state.activeStandby=i;
   // FIX: clear beam muted state agar semua beam hidup kembali saat pindah ke standby
   state.csBeamMuted=[];
-  // FIX: kalau sebelumnya Pargoy 8 Miring lagi jalan, pindah ke Standby → kembalikan
-  // setting FAN asli user dulu (lihat catatan yang sama di playChannel()).
-  if(state._p8FanBackup){
-    if(state.goboSettings && state.goboSettings.fan){
-      state.goboSettings.fan.spread = state._p8FanBackup.spread;
-      state.goboSettings.fan.angle  = state._p8FanBackup.angle;
-    }
-    state._p8FanBackup = null;
-  }
   if(s.positions.length){
     s.positions.forEach((p,j)=>{if(state.heads[j]){state.heads[j].targetPan=p.pan;state.heads[j].targetTilt=p.tilt;if(p.color)state.heads[j].color=p.color;}});
   }
@@ -7420,6 +7974,7 @@ function buildMainPage(){
   if(typeof syncMainGoboBtns==="function")syncMainGoboBtns();
 }
 function refreshMainChannelGrid(){
+  if(state.activeChTab!==0){ buildMainChannelGrid(); return; }
   document.querySelectorAll('.ch-play-btn').forEach((btn,i)=>{
     const ch=state.channels[i];
     const isActive=state.activeChannel===i||(state.kfPlay.playing&&ch.type==='kf'&&ch.value===state.kfPlay.slotIdx&&state.activeChannel===i);
@@ -7433,16 +7988,33 @@ function refreshMainChannelGrid(){
 function buildMainChannelGrid(){
   const grid=document.getElementById('mChGrid');if(!grid)return;
   grid.innerHTML='';
-  state.channels.forEach((ch,i)=>{
-    const btn=document.createElement('button');
-    btn.className='ch-play-btn'+(state.activeChannel===i?' on':'');
-    const _cpbT=ch.type==="none"?"EMPTY":ch.type.toUpperCase();
-    const _spd=ch.speed!==undefined&&ch.speed!==1.0?`<div class="cpb-type" style="color:var(--teal)">${ch.speed.toFixed(1)}×</div>`:'';
-    btn.innerHTML='<div class="cpb-num">CH '+(i+1)+'</div><div class="cpb-name">'+(ch.name||'—')+'</div><div class="cpb-type">'+_cpbT+'</div>'+_spd;
-    btn.addEventListener('click',()=>playChannel(i));
-    btn.addEventListener('touchstart',e=>{if(_touchIsScroll(e))return;e.preventDefault();playChannel(i);},{passive:false});
-    grid.appendChild(btn);
-  });
+  if(state.activeChTab===0){
+    state.channels.forEach((ch,i)=>{
+      const btn=document.createElement('button');
+      btn.className='ch-play-btn'+(state.activeChannel===i?' on':'');
+      const _cpbT=ch.type==="none"?"EMPTY":ch.type.toUpperCase();
+      const _spd=ch.speed!==undefined&&ch.speed!==1.0?`<div class="cpb-type" style="color:var(--teal)">${ch.speed.toFixed(1)}×</div>`:'';
+      btn.innerHTML='<div class="cpb-num">CH '+(i+1)+'</div><div class="cpb-name">'+(ch.name||'—')+'</div><div class="cpb-type">'+_cpbT+'</div>'+_spd;
+      btn.addEventListener('click',()=>playChannel(i));
+      btn.addEventListener('touchstart',e=>{if(_touchIsScroll(e))return;e.preventDefault();playChannel(i);},{passive:false});
+      grid.appendChild(btn);
+    });
+  } else {
+    const tabArrIdx=state.activeChTab-1;
+    const tab=state.chTabs[tabArrIdx];
+    const chans=tab?tab.channels:[];
+    chans.forEach((mc,i)=>{
+      const btn=document.createElement('button');
+      const isEmpty=!mc.fn||mc.fn==='none';
+      const active=state._multiChActive && state._multiChActive.tabArrIdx===tabArrIdx && state._multiChActive.chIdx===i;
+      btn.className='ch-play-btn'+(active?' on':'')+(isEmpty?'':' fn-'+mc.fn);
+      const _cpbT=isEmpty?'EMPTY':mc.fn.toUpperCase();
+      btn.innerHTML='<div class="cpb-num">CH '+(i+1)+'</div><div class="cpb-name">'+(mc.name||'—')+'</div><div class="cpb-type">'+_cpbT+'</div>';
+      btn.addEventListener('click',()=>playMultiCh(tabArrIdx,i));
+      btn.addEventListener('touchstart',e=>{if(_touchIsScroll(e))return;e.preventDefault();playMultiCh(tabArrIdx,i);},{passive:false});
+      grid.appendChild(btn);
+    });
+  }
 }
 function buildMainGoboGrid(){
   const grid=document.getElementById('mGoboGrid');if(!grid)return;
@@ -7465,6 +8037,9 @@ function buildMainGoboGrid(){
       const gd=document.getElementById('mActiveGoboDisp');if(gd)gd.textContent=def.name;
       if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
       setStatus('Gobo: '+def.name);
+      // FIX: sama seperti di grid Setting — simpan langsung begitu dipilih,
+      // supaya tidak balik ke default sebelum sempat menyentuh slider lain.
+      if(typeof masterSave==='function') masterSave();
     });
     btn.addEventListener('touchstart',e=>{if(_touchIsScroll(e))return;e.preventDefault();btn.click();},{passive:false});
     grid.appendChild(btn);
@@ -10023,7 +10598,7 @@ function doLoadProject(jsonText){
       // === RESTORE slider P8 FAN SPREAD & ANGLE ===
       try {
         const _chIdx=Number(document.getElementById('chEditSel')?.value||0);
-        const _ch=state.channels[_chIdx];
+        const _ch=getEditCh(_chIdx);
         const _isP8=_ch&&_ch.type==='preset'&&Number(_ch.value)===24;
         if(_isP8){
           const _pfs=_ch.p8fanSpread!==undefined?_ch.p8fanSpread:2.4;
@@ -10094,6 +10669,23 @@ sbtn('kfPlay',()=>playKF(state.kfActiveSlot));
 
 // PRISMA per beam in KF
 let kfPrismaOn=false;
+// Panel Angle/Spread custom KHUSUS mode gobo yg dipilih di KF Editor — nulis
+// ke state.goboSettings[mode] yang SAMA dgn slider di halaman SETTING, jadi
+// selalu satu sumber data (tidak ada duplikasi yang bisa bikin nilai beda2 lagi).
+function syncKFGoboCustomPanel(){
+  const row=document.getElementById('kfGoboCustomRow');
+  const ptSel=document.getElementById('kfPrismaSelect');
+  if(!row||!ptSel)return;
+  const gm=ptSel.value;
+  if(!kfPrismaOn || !gm || gm==='off'){ row.style.display='none'; return; }
+  row.style.display='block';
+  if(!state.goboSettings[gm]) state.goboSettings[gm]={spread:3.5,angle:16};
+  const gs=state.goboSettings[gm];
+  const angEl=document.getElementById('kfGoboAngle'), angVEl=document.getElementById('kfGoboAngleV');
+  const sprEl=document.getElementById('kfGoboSpread'), sprVEl=document.getElementById('kfGoboSpreadV');
+  if(angEl){angEl.value=gs.angle;} if(angVEl){angVEl.textContent=gs.angle+'°';}
+  if(sprEl){sprEl.value=gs.spread;} if(sprVEl){sprVEl.textContent=Number(gs.spread).toFixed(1);}
+}
 {
   const ptBtn=document.getElementById('kfPrismaToggle');
   const ptSel=document.getElementById('kfPrismaSelect');
@@ -10103,6 +10695,24 @@ let kfPrismaOn=false;
       ptBtn.textContent='💡 PRISMA '+(kfPrismaOn?'ON':'OFF');
       ptBtn.style.borderColor=kfPrismaOn?'var(--amber)':'';
       ptBtn.style.color=kfPrismaOn?'var(--amber)':'';
+      // FIX: _goboUserOverride memaksa renderer pakai state.goboMode GLOBAL,
+      // mengabaikan h.goboMode per-head yang di-set di sini — jadi kalau user
+      // sebelumnya sempat pilih gobo lain di halaman SETTING/MAIN (override
+      // masih nyala), preview KF Prisma jadi salah baca angle/spread (kepakai
+      // punya mode global, bukan mode yg dipilih di KF). Matikan override
+      // sementara selama KF Prisma ON, biar h.goboMode di sini yang berlaku.
+      // Pakai backup yang sama dengan playKF()/stopKF() supaya konsisten
+      // (kalau backup sudah ada dari playKF, jangan ditimpa ulang).
+      if(kfPrismaOn){
+        if(state._kfGoboOverrideBackup===undefined || state._kfGoboOverrideBackup===null){
+          state._kfGoboOverrideBackup = state._goboUserOverride;
+        }
+        state._goboUserOverride = false;
+      } else if(!state.kfPlay.playing && state._kfGoboOverrideBackup!==undefined && state._kfGoboOverrideBackup!==null){
+        // Restore hanya kalau KF juga tidak sedang playing (playKF/stopKF pegang backup yg sama)
+        state._goboUserOverride = state._kfGoboOverrideBackup;
+        state._kfGoboOverrideBackup = null;
+      }
       // Apply to selected beams immediately for preview
       const beams=kfSelBeams.length?kfSelBeams:state.heads.map((_,i)=>i);
       const selGobo=ptSel?ptSel.value:'off';
@@ -10118,11 +10728,13 @@ let kfPrismaOn=false;
           h.prismaMode=undefined;
         }
       });
+      if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
+      syncKFGoboCustomPanel();
     });
   }
   if(ptSel){
     ptSel.addEventListener('change',()=>{
-      if(!kfPrismaOn)return;
+      if(!kfPrismaOn){ syncKFGoboCustomPanel(); return; }
       const selGobo=ptSel.value;
       const def=GOBO_DEFS.find(d=>d.id===selGobo)||GOBO_DEFS[0];
       const beams=kfSelBeams.length?kfSelBeams:state.heads.map((_,i)=>i);
@@ -10133,10 +10745,37 @@ let kfPrismaOn=false;
                      def.type==='split5_real'?'split5_real':
                      def.type==='split'?'split'+def.n:
                      def.type==='linear'?'linear':
-                     def.type==='combo'?'combo':'none';
+                     def.type==='combo'?'combo':
+                     def.type==='fan_flat'?'fan_flat':
+                     def.type==='prism16'?'prism16':'none';
       });
+      if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
+      syncKFGoboCustomPanel();
     });
   }
+  // Slider Angle custom KF — ubah angle KHUSUS mode gobo yg lagi dipilih di KF ini
+  const kfAngEl=document.getElementById('kfGoboAngle');
+  if(kfAngEl) kfAngEl.addEventListener('input',e=>{
+    const gm=ptSel?ptSel.value:null;
+    if(!gm||gm==='off')return;
+    const v=Number(e.target.value);
+    if(!state.goboSettings[gm]) state.goboSettings[gm]={spread:3.5,angle:16};
+    state.goboSettings[gm].angle=v;
+    state.goboAngle=v;
+    const vEl=document.getElementById('kfGoboAngleV'); if(vEl) vEl.textContent=v+'°';
+    if(typeof masterSave==='function') masterSave();
+  });
+  // Slider Spread custom KF — ubah spread KHUSUS mode gobo yg lagi dipilih di KF ini
+  const kfSprEl=document.getElementById('kfGoboSpread');
+  if(kfSprEl) kfSprEl.addEventListener('input',e=>{
+    const gm=ptSel?ptSel.value:null;
+    if(!gm||gm==='off')return;
+    const v=Number(e.target.value);
+    if(!state.goboSettings[gm]) state.goboSettings[gm]={spread:3.5,angle:16};
+    state.goboSettings[gm].spread=v;
+    const vEl=document.getElementById('kfGoboSpreadV'); if(vEl) vEl.textContent=v.toFixed(1);
+    if(typeof masterSave==='function') masterSave();
+  });
 }
 
 // ROTATION per beam in KF
@@ -10258,14 +10897,36 @@ sbtn('kfImport',()=>document.getElementById('kfImportIn').click());
 sbtn('kfAssignCh',()=>{
   const slot=state.kfSlots[state.kfActiveSlot];
   if(!slot.frames.length){setStatus('KF slot is empty');return;}
-  const ch=prompt(`Assign KF${state.kfActiveSlot+1} (${slot.name||'Untitled'}) to which channel? (1-10)`);
+  const tabLabel=state.activeChTab===0?'Tab 1':('Tab '+(state.activeChTab+1));
+  const ch=prompt(`Assign KF${state.kfActiveSlot+1} (${slot.name||'Untitled'}) ke channel mana di ${tabLabel}? (1-10)`);
   if(!ch)return;
   const chNum=Number(ch);
   if(isNaN(chNum)||chNum<1||chNum>10){setStatus('Invalid channel');return;}
   const idx=chNum-1;
-  state.channels[idx]={name:slot.name||`KF${state.kfActiveSlot+1}`,type:'kf',value:state.kfActiveSlot};
-  setStatus(`KF${state.kfActiveSlot+1} assigned to CH${chNum}`);
-  refreshMainChannelGrid();
+  if(state.activeChTab===0){
+    state.channels[idx]={name:slot.name||`KF${state.kfActiveSlot+1}`,type:'kf',value:state.kfActiveSlot};
+    refreshMainChannelGrid();
+  } else {
+    const mc=getEditMultiCh(idx);
+    if(mc){
+      const doAssign=()=>{
+        mc.fn='gerakan';
+        mc.name=slot.name||`KF${state.kfActiveSlot+1}`;
+        mc.gerakan={name:slot.name||`KF${state.kfActiveSlot+1}`,type:'kf',value:state.kfActiveSlot};
+        saveChannels();
+        buildChGrid();
+      };
+      const hasOldData = mc.fn && mc.fn!=='none' && mc.fn!=='gerakan';
+      if(hasOldData){
+        showConfirmDialog({
+          title:'GANTI FUNGSI CHANNEL?',
+          message:'CH '+chNum+' ('+tabLabel+') sudah punya data <b>'+mc.fn.toUpperCase()+'</b>. Ganti ke GERAKAN akan menghapus data itu.',
+          okText:'HAPUS & GANTI', okDanger:true, onOk:doAssign
+        });
+      } else doAssign();
+    }
+  }
+  setStatus(`KF${state.kfActiveSlot+1} assigned to CH${chNum} (${tabLabel})`);
 });
 document.getElementById('kfImportIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.frames){state.kfSlots[state.kfActiveSlot].frames=d.frames;if(d.name)state.kfSlots[state.kfActiveSlot].name=d.name;renderKFTimeline(state.kfActiveSlot);saveKF();setStatus(`Imported ${d.frames.length} frames`);}}catch(ex){setStatus('Import error');}};r.readAsText(f);e.target.value='';});
 
@@ -10313,6 +10974,7 @@ holdBtnBeam.addEventListener('touchend',e=>{e.preventDefault();state.miniBruteOn
 // ========================================================
 // INIT
 // ========================================================
+buildChTabBar();
 buildChGrid();
 buildKFBeamBtns();
 buildSbyBeamBtns();
@@ -12181,35 +12843,11 @@ function syncMainGoboBtns(){
     function gb_buildStageEnvironment() {
         const wallMat  = new THREE.MeshStandardMaterial({ color: 0x23252a, roughness: 0.9 });
 
-        // ── REFLECTIVE CHECKER FLOOR ──────────────────────────────
-        // Buat texture kotak-kotak via canvas
-        const _checkerSize = 512;
-        const _checkerCanvas = document.createElement('canvas');
-        _checkerCanvas.width = _checkerCanvas.height = _checkerSize;
-        const _ctx = _checkerCanvas.getContext('2d');
-        const _tileCount = 16; // jumlah kotak per sisi
-        const _tileSize = _checkerSize / _tileCount;
-        for(let row = 0; row < _tileCount; row++){
-          for(let col = 0; col < _tileCount; col++){
-            const isDark = (row + col) % 2 === 0;
-            _ctx.fillStyle = isDark ? '#111318' : '#1e2028';
-            _ctx.fillRect(col * _tileSize, row * _tileSize, _tileSize, _tileSize);
-          }
-        }
-        // Garis tipis di tepi kotak buat kesan tile
-        _ctx.strokeStyle = 'rgba(80,90,110,0.18)';
-        _ctx.lineWidth = 1.5;
-        for(let i = 0; i <= _tileCount; i++){
-          _ctx.beginPath();_ctx.moveTo(i*_tileSize,0);_ctx.lineTo(i*_tileSize,_checkerSize);_ctx.stroke();
-          _ctx.beginPath();_ctx.moveTo(0,i*_tileSize);_ctx.lineTo(_checkerSize,i*_tileSize);_ctx.stroke();
-        }
-        const _checkerTex = new THREE.CanvasTexture(_checkerCanvas);
-        _checkerTex.wrapS = _checkerTex.wrapT = THREE.RepeatWrapping;
-        _checkerTex.repeat.set(6, 6); // tile 6x supaya kotak terlihat di seluruh lantai
-
-        // Material reflektif: metalness tinggi, roughness rendah = mirror-like
+        // ── FULL BLACK FLOOR ──────────────────────────────────────
+        // Material reflektif tetap (metalness/roughness) tapi warna solid
+        // hitam, tanpa texture checker lagi.
         const floorMat = new THREE.MeshStandardMaterial({
-            map: _checkerTex,
+            color: 0x000000,
             roughness: 0.18,
             metalness: 0.72,
             envMapIntensity: 1.2,
@@ -12223,10 +12861,12 @@ function syncMainGoboBtns(){
         gb_scene.add(floor);
         gb_scene._floor = floor;
 
-        // Grid tipis di atas lantai — lebih redup supaya tidak ganggu pantulan
+        // Grid tipis di atas lantai — lebih redup supaya tidak ganggu pantulan.
+        // Bisa di-hide/unhide dari tombol GRID di Editor 3D (lihat gb_toggleGrid()).
         const grid = new THREE.GridHelper(500, 50, 0x2a2e36, 0x1e2228);
         grid.position.y = -14.92;
         gb_scene.add(grid);
+        gb_scene._grid = grid;
 
         // (Pantulan cahaya lantai khusus Mini Brute — SpotLight/PointLight
         // global lama — sudah dihapus total. Mini Brute sekarang punya
@@ -12236,6 +12876,20 @@ function syncMainGoboBtns(){
         backWall.position.set(0, 135, -150);
         gb_scene.add(backWall);
     }
+
+    // Toggle tampilan grid kotak-kotak lantai — dipanggil dari tombol
+    // GRID di Editor 3D.
+    function gb_toggleGrid() {
+        if (!gb_scene || !gb_scene._grid) return;
+        gb_scene._grid.visible = !gb_scene._grid.visible;
+        const btn = document.getElementById('e3dGridToggleBtn');
+        if (btn) {
+            btn.textContent = gb_scene._grid.visible ? '👁 GRID: ON' : '👁 GRID: OFF';
+            btn.style.color = gb_scene._grid.visible ? 'var(--teal)' : 'var(--lbl)';
+            btn.style.borderColor = gb_scene._grid.visible ? 'var(--teal)' : 'var(--border2)';
+        }
+    }
+    window.gb_toggleGrid = gb_toggleGrid;
 
     // --- Rigging & Geometry Builders ---
     function gb_buildRiggingGeometry() {
@@ -14007,41 +14661,28 @@ function _jawirSpawnMb3D() {
     var metalDark  = new THREE.MeshStandardMaterial({ color: 0x24262b, metalness: 0.75, roughness: 0.32 });
     var bracketMat = new THREE.MeshStandardMaterial({ color: 0x151515, metalness: 0.7,  roughness: 0.4  });
 
-    var chassisW = (variant === 4 ? 3.2 : 1.7) * sc;
-    var chassisH = (variant === 4 ? 2.1 : 3.4) * sc;
+    // Chassis 4-mata dibikin PERSEGI (bujur sangkar), bukan persegi panjang,
+    // supaya layout mata 2x2-nya proporsional & muat tanpa desak-desakan.
+    var chassisW = (variant === 4 ? 3.3 : 1.7) * sc;
+    var chassisH = (variant === 4 ? 3.3 : 3.4) * sc;
     var chassisD = 1.0 * sc;
 
-    // ─ Bracket / yoke gantung ─
-    var bracketGroup = new THREE.Group();
-    var bBar = new THREE.Mesh(new THREE.BoxGeometry(chassisW * 0.9, 0.15 * sc, 0.4 * sc), bracketMat);
-    bBar.position.y = chassisH * 0.5 + 0.35 * sc;
-    bracketGroup.add(bBar);
-    var bLeft = new THREE.Mesh(new THREE.BoxGeometry(0.15 * sc, 0.7 * sc, 0.4 * sc), bracketMat);
-    bLeft.position.set(-chassisW * 0.42, chassisH * 0.5, 0);
-    bracketGroup.add(bLeft);
-    var bRight = new THREE.Mesh(new THREE.BoxGeometry(0.15 * sc, 0.7 * sc, 0.4 * sc), bracketMat);
-    bRight.position.set(chassisW * 0.42, chassisH * 0.5, 0);
-    bracketGroup.add(bRight);
-    group.add(bracketGroup);
-
-    // ─ Chassis (badan fixture) ─
+    // ─ Chassis — KOTAK POLOS SAJA (bracket/yoke gantung & face frame
+    // dihapus sesuai permintaan, biar bentuknya simpel kotak) ─
     var chassis = new THREE.Mesh(new THREE.BoxGeometry(chassisW, chassisH, chassisD), metalDark);
     group.add(chassis);
-    var faceFrame = new THREE.Mesh(
-      new THREE.BoxGeometry(chassisW * 0.96, chassisH * 0.96, 0.08 * sc),
-      bracketMat
-    );
-    faceFrame.position.z = chassisD * 0.5 + 0.02 * sc;
-    group.add(faceFrame);
 
     // ─ Posisi tiap "mata" (lampu) sesuai variant — proporsi mengikuti
-    // layout drawMiniBrutes (2D) supaya tetap terasa familiar ──
-    var eyeR = (variant === 4 ? 0.50 : 0.55) * sc; // sedikit dikecilkan dari sebelumnya
+    // layout drawMiniBrutes (2D) supaya tetap terasa familiar. Untuk
+    // 4-mata, eyeR & jarak antar-mata (offset factor 0.28) dihitung
+    // supaya lingkaran mata + LED ring TIDAK saling bertabrakan/overlap
+    // satu sama lain (jarak antar pusat mata > diameter mata + ring). ──
+    var eyeR = (variant === 4 ? 0.65 : 0.70) * sc;
     var eyePositions = variant === 4 ? [
-      { x: -chassisW * 0.24, y:  chassisH * 0.22 },
-      { x:  chassisW * 0.24, y:  chassisH * 0.22 },
-      { x: -chassisW * 0.24, y: -chassisH * 0.22 },
-      { x:  chassisW * 0.24, y: -chassisH * 0.22 }
+      { x: -chassisW * 0.28, y:  chassisH * 0.28 },
+      { x:  chassisW * 0.28, y:  chassisH * 0.28 },
+      { x: -chassisW * 0.28, y: -chassisH * 0.28 },
+      { x:  chassisW * 0.28, y: -chassisH * 0.28 }
     ] : [
       { x: 0, y:  chassisH * 0.27 },
       { x: 0, y: -chassisH * 0.27 }
@@ -14098,17 +14739,20 @@ function _jawirSpawnMb3D() {
 
       // ── LED RING RAINBOW — cincin di sekeliling lensa putih, warnanya
       // memutar terus (hue-cycle), beda fase tiap mata biar keliatan hidup.
-      // Diposisikan sedikit LEBIH DEPAN dari lensa (bukan di belakang) &
-      // dibikin lebih tebal/lebar supaya jelas kelihatan sebagai cincin,
-      // bukan menyatu/hilang ketimpa glow lensa. ──
+      // Diposisikan LEBIH DEPAN dari lensa & emitter, dibikin lebih
+      // besar/tebal + depthTest dimatikan supaya TIDAK ketiban/ketelen
+      // sama glow putih lensa yang sekarang jauh lebih terang dari
+      // sebelumnya (dulu sering keliatan hilang/ga ada karena ketutup).
       var ringMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending
+        color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending,
+        depthTest: false, depthWrite: false
       });
       var ringMesh = new THREE.Mesh(
-        new THREE.TorusGeometry(eyeR * 1.28, eyeR * 0.17, 8, 32),
+        new THREE.TorusGeometry(eyeR * 1.16, eyeR * 0.10, 10, 40),
         ringMat
       );
-      ringMesh.position.z = eyeFrontZ + 0.05 * sc;
+      ringMesh.position.z = eyeFrontZ + 0.12 * sc;
+      ringMesh.renderOrder = 10;
       eyeGroup.add(ringMesh);
 
       group.add(eyeGroup);
@@ -14850,7 +15494,16 @@ function _jawirAnimate3DFixtures(now, dt) {
     mb.fi = mb.fi < mbTarget ? Math.min(mbTarget, mb.fi + 0.18) : Math.max(mbTarget, mb.fi - 0.016);
     var ci = mb.fi;
     var mbPulse = 0.97 + Math.sin(t * 1.1 + m3d._phase) * 0.03; // napas halus & tipis
-    var mFinal = ci * mbPulse;
+    var mFinal = ci * mbPulse; // untuk BEAM/cahaya nyata ke lantai — ikut ON/OFF
+
+    // ── Indikator LED (mata + ring) — SELALU nyala sebagai standby
+    // indicator (kayak lampu indikator daya di fixture asli), TIDAK ikut
+    // tombol ON/OFF Mini Brute. Hanya mati kalau power global panggung
+    // mati. Beam/cahaya nyata (m3d.light di bawah) tetap ikut ON/OFF
+    // seperti biasa — cuma indikatornya yang standby terus. ──
+    var eyeStandby = (s.power !== false) ? 1.0 : 0.0;
+    var eyePulse = 0.9 + Math.sin(t * 0.8 + m3d._phase) * 0.1;
+    var eyeFinal = eyeStandby * eyePulse;
 
     // LED (lensa) SELALU PUTIH — tidak ikut color mixer.
     var mbWhite = 0xffffff;
@@ -14858,21 +15511,39 @@ function _jawirAnimate3DFixtures(now, dt) {
     var ringCol = new THREE.Color();
 
     m3d.eyes.forEach(function(eye) {
+      var mbActuallyVisible = eyeFinal > 0.01;
+      eye.lens.visible = mbActuallyVisible;
+      eye.emitter.visible = mbActuallyVisible;
+      eye.ring.visible = mbActuallyVisible;
+      if (!mbActuallyVisible) return;
+
+      // Intensitas indikator standby dim, tapi begitu beam aktif (mFinal)
+      // ikut terang penuh — jadi tetap terasa "nyala kecil" pas standby,
+      // dan "nyala terang" pas benar-benar ON.
       eye.lens.material.emissive.set(mbWhite);
-      eye.lens.material.emissiveIntensity = mFinal * 36;
+      eye.lens.material.emissiveIntensity = Math.max(eyeFinal * 9, mFinal * 36);
       eye.emitter.material.color.set(mbWhite);
-      eye.emitter.material.opacity = Math.min(1, mFinal * 1.1);
+      eye.emitter.material.opacity = Math.min(1, Math.max(eyeFinal * 0.32, mFinal * 1.1));
 
       var ringHue = ((now * 0.00025) + (eye.idx || 0) * 0.16 + i * 0.07) % 1.0;
-      ringCol.setHSL(((ringHue % 1) + 1) % 1, 1.0, 0.6);
+      ringCol.setHSL(((ringHue % 1) + 1) % 1, 1.0, 0.46);
       eye.ring.material.color.copy(ringCol);
-      eye.ring.material.opacity = mFinal * 1.0;
+      eye.ring.material.opacity = Math.min(1, Math.max(eyeFinal * 0.75, mFinal * 2.0));
     });
+
+    // Efektif scale (state atau hasil scale manual Editor 3D) — dipakai
+    // supaya jangkauan beam (SpotLight distance) ikut membesar/mengecil
+    // sesuai scale, bukan cuma bentuk fisiknya saja.
+    var mbEffScale = (m3d._e3dScaled && m3d._e3dScale !== undefined) ? m3d._e3dScale : (mb.scale || 1);
 
     if (m3d.light) {
       // Real PointLight tetap warna putih (mengikuti warna LED utama)
       m3d.light.color.set(mbWhite);
       m3d.light.intensity = mFinal * 42;
+      // Jangkauan beam ikut scale fixture — supaya "besar kecilin" di
+      // Transform Editor 3D benar-benar mengubah ukuran beam, bukan cuma
+      // badan fixture-nya.
+      m3d.light.distance = 260 * mbEffScale;
     }
   });
 
@@ -15770,6 +16441,17 @@ setTimeout(_registerAll, 2000);
 function gb_rebuildSubBeamsMeshBridge(lamp, now) {
   const state3d = lamp.state;
   lamp.subBeamsContainer.clear();
+
+  // ── Pantulan cahaya beam ke lantai (floor spot) — sembunyikan dulu
+  // semua spot pool sisa frame sebelumnya (jumlah ray prisma bisa
+  // berubah tiap frame), baru ditampilkan lagi sesuai ray yang aktif
+  // di updateBeamFloorSpot(). Diletakkan SEBELUM early-return curDim
+  // supaya spot ikut hilang saat beam benar-benar mati.
+  if (lamp._floorSpots) {
+    for (let _fi = 0; _fi < lamp._floorSpots.length; _fi++) {
+      if (lamp._floorSpots[_fi]) lamp._floorSpots[_fi].visible = false;
+    }
+  }
   if (state3d.curDim <= 0.005) return;
 
   // ── GOBO SLIDE TRANSITION ─────────────────────────────────────
@@ -15980,6 +16662,40 @@ function gb_rebuildSubBeamsMeshBridge(lamp, now) {
     Object.values(lamp._beamPoolByLen).forEach(b => { b.idx = 0; });
   }
 
+  // ── Pantulan cahaya beam ke lantai (floor spot) ─────────────────
+  // Dipanggil dari makeBeamMesh() untuk SETIAP ray (beam utama maupun
+  // tiap ray prisma), jadi posisi & warnanya otomatis mengikuti beam
+  // apa pun — termasuk semua mode prisma (addCircleBeams/split/fan/
+  // linear/combo/aurora/kepyar) karena semuanya bermuara ke makeBeamMesh.
+  if (!lamp._floorSpots) lamp._floorSpots = [];
+  let _floorSpotIdx = 0;
+  function updateBeamFloorSpot(panOffsetRad, tiltOffsetRad, color, opacity) {
+    if (!gb_scene) return;
+    const totalTilt = tiltRad3d + (tiltOffsetRad || 0);
+    const dY = -Math.sin(totalTilt);
+    if (dY >= -0.01) return; // beam mengarah ke atas/datar — tidak kena lantai
+    const totalPan = panRad3d + (panOffsetRad || 0);
+    const dX = Math.sin(totalPan) * Math.cos(totalTilt);
+    const dZ = Math.cos(totalPan) * Math.cos(totalTilt);
+    const t = Math.min(beamLen, (lampY - FLOOR_Y) / (-dY));
+    if (t <= 0) return;
+    const fx = lampX + dX * t, fz = lampZ + dZ * t;
+
+    let spot = lamp._floorSpots[_floorSpotIdx];
+    if (!spot) {
+      spot = gb_createFloorSpot500();
+      gb_scene.add(spot);
+      lamp._floorSpots[_floorSpotIdx] = spot;
+    }
+    _floorSpotIdx++;
+    spot.visible = true;
+    spot.position.set(fx, FLOOR_Y + 0.03, fz);
+    const spread = Math.min(55, Math.max(4, t * 0.16));
+    spot.scale.set(spread, spread, 1);
+    spot.material.uniforms.uColor.value.copy(color);
+    spot.material.uniforms.uOpacity.value = Math.min(1, opacity * 0.5);
+  }
+
   function makeBeamMesh(color, opacity, radiusTop, radiusBottom, panOffsetRad, tiltOffsetRad) {
     const mesh = getPooledBeam(beamLen);
     mesh.material.uniforms.beamColor.value.copy(color);
@@ -15992,6 +16708,8 @@ function gb_rebuildSubBeamsMeshBridge(lamp, now) {
     const totalPan = (panOffsetRad || 0) + goboSlideOffset;
     if (totalPan !== 0) mesh.rotation.y = totalPan;
     if (tiltOffsetRad) mesh.rotation.x = tiltOffsetRad;
+    // Floor spot mengikuti ray beam ini persis (posisi & warna sama)
+    updateBeamFloorSpot(totalPan, tiltOffsetRad || 0, color, opacity);
     // Apply radius via scale — pool geometry hardcode radius=6, scale X/Y untuk ubah lebar
     // radiusTop default pool = 6, jadi scale = radiusTop / 6
     const rScale = (radiusTop || 6) / 6;
@@ -16979,6 +17697,9 @@ window._f3Pos = f3Pos; // expose untuk debug
       var gd = document.getElementById('mActiveGoboDisp');
       if(gd) gd.textContent = def.label.replace('GOBO: ','');
       if(typeof loadGoboSettingsToSliders==='function') loadGoboSettingsToSliders();
+      // FIX: sama seperti klik gobo btn di grid — simpan langsung begitu dipilih
+      // via keyboard shortcut juga, supaya konsisten & tidak balik ke default.
+      if(typeof masterSave==='function') masterSave();
     } else {
       // Fallback klik button
       var gi2 = MAIN_GOBOS.indexOf(def.id);
@@ -23355,6 +24076,19 @@ if(document.readyState === 'loading'){
                           // supaya TIDAK menimpa state yang sudah diubah
                           // user secara live setelah app selesai dimuat.
 
+  // FIX: kalau HP/WebView lemot, polling di atas bisa makan waktu sampai
+  // beberapa detik sebelum keyElementsReady() true. Kalau dalam jeda itu
+  // user sempat pilih prisma/gobo (atau ganti setting lain), runFinalSync()
+  // di bawah akan restoreUI() dari localStorage versi LAMA dan diam-diam
+  // menimpa balik perubahan yang baru saja dibuat user — inilah salah satu
+  // penyebab "setting prisma balik ke default". Deteksi interaksi user
+  // sedini mungkin; kalau sudah terjadi sebelum sync boot ini selesai,
+  // batalkan sync supaya tidak menimpa perubahan live user.
+  var _userInteracted = false;
+  ['pointerdown','input','change'].forEach(function(ev){
+    document.addEventListener(ev, function(){ _userInteracted = true; }, {capture:true, passive:true});
+  });
+
   function keyElementsReady(){
     // Elemen representatif dari tiap subsistem yang pernah kena masalah
     // restore silent-fail. Kalau semuanya ada, aman untuk sinkronisasi ulang.
@@ -23406,6 +24140,13 @@ if(document.readyState === 'loading'){
 
   function waitThenSync(attemptsLeft){
     if (_guardDone) return; // sudah pernah sukses, tidak perlu ulang
+    if (_userInteracted){
+      // User sudah mulai berinteraksi/ubah setting sebelum guard ini
+      // sempat sync — batalkan supaya tidak menimpa balik perubahannya.
+      _guardDone = true;
+      console.log('[Nova][RestoreGuard] Dibatalkan — user sudah berinteraksi sebelum sync boot selesai.');
+      return;
+    }
     if (!keyElementsReady()){
       if (attemptsLeft <= 0){
         console.warn('[Nova][RestoreGuard] Elemen UI kunci tidak pernah siap setelah batas percobaan — restore mungkin tidak lengkap.');
