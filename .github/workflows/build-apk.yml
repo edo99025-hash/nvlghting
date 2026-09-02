@@ -106,6 +106,7 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
+          import re
           from pathlib import Path
           p = Path("android/app/src/main/AndroidManifest.xml")
           s = p.read_text()
@@ -113,11 +114,24 @@ jobs:
           perms = [
               '<uses-permission android:name="android.permission.INTERNET" />',
               '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />'
+              '<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />',
+              '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />',
+              '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />'
           ]
           for perm in perms:
               if perm not in s:
                   s = s.replace(marker, "    " + perm + "\n" + marker, 1)
+
+          # Pastikan <application> punya requestLegacyExternalStorage="true"
+          # supaya penulisan file (via Capacitor Filesystem plugin) tetap
+          # kompatibel di Android 10 (API 29) yang pakai scoped storage.
+          if 'android:requestLegacyExternalStorage' not in s:
+              s = re.sub(
+                  r'(<application\b)',
+                  r'\1 android:requestLegacyExternalStorage="true"',
+                  s,
+                  count=1
+              )
           p.write_text(s)
           PY
 
