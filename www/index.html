@@ -594,6 +594,12 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
     font-size:9px; cursor:pointer; }
   .vtj-tl-arrow{ color:var(--lbl); opacity:0.5; font-size:11px; }
   </style>
+  <!-- Capacitor native bridge — WAJIB dimuat supaya plugin Filesystem/Share
+       (dipakai untuk simpan file di Android) bisa jalan. File capacitor.js ini
+       otomatis dibikin/di-copy ke folder www/ oleh proses `npx cap sync android`
+       di GitHub Actions. Kalau dibuka di browser biasa (bukan APK), script ini
+       404 secara diam-diam dan kode akan otomatis pakai fallback web biasa. -->
+  <script src="capacitor.js" onerror="console.warn('capacitor.js tidak ada — jalan sebagai web biasa, bukan APK')"></script>
 </head>
 <body>
 
@@ -5424,7 +5430,75 @@ const SKEY='jawir_v3';
 //  2) menyediakan link fallback yang bisa di-tap manual kalau
 //     auto-download tetap gak jalan (WebView yang benar2 block attr download)
 //  3) memberi status jelas ke user via setStatus jika tersedia
+// ---- Deteksi apakah kita jalan di dalam APK Android (Capacitor native) ----
+// Di WebView Android, blob URL + <a download> HAMPIR SELALU gagal menyimpan
+// file beneran ke penyimpanan HP (klik "sukses" tanpa error, tapi file gak
+// pernah ada di Downloads). Satu-satunya cara yang benar2 jalan di WebView
+// adalah plugin native @capacitor/filesystem, yang nulis file lewat Android
+// API langsung, bukan lewat mekanisme download browser.
+function novaIsNativeApp(){
+  try{
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }catch(e){ return false; }
+}
+
+// Ubah Blob jadi base64 murni (tanpa prefix data:...;base64,) — dibutuhkan
+// oleh Capacitor Filesystem.writeFile.
+function novaBlobToBase64(blob){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onloadend = function(){
+      var res = reader.result || '';
+      var comma = res.indexOf(',');
+      resolve(comma>=0 ? res.slice(comma+1) : res);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function novaSaveFileNative(blob, filename){
+  var Filesystem = window.Capacitor.Plugins.Filesystem;
+  var Share = window.Capacitor.Plugins.Share;
+  var base64Data = await novaBlobToBase64(blob);
+
+  // Directory.Documents ada di area yang bisa diakses & terlihat user lewat
+  // app File Manager (Android/data/<package>/files/Documents), dan tidak
+  // butuh permission runtime tambahan di Android 10+ (scoped storage).
+  var writeResult = await Filesystem.writeFile({
+    path: filename,
+    data: base64Data,
+    directory: 'DOCUMENTS',
+    recursive: true
+  });
+
+  return writeResult;
+}
+
 function novaDownloadFile(blob, filename){
+  if(novaIsNativeApp()){
+    novaSaveFileNative(blob, filename).then(function(res){
+      if(typeof setStatus==='function'){
+        setStatus('✅ Tersimpan: '+filename+' (folder Documents)');
+      }
+      novaShowDownloadFallback(null, filename, res && res.uri);
+    }).catch(function(err){
+      console.error('novaSaveFileNative gagal', err);
+      if(typeof setStatus==='function'){
+        setStatus('❌ Gagal simpan '+filename+' — '+(err && err.message ? err.message : 'error tidak diketahui'));
+      }
+      // Fallback terakhir: coba cara blob+<a> lama, mungkin masih kepakai
+      // di sebagian WebView/OEM custom.
+      novaDownloadFileWeb(blob, filename);
+    });
+    return;
+  }
+  novaDownloadFileWeb(blob, filename);
+}
+
+// Cara lama — cuma dipakai kalau BUKAN di dalam APK (mis. dibuka lewat
+// browser HP/desktop biasa), di mana blob+<a download> memang jalan normal.
+function novaDownloadFileWeb(blob, filename){
   var url = URL.createObjectURL(blob);
   var autoOk = false;
   try{
@@ -5439,19 +5513,15 @@ function novaDownloadFile(blob, filename){
     setTimeout(function(){ if(a.parentNode) a.parentNode.removeChild(a); }, 1000);
   }catch(e){ autoOk = false; }
 
-  // Selalu tampilkan fallback manual (toast dengan link tap-to-save).
-  // Auto-download terprogram sering "sukses" tanpa error padahal file
-  // gak benar2 tersimpan (terutama di WebView), jadi user tetap butuh
-  // cara pasti untuk menyimpan filenya.
   novaShowDownloadFallback(url, filename);
 
   if(typeof setStatus==='function'){
     setStatus(autoOk ? ('✅ '+filename+' — kalau gak otomatis ke-download, tap link di pojok bawah') : ('⚠️ Tap link download di pojok bawah untuk simpan '+filename));
   }
-  // Jangan revoke URL di sini — biarkan tetap valid supaya link fallback
-  // masih bisa dipakai user kapan saja setelah ini.
 }
-function novaShowDownloadFallback(url, filename){
+// nativeUri: kalau file berhasil ditulis lewat Filesystem plugin (mode APK),
+// ini isinya path file:// hasil dari writeFile — dipakai buat tombol "Bagikan".
+function novaShowDownloadFallback(url, filename, nativeUri){
   try{
     var box = document.getElementById('novaDlFallbackBox');
     if(!box){
@@ -5462,17 +5532,39 @@ function novaShowDownloadFallback(url, filename){
     }
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:8px;';
-    var link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.rel = 'noopener';
-    link.textContent = '⬇️ Tap simpan: '+filename;
-    link.style.cssText = 'flex:1;color:#00d4ff;font-size:10px;text-decoration:underline;word-break:break-all;';
+
+    if(nativeUri){
+      // Mode APK: file sudah tersimpan di folder Documents. Kasih tombol
+      // "Bagikan" (pindah ke Downloads/WhatsApp/Drive dll via Android share
+      // sheet) karena itu cara paling pasti user bisa mindahin file ke
+      // tempat yang mereka mau.
+      var info = document.createElement('div');
+      info.textContent = '✅ '+filename+' tersimpan di folder Documents app';
+      info.style.cssText = 'flex:1;color:#00d4ff;font-size:10px;word-break:break-all;';
+      var shareBtn = document.createElement('button');
+      shareBtn.textContent = '📤 Bagikan';
+      shareBtn.style.cssText = 'flex:0 0 auto;background:rgba(0,212,255,.15);border:1px solid #00d4ff;color:#00d4ff;border-radius:4px;padding:4px 8px;font-size:10px;cursor:pointer';
+      shareBtn.addEventListener('click', function(){
+        try{
+          window.Capacitor.Plugins.Share.share({ title: filename, url: nativeUri });
+        }catch(e){ console.error('Share gagal', e); }
+      });
+      row.appendChild(info);
+      row.appendChild(shareBtn);
+    } else {
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.rel = 'noopener';
+      link.textContent = '⬇️ Tap simpan: '+filename;
+      link.style.cssText = 'flex:1;color:#00d4ff;font-size:10px;text-decoration:underline;word-break:break-all;';
+      row.appendChild(link);
+    }
+
     var close = document.createElement('button');
     close.textContent = '✕';
     close.style.cssText = 'flex:0 0 auto;background:none;border:1px solid #2a3040;color:#9ab0c8;border-radius:4px;width:22px;height:22px;font-size:11px;cursor:pointer';
     close.addEventListener('click', function(){ if(row.parentNode) row.parentNode.removeChild(row); if(box.children.length===0 && box.parentNode) box.parentNode.removeChild(box); });
-    row.appendChild(link);
     row.appendChild(close);
     box.appendChild(row);
   }catch(e){}
@@ -18248,27 +18340,19 @@ window._f3Pos = f3Pos; // expose untuk debug
     const blob=new Blob(_chunks,{type:_chunks[0].type||'video/webm'});
     const ext=blob.type.includes('mp4')?'mp4':'webm';
     const filename='jawir_stage_'+new Date().toISOString().slice(0,19).replace(/[T:]/g,'-')+'.'+ext;
-    const url=URL.createObjectURL(blob);
 
-    // Coba auto-download dulu. Elemen <a> HARUS ditempel ke DOM dulu sebelum
-    // di-klik — beberapa browser HP/WebView diam-diam mengabaikan klik pada
-    // elemen yang belum ditempel ke document, jadi terkesan "gak ke-download".
-    try{
-      const a=document.createElement('a');
-      a.href=url;
-      a.download=filename;
-      a.style.display='none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>{ if(a.parentNode) a.parentNode.removeChild(a); },1000);
-    }catch(e){/* lanjut ke fallback manual di bawah */}
-
-    // Selalu tampilkan link simpan manual sebagai cadangan pasti — auto-download
-    // via klik terprogram sering gagal TANPA pesan error di banyak browser HP
-    // (terutama iOS/WebView), jadi user tetap punya cara pasti untuk menyimpan.
-    _showRecResultLink(url, filename, blob.size);
-
-    _setRecStatus('✅ Selesai ('+_fmtTime((Date.now()-_recStartTime)/1000)+') — '+(blob.size/1048576).toFixed(1)+' MB');
+    // Pakai helper universal (novaDownloadFile) — di dalam APK ini nulis
+    // lewat Capacitor Filesystem plugin (satu-satunya cara yang benar2
+    // menyimpan file di WebView Android), di browser biasa fallback ke
+    // blob+<a download> normal.
+    novaDownloadFile(blob, filename);
+    if(typeof novaIsNativeApp==='function' && novaIsNativeApp()){
+      _setRecStatus('✅ Selesai ('+_fmtTime((Date.now()-_recStartTime)/1000)+') — '+(blob.size/1048576).toFixed(1)+' MB — tersimpan di folder Documents app');
+    } else {
+      const url=URL.createObjectURL(blob);
+      _showRecResultLink(url, filename, blob.size);
+      _setRecStatus('✅ Selesai ('+_fmtTime((Date.now()-_recStartTime)/1000)+') — '+(blob.size/1048576).toFixed(1)+' MB');
+    }
     _chunks=[];_recorder=null;
   }
 
