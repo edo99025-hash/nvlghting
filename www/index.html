@@ -1171,7 +1171,24 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
 
       </div><!-- /set-col 2 -->
 
-
+      <!-- KEYBOARD SETTINGS — custom key mapping utk Mode Main.
+           Ditaruh paling bawah & di-collapse default biar halaman Setting
+           tetap rapi; klik header buat buka/tutup. -->
+      <div class="sec" style="background:#0f0a1a;border-bottom:2px solid #ffaa00">
+        <div class="sec-h" id="sKbHeader" style="color:#ffaa00;display:flex;justify-content:space-between;align-items:center;cursor:pointer;touch-action:manipulation">
+          <span>⌨ KEYBOARD SETTINGS</span>
+          <span id="sKbCaret" style="font-size:10px;transition:transform .2s">▶</span>
+        </div>
+        <div id="sKbBody" style="display:none;margin-top:8px">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+            <button id="sKbResetBtn" style="padding:4px 8px;border-radius:4px;border:1px solid #ff5566;background:rgba(255,85,102,.12);color:#ff8899;font-family:'Share Tech Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.05em;cursor:pointer">RESET DEFAULT</button>
+          </div>
+          <div style="font-size:8px;color:#4a5868;font-family:'Share Tech Mono',monospace;margin-bottom:8px">
+            Klik sebuah tombol key, lalu tekan key baru di keyboard untuk mengganti. Kalau key sudah dipakai shortcut lain, otomatis ditukar.
+          </div>
+          <div id="sKbRows"></div>
+        </div>
+      </div>
 
     </div><!-- /pgSetting -->
 
@@ -4107,6 +4124,10 @@ const state={
   // Channels
   channels:Array(10).fill(null).map((_,i)=>({name:'',type:'none',value:null})),
   activeChannel:null,
+  // Custom keyboard mapping (Mode Main) — actionId -> key (lowercase,
+  // atau nama khusus 'space'/'f1'..'f12'). Diedit lewat KEYBOARD SETTINGS
+  // panel & dipakai oleh KEYBOARD CONTROLLER v3. Default = mapping bawaan.
+  kbMap: null, // di-set ke KB_DEFAULT_MAP saat pertama kali load (lihat loadKbMap)
   // Extra Channel Tabs (Tab 2, 3, dst) — tiap channel di sini MULTIFUNGSI:
   // bisa jadi gerakan / strobo / standby. Tab 1 (index 0) TIDAK ada di sini,
   // tab 1 tetap pakai state.channels di atas seperti semula.
@@ -7576,6 +7597,81 @@ function loadChannels(){
   if(d.chTabs && Array.isArray(d.chTabs)) state.chTabs=d.chTabs;
 }
 loadChannels();
+
+// ========================================================
+// KEYBOARD MAPPING (custom) — dipakai KEYBOARD CONTROLLER v3
+// ========================================================
+// Daftar semua action yang bisa di-remap + key default-nya.
+// key disimpan lowercase, kecuali 'space' untuk Spasi dan 'f1'..'f12'.
+const KB_ACTIONS = [
+  {group:'TAB CHANNEL (F1–F12)', items:[
+    {id:'tab1',label:'Tab 1'},{id:'tab2',label:'Tab 2'},{id:'tab3',label:'Tab 3'},
+    {id:'tab4',label:'Tab 4'},{id:'tab5',label:'Tab 5'},{id:'tab6',label:'Tab 6'},
+    {id:'tab7',label:'Tab 7'},{id:'tab8',label:'Tab 8'},{id:'tab9',label:'Tab 9'},
+    {id:'tab10',label:'Tab 10'},{id:'tab11',label:'Tab 11'},{id:'tab12',label:'Tab 12'},
+  ]},
+  {group:'CHANNEL (di Tab aktif)', items:[
+    {id:'ch1',label:'CH 1'},{id:'ch2',label:'CH 2'},{id:'ch3',label:'CH 3'},
+    {id:'ch4',label:'CH 4'},{id:'ch5',label:'CH 5'},{id:'ch6',label:'CH 6'},
+    {id:'ch7',label:'CH 7'},{id:'ch8',label:'CH 8'},{id:'ch9',label:'CH 9'},
+    {id:'ch10',label:'CH 10'},
+  ]},
+  {group:'STROBE STANDAR', items:[
+    {id:'strobe1',label:'Strobe 1 (OFF)'},{id:'strobe2',label:'Strobe 2 (BLINK)'},
+    {id:'strobe3',label:'Strobe 3 (FLOW)'},{id:'strobe4',label:'Strobe 4 (RAND)'},
+    {id:'strobe5',label:'Strobe 5 (ALT)'},{id:'strobe6',label:'Strobe 6 (CHASE)'},
+    {id:'strobe7',label:'Strobe 7 (CONV)'},{id:'strobe8',label:'Strobe 8 (SPLIT)'},
+  ]},
+  {group:'CUSTOM STROBE (executor)', items:[
+    {id:'cs1',label:'CS Slot 1'},{id:'cs2',label:'CS Slot 2'},{id:'cs3',label:'CS Slot 3'},
+    {id:'cs4',label:'CS Slot 4'},{id:'cs5',label:'CS Slot 5'},{id:'cs6',label:'CS Slot 6'},
+    {id:'cs7',label:'CS Slot 7'},{id:'cs8',label:'CS Slot 8'},
+  ]},
+  {group:'MINI BRUTE', items:[
+    {id:'mbToggle',label:'Toggle ON/OFF'},
+    {id:'mbHold',label:'Hold — beam mati'},
+    {id:'mbHoldBeam',label:'Hold — beam hidup'},
+  ]},
+  {group:'PRISMA / ROTATE / RAINBOW', items:[
+    {id:'gobo0',label:'Prisma OFF'},{id:'gobo1',label:'PRISM 3'},
+    {id:'gobo2',label:'PRISM 5'},{id:'gobo3',label:'PRISM 16'},{id:'gobo4',label:'FAN'},
+    {id:'rotate',label:'ROTATE toggle'},{id:'rainbow',label:'RAINBOW toggle'},
+  ]},
+];
+
+const KB_DEFAULT_MAP = {
+  tab1:'f1',tab2:'f2',tab3:'f3',tab4:'f4',tab5:'f5',tab6:'f6',
+  tab7:'f7',tab8:'f8',tab9:'f9',tab10:'f10',tab11:'f11',tab12:'f12',
+  ch1:'1',ch2:'2',ch3:'3',ch4:'4',ch5:'5',ch6:'6',ch7:'7',ch8:'8',ch9:'9',ch10:'0',
+  strobe1:'q',strobe2:'w',strobe3:'e',strobe4:'r',strobe5:'t',strobe6:'y',strobe7:'u',strobe8:'i',
+  cs1:'o',cs2:'p',cs3:'l',cs4:'k',cs5:'j',cs6:'h',cs7:'g',cs8:'f',
+  mbToggle:'a', mbHold:'s', mbHoldBeam:'space',
+  gobo0:'z',gobo1:'x',gobo2:'c',gobo3:'v',gobo4:'b',
+  rotate:'n', rainbow:'m',
+};
+
+function saveKbMap(){
+  const d=ls(); d.kbMap=state.kbMap; ss(d);
+}
+function loadKbMap(){
+  const d=ls();
+  state.kbMap = Object.assign({}, KB_DEFAULT_MAP, (d.kbMap && typeof d.kbMap==='object') ? d.kbMap : {});
+}
+function resetKbMap(){
+  state.kbMap = Object.assign({}, KB_DEFAULT_MAP);
+  saveKbMap();
+}
+// key -> actionId lookup, dibangun ulang tiap kali map berubah
+let KB_LOOKUP = {};
+function rebuildKbLookup(){
+  KB_LOOKUP = {};
+  KB_ACTIONS.forEach(g=>g.items.forEach(it=>{
+    const k = state.kbMap[it.id];
+    if(k) KB_LOOKUP[k] = it.id;
+  }));
+}
+loadKbMap();
+rebuildKbLookup();
 
 // ========================================================
 // EXTRA CHANNEL TABS (Tab 2, 3, dst) — CHANNEL MULTIFUNGSI
@@ -11105,111 +11201,12 @@ buildMainPage();
 
 // Keyboard
 // ========================================================
-// KEYBOARD SHORTCUTS
+// (Keyboard controller lama di sini sudah DIHAPUS/DIGABUNG.
+//  Semua keyboard shortcut Mode Main sekarang ditangani oleh SATU
+//  controller terpusat: "KEYBOARD CONTROLLER v3" — cari di bawah,
+//  setelah CUSTOM STROBE SYSTEM didefinisikan (butuh CS_KEYS,
+//  buildCSBeamGrid, applyCSStrobe, stopCSStrobe dari section ini).)
 // ========================================================
-const KB_HINT=[
-  '1-0 = Channel Gerakan 1-10',
-  'F1-F8 = Strobe mode',
-  'SPASI = Mini Brute (tahan)',
-  'Q W E R = Standby 1-4',
-  'K/L = speed -/+',
-  'P = Power toggle',
-  'ESC = semua stop'
-];
-
-document.addEventListener('keydown',e=>{
-  if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA')return;
-  const k=e.key;
-  const kl=k.toLowerCase();
-
-  // ---- Custom Strobe tab keyboard ----
-  if(currentGerTab===3||state.csActive){
-    const beamIdx=CS_KEYS.indexOf(kl);
-    if(beamIdx>=0&&beamIdx<state.heads.length){
-      const idx=state.csBeamActive.indexOf(beamIdx);
-      if(idx>=0)state.csBeamActive.splice(idx,1);else state.csBeamActive.push(beamIdx);
-      if(currentGerTab===3)buildCSBeamGrid();
-      if(state.csActive)applyCSStrobe();
-      return;
-    }
-    if(k==='0'){document.getElementById('csBeamOffBtn')?.click();return;}
-    if(k==='Escape'){state.csBeamMuted=[];buildCSBeamGrid();stopCSStrobe();return;}
-  }
-
-  // ---- F1-F8: Strobe modes ----
-  const fMap={'F1':0,'F2':1,'F3':2,'F4':3,'F5':4,'F6':5,'F7':6,'F8':7};
-  if(k in fMap){
-    e.preventDefault();
-    const mi=fMap[k];
-    photonicStrobeState.active=null; // disable photonic saat F-key reguler dipakai
-    state.strobeMode=STROBE_MODES[mi];
-    state.strobeSpeed=state.strobeSpeeds[STROBE_MODES[mi]]||14;
-    document.querySelectorAll('#mStrobeGrid .spb').forEach((b,j)=>b.classList.toggle('on',j===mi));
-    document.querySelectorAll('#mCsGrid .spb[id^="spb-photonic-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});
-    const sd=document.getElementById('mActiveSbDisp');
-    const lbs=['OFF','BLINK','FLOW','RAND','ALT','CHASE','CONV','SPLIT'];
-    if(sd)sd.textContent=lbs[mi];
-    setStatus('Strobe: '+lbs[mi]+' ['+k+']');
-    return;
-  }
-
-  // ---- Number row 1-0: Channel Gerakan ----
-  if(!e.shiftKey&&!e.ctrlKey&&!e.altKey){
-    const numMap={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8,'0':9};
-    if(k in numMap){
-      e.preventDefault();
-      playChannel(numMap[k]);
-      return;
-    }
-  }
-
-  // ---- Q W E R T: Standby 1-5 ----
-  // Only when on Mode Main page (not in Gerakan/CS strobe tab)
-  if(currentPage===2&&currentGerTab!==3){
-    const sbyMap={'q':0,'w':1,'e':2,'r':3,'t':4};
-    if(kl in sbyMap){
-      loadStandby(sbyMap[kl]);
-      document.querySelectorAll('.sbpb').forEach((b,j)=>b.classList.toggle('on',j===sbyMap[kl]));
-      setStatus('Standby '+(sbyMap[kl]+1)+' ['+k.toUpperCase()+']');
-      return;
-    }
-  }
-
-  // ---- Spacebar: Mini Brute (hold) ----
-  if(k===' '&&currentPage===2){
-    e.preventDefault();
-    if(!state.miniBruteOn){state.miniBruteOn=true;setStatus('Mini Brute ON [SPASI]');}
-    return;
-  }
-
-  // ---- Speed K/L ----
-  if(kl==='k'){const el=document.getElementById('sSpeed');el.value=Math.max(0.1,Number(el.value)-0.2);state.presetSpeed=Number(el.value);const v=document.getElementById('sSpeedV');if(v)v.textContent=Number(el.value).toFixed(1);}
-  if(kl==='l'){const el=document.getElementById('sSpeed');el.value=Math.min(3,Number(el.value)+0.2);state.presetSpeed=Number(el.value);const v=document.getElementById('sSpeedV');if(v)v.textContent=Number(el.value).toFixed(1);}
-
-  // ---- P: Power toggle ----
-  if(kl==='p')state.power=!state.power;
-
-  // ---- Escape: stop all ----
-  if(k==='Escape'){
-    stopKF();
-    if(state.activeChannel!=null){state.activeChannel=null;buildMainChannelGrid();}
-    state.strobeMode='off';
-    photonicStrobeState.active=null;
-    state.miniBruteOn=false;
-    setStatus('ALL STOP [ESC]');
-  }
-});
-
-// Mini Brute: release spacebar = turn off
-document.addEventListener('keyup',e=>{
-  if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA')return;
-  if(e.key===' '&&currentPage===2){
-    e.preventDefault();
-    state.miniBruteOn=false;
-    setStatus('Mini Brute OFF');
-  }
-});
-
 
 // ========================================================
 // CUSTOM STROBE SYSTEM
@@ -17517,18 +17514,25 @@ window._f3Pos = f3Pos; // expose untuk debug
 })();
 
 // ========================================================
-// KEYBOARD CONTROLLER v2 — NOVA LIGHTING
-// SPASI    → Minibrute Toggle
-// B (tahan)→ Minibrute Hold (lepas = off)
-// 1–9, 0   → Channel Gerakan 1–10
-// Q W E R T Y U I → Strobo 8 mode
-// A S D F G H J   → Gobo / Rotate / Rainbow
-// Z X C V  → Standby slot 1–4
-// ?        → Tampilkan legend shortcut
+// KEYBOARD CONTROLLER v3 — NOVA LIGHTING (SATU-SATUNYA controller)
+// Menggabungkan & menggantikan controller lama (v1 di dekat baris ~11100
+// dan v2 di sini). Tidak ada listener keydown/keyup lain untuk Mode Main
+// selain yang di bawah ini — mencegah double-event / shortcut bentrok.
+//
+// Semua tombol BISA DI-CUSTOM lewat halaman SETTING → section
+// "⌨ KEYBOARD SETTINGS" (atau tekan ? untuk lihat legend + shortcut ke sana).
+// Mapping default:
+// F1..F12        → pindah TAB channel (mengikuti jumlah tab yang ada)
+// 1 2 3 4 5 6 7 8 9 0 → CH 1–10 pada TAB yang sedang aktif
+// Q W E R T Y U I O P L K J H G F → STROBE + CUSTOM STROBE (16 slot)
+// A                → MINI BRUTE toggle (klik)
+// S (tahan)        → MINI BRUTE hold, beam mati
+// SPASI (tahan)    → MINI BRUTE hold, beam tetap hidup
+// Z X C V B N M    → PRISMA OFF / PRISM3 / PRISM5 / PRISM16 / FAN / ROTATE / RAINBOW
 // ========================================================
 (function(){
 
-  // ── Guard: jangan aktif saat user ngetik di input/select ──
+  // ── Guard: jangan aktif saat user sedang mengetik ──
   function isTyping(){
     var el = document.activeElement;
     if(!el) return false;
@@ -17543,288 +17547,456 @@ window._f3Pos = f3Pos; // expose untuk debug
     if(typeof setStatus==='function') setStatus(msg);
   }
 
+  // ── Normalisasi e.key jadi bentuk yang dipakai di kbMap ──
+  // 'space' untuk Spasi, 'f1'..'f12' untuk F-key, lowercase utk sisanya.
+  function normKey(e){
+    if(e.key===' '||e.code==='Space') return 'space';
+    var fMatch = /^F(\d{1,2})$/.exec(e.key);
+    if(fMatch) return 'f'+fMatch[1];
+    return e.key.toLowerCase();
+  }
+  // Kebalikannya: actionId -> key yang di-set user (fallback ke default)
+  function keyOf(actionId){
+    return (state.kbMap && state.kbMap[actionId]) || KB_DEFAULT_MAP[actionId];
+  }
+
   // ═══════════════════════════════════════════════════════
-  // SPASI — Minibrute Toggle
+  // TAB channel (pakai sistem tab yang SUDAH ADA)
   // ═══════════════════════════════════════════════════════
-  function doMbToggle(){
-    // Langsung panggil state seperti yang dilakukan mBruteToggle button di app
-    if(typeof state !== 'undefined'){
-      state.miniBruteOn = !state.miniBruteOn;
-      // Sync tombol UI
-      var btn = document.getElementById('mBruteToggle');
-      if(btn){
-        var sub = document.getElementById('mBruteStatus');
-        btn.classList.toggle('active', state.miniBruteOn);
-        if(sub) sub.textContent = state.miniBruteOn ? 'ON' : 'OFF';
+  function tabCountAvailable(){
+    // Tab 1 (asli) + state.chTabs (tab tambahan)
+    return 1 + ((typeof state!=='undefined' && state.chTabs) ? state.chTabs.length : 0);
+  }
+  function doSwitchTab(tabNum){ // tabNum: 1-based
+    var total = tabCountAvailable();
+    if(tabNum < 1 || tabNum > total) return; // tab belum ada → tidak melakukan apa-apa
+    var idx = tabNum - 1; // state.activeChTab: 0 = tab1, 1 = chTabs[0], dst
+    if(typeof setActiveChTab === 'function'){
+      setActiveChTab(idx);
+    } else if(typeof state !== 'undefined'){
+      state.activeChTab = idx;
+      if(typeof buildChTabBar==='function') buildChTabBar();
+      if(typeof buildMainChannelGrid==='function') buildMainChannelGrid();
+    }
+    fb('TAB '+tabNum);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // CH 1–10 pada TAB aktif
+  // Tab 1 (asli)   → playChannel(i)          (sistem channel asli)
+  // Tab 2, 3, dst  → playMultiCh(tabArrIdx,i) (sistem multifungsi)
+  // ═══════════════════════════════════════════════════════
+  function doChannel(idx){
+    if(typeof state === 'undefined') return;
+    // FIX lama: kalau controlMode masih kfEdit, preset tidak jalan di animation loop
+    if(state.controlMode === 'kfEdit') state.controlMode = 'auto';
+
+    var tabNum = state.activeChTab + 1; // label tab utk feedback (1-based)
+
+    if(state.activeChTab === 0){
+      // Tab 1 — sistem channel asli
+      if(typeof playChannel === 'function'){
+        playChannel(idx);
+        var ch = state.channels && state.channels[idx];
+        var nm = ch ? (ch.name||'CH'+(idx+1)) : 'CH'+(idx+1);
+        fb('TAB '+tabNum+' — CH '+(idx+1)+': '+nm);
       }
-      fb('MINI BRUTE: ' + (state.miniBruteOn ? 'ON' : 'OFF'));
     } else {
-      // Fallback klik DOM button
-      var b2 = document.getElementById('mBruteToggle') || document.querySelector('.brute-big');
-      if(b2){ b2.click(); fb('MINI BRUTE TOGGLE'); }
+      // Tab 2+ — sistem multifungsi
+      var tabArrIdx = state.activeChTab - 1;
+      if(typeof playMultiCh === 'function'){
+        playMultiCh(tabArrIdx, idx);
+        var tab = state.chTabs && state.chTabs[tabArrIdx];
+        var mc = tab && tab.channels && tab.channels[idx];
+        var nm2 = mc ? (mc.name||'CH'+(idx+1)) : 'CH'+(idx+1);
+        fb('TAB '+tabNum+' — CH '+(idx+1)+': '+nm2);
+      }
     }
   }
 
   // ═══════════════════════════════════════════════════════
-  // B — Minibrute Hold (tekan=on, lepas=off)
+  // STROBE + CUSTOM STROBE (16 slot)
+  // strobe1..strobe8 → 8 mode Strobe standar (#mStrobeGrid)
+  // cs1..cs8         → executor Custom Strobe (#mCsGrid: 2 photonic
+  //                     swipe + slot CS1..CS5). Slot tidak tersedia = NO-OP.
+  // Klik langsung tombol UI-nya supaya efeknya 100% sama (tidak duplikasi logic).
   // ═══════════════════════════════════════════════════════
-  var _mbHoldActive = false;
-  function doMbHoldOn(){
-    if(_mbHoldActive) return;
-    _mbHoldActive = true;
-    if(typeof state !== 'undefined'){
-      state.miniBruteOn = true;
-      var sub = document.getElementById('mBruteStatus');
-      if(sub) sub.textContent = 'HOLD';
+  function doMainStrobe(slotIdx){
+    var btns = document.querySelectorAll('#mStrobeGrid .spb');
+    var btn = btns[slotIdx];
+    if(!btn) return; // NO-OP kalau tidak ada
+    btn.click();
+  }
+  function doCustomStrobeExec(slotIdx){
+    var btns = document.querySelectorAll('#mCsGrid .spb');
+    var btn = btns[slotIdx];
+    if(!btn || btn.disabled) return; // NO-OP kalau slot tidak tersedia/kosong
+    btn.click();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // A / S / SPASI — MINI BRUTE (pakai tombol UI asli: mBruteToggle,
+  // mBruteHold, mBruteHoldBeam — supaya perilaku sama persis + state
+  // miniBruteOn/mbMode tetap sinkron dengan sistem yang sudah ada)
+  // ═══════════════════════════════════════════════════════
+  function doMbClickToggle(){
+    var btn = document.getElementById('mBruteToggle');
+    if(btn){ btn.click(); }
+    else if(typeof state !== 'undefined'){
+      state.miniBruteOn = !state.miniBruteOn;
+      state.mbMode = state.miniBruteOn ? 1 : 0;
+      if(typeof _mbUpdateUI==='function') _mbUpdateUI();
     }
-    var btn = document.getElementById('mBruteHold') || document.querySelector('.brute-hold');
-    if(btn) btn.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
+    fb('MINI BRUTE: '+(typeof state!=='undefined'&&state.miniBruteOn?'ON':'OFF'));
+  }
+  var _mbSHoldActive = false;
+  function doMbSHoldOn(){
+    if(_mbSHoldActive) return;
+    _mbSHoldActive = true;
+    var btn = document.getElementById('mBruteHold');
+    if(btn) btn.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,cancelable:true}));
+    else if(typeof state!=='undefined'){ state.miniBruteOn=true; state.mbMode=1; if(typeof _mbUpdateUI==='function')_mbUpdateUI(); }
     fb('MINI BRUTE HOLD ON');
   }
-  function doMbHoldOff(){
-    if(!_mbHoldActive) return;
-    _mbHoldActive = false;
-    if(typeof state !== 'undefined'){
-      state.miniBruteOn = false;
-      var sub = document.getElementById('mBruteStatus');
-      if(sub) sub.textContent = 'OFF';
-    }
-    var btn = document.getElementById('mBruteHold') || document.querySelector('.brute-hold');
-    if(btn){
-      btn.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,cancelable:true}));
-      btn.dispatchEvent(new MouseEvent('mouseleave',{bubbles:true,cancelable:true}));
-    }
-    fb('MINI BRUTE HOLD OFF');
+  function doMbSHoldOff(){
+    if(!_mbSHoldActive) return;
+    _mbSHoldActive = false;
+    var btn = document.getElementById('mBruteHold');
+    if(btn) btn.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,cancelable:true}));
+    else if(typeof state!=='undefined'){ state.miniBruteOn=false; state.mbMode=0; if(typeof _mbUpdateUI==='function')_mbUpdateUI(); }
+    fb('MINI BRUTE OFF');
+  }
+  var _mbSpaceHoldActive = false;
+  function doMbSpaceHoldOn(){
+    if(_mbSpaceHoldActive) return;
+    _mbSpaceHoldActive = true;
+    var btn = document.getElementById('mBruteHoldBeam');
+    if(btn) btn.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,cancelable:true}));
+    else if(typeof state!=='undefined'){ state.miniBruteOn=true; state.mbMode=2; if(typeof _mbUpdateUI==='function')_mbUpdateUI(); }
+    fb('MINI BRUTE HOLD + BEAM ON');
+  }
+  function doMbSpaceHoldOff(){
+    if(!_mbSpaceHoldActive) return;
+    _mbSpaceHoldActive = false;
+    var btn = document.getElementById('mBruteHoldBeam');
+    if(btn) btn.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,cancelable:true}));
+    else if(typeof state!=='undefined'){ state.miniBruteOn=false; state.mbMode=0; if(typeof _mbUpdateUI==='function')_mbUpdateUI(); }
+    fb('MINI BRUTE OFF');
   }
 
   // ═══════════════════════════════════════════════════════
-  // 1–9, 0 — Channel Gerakan
+  // PRISMA / ROTATE / RAINBOW
+  // gobo0=OFF gobo1=PRISM3 gobo2=PRISM5 gobo3=PRISM16 gobo4=FAN →
+  //   klik tombol asli #mGoboGrid
+  // rotate=ROTATE toggle (toggleMainPrismaRotate)
+  // rainbow=RAINBOW toggle (toggleMainRainbow)
   // ═══════════════════════════════════════════════════════
-  function doChannel(idx){ // 0-based
-    // FIX: kalau controlMode masih kfEdit, preset TIDAK jalan di animation loop
-    // Wajib reset ke auto sebelum playChannel
-    if(typeof state !== 'undefined'){
-      if(state.controlMode === 'kfEdit') state.controlMode = 'auto';
-    }
-    if(typeof playChannel === 'function'){
-      playChannel(idx);
-      var ch = (typeof state!=='undefined'&&state.channels&&state.channels[idx]);
-      var nm = ch ? (ch.name||'CH'+(idx+1)) : 'CH'+(idx+1);
-      fb('CH'+(idx+1)+': '+nm);
-      return;
-    }
-    fb('CH'+(idx+1)+' -- playChannel not found');
-  }
+  var MAIN_GOBOS = ['off','prism3','prism5','prism16','fan']; // urutan sesuai #mGoboGrid
 
-  // ═══════════════════════════════════════════════════════
-  // Q–I — Strobo
-  // ═══════════════════════════════════════════════════════
-  var STROBE_MODES_KB = ['off','blink','flow','random','alternate','chase','converge','split'];
-  var STROBE_LABELS   = ['OFF','BLINK','FLOW','RAND','ALT','CHASE','CONV','SPLIT'];
-  function doStrobe(idx){
-    var m = STROBE_MODES_KB[idx];
-    if(typeof state !== 'undefined'){
-      state.strobeMode = m;
-      if(state.strobeSpeeds) state.strobeSpeed = state.strobeSpeeds[m] || 14;
-      // Matikan photonic strobe kalau ada
-      if(typeof photonicStrobeState !== 'undefined') photonicStrobeState.active = null;
-      // Sync UI grid
-      document.querySelectorAll('#mStrobeGrid .spb').forEach(function(b,i){
-        b.classList.toggle('on', i===idx);
-      });
-      var sd = document.getElementById('mActiveSbDisp');
-      if(sd) sd.textContent = STROBE_LABELS[idx];
+  function doMainGobo(idx){
+    var btns = document.querySelectorAll('#mGoboGrid button');
+    var btn = btns[idx];
+    if(!btn) return;
+    btn.click();
+  }
+  function doRotate(){
+    if(typeof toggleMainPrismaRotate === 'function'){
+      toggleMainPrismaRotate();
+    } else if(typeof state !== 'undefined'){
+      state.prismaRotate = !state.prismaRotate;
+      if(typeof syncMainPrismaRotateBtn==='function') syncMainPrismaRotateBtn();
+    }
+    fb('ROTATE: '+(typeof state!=='undefined'&&state.prismaRotate?'ON':'OFF'));
+  }
+  function doRainbow(){
+    if(typeof toggleMainRainbow === 'function'){
+      toggleMainRainbow();
     } else {
-      var spb = document.querySelectorAll('#mStrobeGrid .spb');
-      if(spb[idx]) spb[idx].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
+      var rbBtn = document.getElementById('mRainbowBtn');
+      if(rbBtn) rbBtn.click();
     }
-    fb('STROBE: '+STROBE_LABELS[idx]);
+    fb('RAINBOW: '+(typeof state!=='undefined'&&state.rainbow?'ON':'OFF'));
   }
 
   // ═══════════════════════════════════════════════════════
-  // A–J — Gobo / Rotate / Rainbow
-  // A=OFF  S=GOBO1  D=PRISM5  F=PRISM8  G=FAN  H=ROTATE  J=RAINBOW
-  // ═══════════════════════════════════════════════════════
-  var GOBO_KB = [
-    {id:'off',     label:'GOBO: OFF'},
-    {id:'prism3',  label:'GOBO: GOBO1'},
-    {id:'prism5',  label:'GOBO: PRISM5'},
-    {id:'prism16', label:'GOBO: PRISM8'},
-    {id:'fan',     label:'GOBO: FAN'},
-    {id:'_rotate', label:'ROTATE'},
-    {id:'_rainbow',label:'RAINBOW'},
-  ];
-  var MAIN_GOBOS = ['off','prism3','prism5','prism16','fan'];
-
-  function doGobo(def){
-    // ROTATE toggle
-    if(def.id === '_rotate'){
-      if(typeof toggleMainPrismaRotate === 'function'){
-        toggleMainPrismaRotate();
-      } else if(typeof state !== 'undefined'){
-        state.prismaRotate = !state.prismaRotate;
-        state.heads && state.heads.forEach(function(h){ h.rotateEnabled=undefined; });
-        if(typeof syncMainPrismaRotateBtn==='function') syncMainPrismaRotateBtn();
-      }
-      fb('ROTATE: '+(state&&state.prismaRotate?'ON':'OFF'));
-      return;
-    }
-    // RAINBOW toggle
-    if(def.id === '_rainbow'){
-      if(typeof toggleMainRainbow === 'function'){
-        toggleMainRainbow();
-      } else {
-        var rbBtn = document.getElementById('mRainbowBtn');
-        if(rbBtn) rbBtn.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
-        else if(typeof state !== 'undefined') state.rainbow = !state.rainbow;
-      }
-      fb('RAINBOW: '+(state&&state.rainbow?'ON':'OFF'));
-      return;
-    }
-    // Normal gobo — set state langsung (paling reliable, sama seperti klik gobo btn di mGoboGrid)
-    if(typeof state !== 'undefined'){
-      state.goboMode = def.id;
-      state._goboUserOverride = (def.id !== 'off');
-      state.heads && state.heads.forEach(function(h){ h.goboMode=undefined; h.prismaMode=undefined; });
-      if(typeof updateGoboPrismaState==='function') updateGoboPrismaState();
-      // Sync UI
-      var gi = MAIN_GOBOS.indexOf(def.id);
-      document.querySelectorAll('#mGoboGrid button').forEach(function(b,i){
-        b.style.borderColor = (i===gi)?'var(--purple)':'';
-        b.style.background  = (i===gi)?'#140a20':'var(--btn)';
-        b.style.color       = (i===gi)?'var(--purple)':'var(--lbl)';
-      });
-      var gd = document.getElementById('mActiveGoboDisp');
-      if(gd) gd.textContent = def.label.replace('GOBO: ','');
-      if(typeof loadGoboSettingsToSliders==='function') loadGoboSettingsToSliders();
-      // FIX: sama seperti klik gobo btn di grid — simpan langsung begitu dipilih
-      // via keyboard shortcut juga, supaya konsisten & tidak balik ke default.
-      if(typeof masterSave==='function') masterSave();
-    } else {
-      // Fallback klik button
-      var gi2 = MAIN_GOBOS.indexOf(def.id);
-      var gBtns = document.querySelectorAll('#mGoboGrid button');
-      if(gBtns[gi2]) gBtns[gi2].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
-    }
-    fb(def.label);
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // Z X C V — Standby slot 1–4
-  // ═══════════════════════════════════════════════════════
-  function doStandby(idx){
-    // Langsung panggil loadStandby (paling reliable)
-    if(typeof loadStandby === 'function'){
-      loadStandby(idx);
-      // Sync highlight sbpb buttons
-      document.querySelectorAll('.sbpb').forEach(function(b,i){
-        b.classList.toggle('on', i===idx);
-      });
-      var nm = (typeof state!=='undefined'&&state.standbySlots&&state.standbySlots[idx])
-        ? (state.standbySlots[idx].name||'Standby '+(idx+1)) : 'Standby '+(idx+1);
-      fb('STANDBY '+(idx+1)+': '+nm);
-      return;
-    }
-    // Fallback klik sbpb
-    var sbBtns = document.querySelectorAll('.sbpb');
-    if(sbBtns[idx]){
-      sbBtns[idx].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
-      fb('STANDBY '+(idx+1));
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // KEY MAPS
-  // ═══════════════════════════════════════════════════════
-  var KB_STROBE  = {q:0,w:1,e:2,r:3,t:4,y:5,u:6,i:7};
-  var KB_GOBO    = {a:0,s:1,d:2,f:3,g:4,h:5,j:6};
-  var KB_STANDBY = {z:0,x:1,c:2,v:3};
-  // Digit channel: '1'→0 .. '9'→8, '0'→9
-  function digitToChIdx(k){ return k==='0'?9:parseInt(k)-1; }
-
-  // ═══════════════════════════════════════════════════════
-  // EVENT LISTENERS
+  // EVENT LISTENERS — SATU keydown (bubble) + SATU keyup untuk shortcut
+  // Mode Main. (Ada SATU listener keydown lagi di bawah, khusus capture:true
+  // untuk mode "dengarkan" di KEYBOARD SETTINGS — itu selalu jalan LEBIH
+  // DULU & stopPropagation() saat sedang aktif, jadi listener bubble di
+  // sini otomatis tidak ikut jalan. Tidak ada dobel-trigger action.)
   // ═══════════════════════════════════════════════════════
   document.addEventListener('keydown', function(e){
     if(isTyping()) return;
-    var k = e.key;
-    var kl = k.toLowerCase();
 
-    // Spasi → Minibrute toggle
-    if(k===' '||e.code==='Space'){
-      e.preventDefault();
-      doMbToggle();
-      return;
+    // ---- Custom Strobe EDITOR tab (Gerakan → sub-tab Strobo) tetap
+    // pakai shortcut beam-select miliknya sendiri, tidak berubah, dan
+    // diprioritaskan dulu supaya tidak nyangkut dengan mapping Mode Main. ----
+    if((typeof currentGerTab!=='undefined' && currentGerTab===3) || (typeof state!=='undefined' && state.csActive)){
+      var klEd = e.key.toLowerCase();
+      if(typeof CS_KEYS!=='undefined'){
+        var beamIdx = CS_KEYS.indexOf(klEd);
+        if(beamIdx>=0 && typeof state!=='undefined' && state.heads && beamIdx<state.heads.length){
+          var bi = state.csBeamActive.indexOf(beamIdx);
+          if(bi>=0) state.csBeamActive.splice(bi,1); else state.csBeamActive.push(beamIdx);
+          if(currentGerTab===3 && typeof buildCSBeamGrid==='function') buildCSBeamGrid();
+          if(state.csActive && typeof applyCSStrobe==='function') applyCSStrobe();
+          return;
+        }
+      }
+      if(e.key==='0'){ document.getElementById('csBeamOffBtn')?.click(); return; }
+      if(e.key==='Escape'){
+        if(typeof state!=='undefined') state.csBeamMuted=[];
+        if(typeof buildCSBeamGrid==='function') buildCSBeamGrid();
+        if(typeof stopCSStrobe==='function') stopCSStrobe();
+        return;
+      }
     }
-    // B → Minibrute hold on
-    if(kl==='b'){
-      e.preventDefault();
-      if(!e.repeat) doMbHoldOn();
-      return;
-    }
-    // 1–9, 0 → Channel
-    if(/^[0-9]$/.test(k)){
-      e.preventDefault();
-      doChannel(digitToChIdx(k));
-      return;
-    }
-    // Q W E R T Y U I → Strobo
-    if(kl in KB_STROBE){
-      e.preventDefault();
-      doStrobe(KB_STROBE[kl]);
-      return;
-    }
-    // A S D F G H J → Gobo/Rotate/Rainbow
-    if(kl in KB_GOBO){
-      e.preventDefault();
-      doGobo(GOBO_KB[KB_GOBO[kl]]);
-      return;
-    }
-    // Z X C V → Standby
-    if(kl in KB_STANDBY){
-      e.preventDefault();
-      doStandby(KB_STANDBY[kl]);
-      return;
-    }
-    // ? → Legend
-    if(k==='?'||k==='/'){
+
+    // ---- ? → Legend / SETTING KEYBOARD (selalu aktif, bukan cuma di Mode Main) ----
+    if(e.key==='?'||e.key==='/'){
       e.preventDefault();
       toggleKbLegend();
       return;
     }
+
+    // Semua shortcut di bawah ini HANYA berlaku di halaman Mode Main
+    if(typeof currentPage==='undefined' || currentPage!==2) return;
+
+    // ---- Escape → stop semua (bonus, tidak bentrok dgn mapping custom) ----
+    if(e.key==='Escape'){
+      if(typeof stopKF==='function') stopKF();
+      if(typeof state!=='undefined' && state.activeChannel!=null){
+        state.activeChannel=null;
+        if(typeof buildMainChannelGrid==='function') buildMainChannelGrid();
+      }
+      if(typeof state!=='undefined'){
+        state.strobeMode='off';
+        if(typeof photonicStrobeState!=='undefined') photonicStrobeState.active=null;
+        state.miniBruteOn=false; state.mbMode=0;
+        if(typeof _mbUpdateUI==='function') _mbUpdateUI();
+      }
+      fb('ALL STOP [ESC]');
+      return;
+    }
+
+    // ---- Lookup key -> actionId dari kbMap yang bisa di-custom user ----
+    var actionId = KB_LOOKUP[normKey(e)];
+    if(!actionId) return; // key tidak dipetakan ke apapun
+
+    // Selalu preventDefault untuk key yang sudah dipetakan — F-key khususnya
+    // supaya tidak buka fungsi bawaan browser (meski tab belum tersedia,
+    // doSwitchTab akan NO-OP sendiri), dan Spasi supaya halaman tidak scroll.
+    e.preventDefault();
+
+    if(/^tab(\d+)$/.test(actionId)){
+      doSwitchTab(parseInt(actionId.slice(3),10));
+      return;
+    }
+    if(/^ch(\d+)$/.test(actionId)){
+      doChannel(parseInt(actionId.slice(2),10)-1);
+      return;
+    }
+    if(/^strobe(\d+)$/.test(actionId)){
+      doMainStrobe(parseInt(actionId.slice(6),10)-1);
+      return;
+    }
+    if(/^cs(\d+)$/.test(actionId)){
+      doCustomStrobeExec(parseInt(actionId.slice(2),10)-1);
+      return;
+    }
+    if(actionId==='mbToggle'){ doMbClickToggle(); return; }
+    if(actionId==='mbHold'){ if(!e.repeat) doMbSHoldOn(); return; }
+    if(actionId==='mbHoldBeam'){ if(!e.repeat) doMbSpaceHoldOn(); return; }
+    if(/^gobo(\d)$/.test(actionId)){
+      doMainGobo(parseInt(actionId.slice(4),10));
+      return;
+    }
+    if(actionId==='rotate'){ doRotate(); return; }
+    if(actionId==='rainbow'){ doRainbow(); return; }
   }, false);
 
   document.addEventListener('keyup', function(e){
-    if(e.key.toLowerCase()==='b') doMbHoldOff();
+    if(isTyping()) return;
+    var actionId = KB_LOOKUP[normKey(e)];
+    if(actionId==='mbHold'){ doMbSHoldOff(); return; }
+    if(actionId==='mbHoldBeam'){ doMbSpaceHoldOff(); return; }
   }, false);
 
   // ═══════════════════════════════════════════════════════
   // LEGEND PANEL
   // ═══════════════════════════════════════════════════════
   var _legendEl = null;
+  function keyDisp(actionId){
+    var k = keyOf(actionId);
+    if(!k) return '—';
+    if(k==='space') return 'SPASI';
+    if(/^f\d{1,2}$/.test(k)) return k.toUpperCase();
+    return k.toUpperCase();
+  }
   function row(k,d,c){
     return '<div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start">'
       +'<div style="min-width:130px;font-size:10px;color:'+c+';font-weight:700;flex-shrink:0">'+k+'</div>'
       +'<div style="font-size:9px;color:#7a9ab8;line-height:1.5">'+d+'</div></div>';
   }
+  function rangeKeys(prefix,n,dLabel){
+    var ks=[]; for(var i=1;i<=n;i++) ks.push(keyDisp(prefix+i));
+    return ks.join(' ');
+  }
   function toggleKbLegend(){
     if(_legendEl){ _legendEl.remove(); _legendEl=null; return; }
     _legendEl = document.createElement('div');
     _legendEl.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9998;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px)';
-    _legendEl.innerHTML='<div style="background:#0f1318;border:1px solid #ffaa00;border-radius:10px;padding:24px 28px;max-width:460px;width:92vw;font-family:Share Tech Mono,monospace">'
+    _legendEl.innerHTML='<div style="background:#0f1318;border:1px solid #ffaa00;border-radius:10px;padding:24px 28px;max-width:460px;width:92vw;max-height:88vh;overflow-y:auto;font-family:Share Tech Mono,monospace" id="_kbLegendBox">'
       +'<div style="font-size:13px;font-weight:700;color:#ffaa00;text-align:center;letter-spacing:.3em;margin-bottom:16px;font-family:Chakra Petch,monospace">⌨ KEYBOARD SHORTCUTS</div>'
-      +row('SPASI','Minibrute — Toggle ON/OFF','#22ff88')
-      +row('B (tahan)','Minibrute — Hold ON, lepas = OFF','#22ff88')
-      +row('1 2 3 4 5 6 7 8 9 0','Channel Gerakan 1 – 10','#ffaa00')
-      +row('Q W E R T Y U I','Strobo: OFF / BLINK / FLOW / RAND<br>ALT / CHASE / CONV / SPLIT','#00d4ff')
-      +row('A S D F G H','Gobo: OFF / GOBO1 / PRISM5 / PRISM8 / FAN<br>H = ROTATE toggle','#cc44ff')
-      +row('J','RAINBOW toggle','#cc44ff')
-      +row('Z X C V','Standby Slot 1 / 2 / 3 / 4','#3388ff')
+      +row(rangeKeys('tab',12),'Pindah TAB 1 – 12 (mengikuti jumlah tab yang tersedia)','#ff8844')
+      +row(rangeKeys('ch',10),'CH 1 – 10 pada TAB yang sedang aktif','#ffaa00')
+      +row(rangeKeys('strobe',8),'Strobe standar: OFF / BLINK / FLOW / RAND<br>ALT / CHASE / CONV / SPLIT','#00d4ff')
+      +row(rangeKeys('cs',8),'Custom Strobe — executor slot','#00d4ff')
+      +row(keyDisp('mbToggle'),'Mini Brute — Toggle ON/OFF','#22ff88')
+      +row(keyDisp('mbHold')+' (tahan)','Mini Brute — Hold, beam MATI','#22ff88')
+      +row(keyDisp('mbHoldBeam')+' (tahan)','Mini Brute — Hold, beam TETAP HIDUP','#22ff88')
+      +row(keyDisp('gobo0'),'Prisma OFF','#cc44ff')
+      +row(keyDisp('gobo1'),'PRISM 3','#cc44ff')
+      +row(keyDisp('gobo2'),'PRISM 5','#cc44ff')
+      +row(keyDisp('gobo3'),'PRISM 16','#cc44ff')
+      +row(keyDisp('gobo4'),'FAN','#cc44ff')
+      +row(keyDisp('rotate'),'ROTATE toggle','#cc44ff')
+      +row(keyDisp('rainbow'),'RAINBOW toggle','#cc44ff')
       +row('? atau /','Buka/tutup panel ini','#4a5868')
-      +'<div style="text-align:center;margin-top:14px;font-size:9px;color:#3a4858">klik di luar atau tekan ? untuk tutup</div>'
+      +'<div style="display:flex;gap:8px;margin-top:16px" onclick="event.stopPropagation()">'
+      +'<button id="_kbOpenSettingsBtn" style="flex:1;padding:10px;background:#1a2028;border:1px solid #ffaa00;color:#ffaa00;border-radius:6px;font-family:Share Tech Mono,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer">⚙ SETTING KEYBOARD (halaman Setting)</button>'
+      +'</div>'
+      +'<div style="text-align:center;margin-top:10px;font-size:9px;color:#3a4858">klik di luar atau tekan ? untuk tutup</div>'
       +'</div>';
     _legendEl.addEventListener('click', function(){ _legendEl.remove(); _legendEl=null; });
     document.body.appendChild(_legendEl);
+    var openBtn = document.getElementById('_kbOpenSettingsBtn');
+    if(openBtn) openBtn.addEventListener('click', function(){
+      _legendEl.remove(); _legendEl=null;
+      if(typeof setPage==='function') setPage(0); // pindah ke halaman Setting
+      // Buka section Keyboard Settings (kalau masih tertutup) lalu scroll ke situ
+      setTimeout(function(){
+        var body = document.getElementById('sKbBody');
+        var header = document.getElementById('sKbHeader');
+        if(body && body.style.display==='none' && header) header.click(); // trigger toggle + render
+        var target = document.getElementById('sKbHeader');
+        if(target && target.scrollIntoView) target.scrollIntoView({behavior:'smooth', block:'start'});
+      }, 150);
+    });
+  }
+  window.toggleKbLegend = toggleKbLegend;
+
+  // ═══════════════════════════════════════════════════════
+  // KEYBOARD SETTINGS — tertanam di halaman SETTING (#sKbRows), remap
+  // semua shortcut Mode Main. Klik salah satu key-chip → mode "dengarkan",
+  // tekan tombol baru → key langsung ter-assign & tersimpan (tidak perlu
+  // tombol SIMPAN terpisah). Kalau key sudah dipakai action lain, otomatis
+  // SWAP supaya tidak pernah ada 2 action dengan key yang sama.
+  // ═══════════════════════════════════════════════════════
+  var _kbListening = null; // actionId yang sedang menunggu key baru
+
+  function kbKeyLabel(k){
+    if(!k) return '—';
+    if(k==='space') return 'SPASI';
+    return k.toUpperCase();
+  }
+
+  function kbRenderRows(){
+    var box = document.getElementById('sKbRows');
+    if(!box) return; // halaman Setting belum ke-render / belum dibuka
+    var html = '';
+    KB_ACTIONS.forEach(function(g){
+      html += '<div style="font-size:9px;color:#ffaa00;font-weight:700;letter-spacing:.15em;margin:12px 0 6px">'+g.group+'</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr auto;gap:6px 8px">';
+      g.items.forEach(function(it){
+        var k = state.kbMap[it.id];
+        var listening = (_kbListening===it.id);
+        html += '<div style="font-size:10px;color:#c8d8e8;align-self:center">'+it.label+'</div>';
+        html += '<button type="button" class="_kbKeyChip" data-action="'+it.id+'" style="min-width:64px;padding:6px 10px;border-radius:5px;font-family:\'Share Tech Mono\',monospace;font-size:10px;font-weight:700;cursor:pointer;touch-action:manipulation;'
+          + (listening
+              ? 'background:#332200;border:1px solid #ffaa00;color:#ffaa00;animation:_kbPulse 1s infinite'
+              : 'background:#1a2028;border:1px solid #2a3846;color:#7ad4ff;')
+          + '">'+(listening?'...':kbKeyLabel(k))+'</button>';
+      });
+      html += '</div>';
+    });
+    box.innerHTML = html;
+    box.querySelectorAll('._kbKeyChip').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        _kbListening = (_kbListening===btn.getAttribute('data-action')) ? null : btn.getAttribute('data-action');
+        kbRenderRows();
+      });
+    });
+  }
+
+  // Inject keyframe animasi chip yang lagi "dengarkan" (sekali saja)
+  (function injectKbPulseStyle(){
+    if(document.getElementById('_kbPulseStyle')) return;
+    var st = document.createElement('style');
+    st.id = '_kbPulseStyle';
+    st.textContent = '@keyframes _kbPulse{0%,100%{opacity:1}50%{opacity:.45}}';
+    document.head.appendChild(st);
+  })();
+
+  // Listener global khusus utk menangkap key baru saat mode "dengarkan"
+  // aktif (chip sedang diklik). Dipasang capture:true supaya ditangkap
+  // duluan, sebelum listener Mode Main di bawah, dan di-stopPropagation
+  // supaya tidak dobel-proses jadi shortcut Mode Main juga.
+  document.addEventListener('keydown', function(e){
+    if(!_kbListening) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.key==='Escape'){ _kbListening=null; kbRenderRows(); return; }
+    var newKey = normKey(e);
+    var actionId = _kbListening;
+
+    // Cari apakah key ini sudah dipakai action lain → SWAP
+    var oldKeyOfThis = state.kbMap[actionId];
+    var conflictAction = null;
+    Object.keys(state.kbMap).forEach(function(id){
+      if(id!==actionId && state.kbMap[id]===newKey) conflictAction = id;
+    });
+    if(conflictAction){
+      state.kbMap[conflictAction] = oldKeyOfThis; // action lama dapat key bekas action ini
+    }
+    state.kbMap[actionId] = newKey;
+    saveKbMap();
+    rebuildKbLookup();
+
+    fb(conflictAction
+      ? (kbKeyLabel(newKey)+' dipindah dari '+conflictAction+' ke '+actionId)
+      : ('KEYBOARD: '+actionId+' → '+kbKeyLabel(newKey)));
+
+    _kbListening = null;
+    kbRenderRows();
+  }, true); // capture:true — ditangkap duluan sebelum listener Mode Main
+
+  window.kbRenderRows = kbRenderRows; // dipanggil ulang saat masuk halaman Setting
+
+  document.getElementById('sKbResetBtn') && document.getElementById('sKbResetBtn').addEventListener('click', function(){
+    resetKbMap();
+    rebuildKbLookup();
+    _kbListening = null;
+    kbRenderRows();
+    fb('KEYBOARD MAPPING DI-RESET KE DEFAULT');
+  });
+
+  // ── Collapse/expand section (default: tertutup) ──────────
+  var _kbBodyRendered = false;
+  var sKbHeader = document.getElementById('sKbHeader');
+  if(sKbHeader){
+    sKbHeader.addEventListener('click', function(){
+      var body = document.getElementById('sKbBody');
+      var caret = document.getElementById('sKbCaret');
+      if(!body) return;
+      var opening = (body.style.display === 'none');
+      body.style.display = opening ? 'block' : 'none';
+      if(caret) caret.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
+      if(opening && !_kbBodyRendered){
+        _kbBodyRendered = true;
+        kbRenderRows(); // render sekali saat pertama kali dibuka (hemat kerja saat masih hidden)
+      }
+    });
   }
 
   // ── Hint di statusBar setelah load ───────────────────────
@@ -17834,7 +18006,7 @@ window._f3Pos = f3Pos; // expose untuk debug
     }, 2500);
   });
 
-})(); // END KEYBOARD CONTROLLER v2
+})(); // END KEYBOARD CONTROLLER v3
 </script>
 
 <!-- ===== AUDIO PLAYER ENGINE ===== -->
