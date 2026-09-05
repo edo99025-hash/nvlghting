@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Lighting — Panel Update</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07090c; --console:#10131a; --panel:#141820; --panel2:#1a1e28;
+    --border:#222830; --border2:#2a3040;
+    --amber:#ffaa00; --amber-d:#7a5000;
+    --teal:#00d4ff; --green:#22ff88; --red:#ff3355;
+    --text:#c8d0dc; --lbl:#6a7688;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Chakra Petch',sans-serif;min-height:100vh;}
+  body{
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,170,0,.06), transparent),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 3px);
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:28px 18px 60px;}
+
+  .brand{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 8px var(--green);flex:0 0 auto;}
+  .brand h1{font-size:15px;letter-spacing:.35em;text-transform:uppercase;
+    color:var(--amber);margin:0;font-weight:700;}
+  .brand span{font-size:10px;color:var(--lbl);font-family:'Share Tech Mono',monospace;
+    letter-spacing:.15em;}
+  .sub{font-size:11px;color:var(--lbl);margin:6px 0 28px;line-height:1.6;
+    font-family:'Share Tech Mono',monospace;max-width:52ch;}
+  .sub a{color:var(--teal);text-decoration:none;border-bottom:1px dotted var(--teal);}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:6px;
+    padding:20px;margin-bottom:16px;}
+  .card-h{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber);
+    border-bottom:1px solid var(--border);padding-bottom:9px;margin-bottom:16px;
+    display:flex;align-items:center;justify-content:space-between;}
+  .card-h .n{color:var(--lbl);font-family:'Share Tech Mono',monospace;letter-spacing:0;
+    text-transform:none;font-size:10px;}
+
+  label{display:block;font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--lbl);margin-bottom:6px;}
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  input[type=text], input[type=number], input[type=password], textarea{
+    width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;
+    color:var(--teal);font-family:'Share Tech Mono',monospace;font-size:13px;
+    padding:10px 11px;outline:none;transition:border-color .15s;
+  }
+  input:focus, textarea:focus{border-color:var(--teal);}
+  textarea{resize:vertical;min-height:64px;line-height:1.5;}
+  .hint{font-size:10px;color:var(--lbl);margin-top:6px;line-height:1.5;
+    font-family:'Share Tech Mono',monospace;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .btn{appearance:none;border:1px solid var(--border2);background:var(--panel2);
+    color:var(--text);font-family:'Chakra Petch',sans-serif;font-weight:600;
+    font-size:12px;letter-spacing:.08em;padding:12px 18px;border-radius:5px;
+    cursor:pointer;transition:filter .15s, transform .05s;width:100%;}
+  .btn:hover{filter:brightness(1.15);}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--amber);border-color:var(--amber);color:#100b00;
+    box-shadow:0 0 18px rgba(255,170,0,.25);}
+  .btn-ghost{background:transparent;color:var(--lbl);font-weight:500;font-size:11px;
+    padding:8px 10px;width:auto;}
+  .btn-ghost:hover{color:var(--text);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+
+  .status{font-family:'Share Tech Mono',monospace;font-size:11px;padding:11px 13px;
+    border-radius:5px;margin-top:14px;border:1px solid transparent;display:none;
+    line-height:1.6;word-break:break-word;}
+  .status.show{display:block;}
+  .status.ok{background:rgba(34,255,136,.08);border-color:rgba(34,255,136,.35);color:var(--green);}
+  .status.err{background:rgba(255,51,85,.08);border-color:rgba(255,51,85,.35);color:#ff8095;}
+  .status.busy{background:rgba(0,212,255,.08);border-color:rgba(0,212,255,.3);color:var(--teal);}
+
+  .token-row{display:flex;gap:8px;align-items:flex-start;}
+  .token-row input{flex:1;}
+
+  .current{font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2;color:var(--text);}
+  .current .k{color:var(--lbl);display:inline-block;width:108px;}
+  .current a{color:var(--teal);word-break:break-all;}
+  .empty{color:var(--lbl);font-size:11px;font-family:'Share Tech Mono',monospace;}
+
+  footer{text-align:center;font-size:9px;color:var(--border2);margin-top:32px;
+    font-family:'Share Tech Mono',monospace;letter-spacing:.1em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand"><span class="dot"></span><h1>Nova Lighting</h1><span>PANEL UPDATE</span></div>
+  <p class="sub">
+    Kelola info versi terbaru yang dibaca otomatis oleh app di HP. Isi form,
+    tekan <b style="color:var(--text)">Apply</b> — app yang sudah terpasang
+    akan menampilkan notifikasi update dalam beberapa saat.
+  </p>
+
+  <!-- STATUS RILIS SAAT INI -->
+  <div class="card">
+    <div class="card-h">Rilis Aktif Sekarang<span class="n" id="curBadge">memuat…</span></div>
+    <div id="curBox"><span class="empty">Memuat version.json dari repo…</span></div>
+  </div>
+
+  <!-- TOKEN AKSES -->
+  <div class="card">
+    <div class="card-h">Akses GitHub<span class="n">tersimpan lokal di browser ini saja</span></div>
+    <div class="field">
+      <label for="ghToken">Personal Access Token</label>
+      <div class="token-row">
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <button class="btn btn-ghost" id="toggleTok" type="button" style="flex:0 0 auto;">Lihat</button>
+      </div>
+      <div class="hint">
+        Butuh scope <b style="color:var(--text)">repo</b> (Fine-grained: Contents Read & Write) untuk repo
+        <b style="color:var(--text)">edo99025-hash/nvlghting</b>. Token tidak dikirim ke server manapun
+        selain langsung ke <span style="color:var(--teal)">api.github.com</span>, dan hanya disimpan di
+        localStorage browser ini.
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM UPDATE -->
+  <div class="card">
+    <div class="card-h">Rilis Baru</div>
+    <div class="field row2">
+      <div>
+        <label for="vCode">Version Code</label>
+        <input type="number" id="vCode" placeholder="cth: 7" min="1" step="1">
+        <div class="hint">Samakan dengan run number build APK di GitHub Actions.</div>
+      </div>
+      <div>
+        <label for="vName">Version Name</label>
+        <input type="text" id="vName" placeholder="cth: 1.0.7">
+      </div>
+    </div>
+    <div class="field">
+      <label for="vUrl">Link Download APK</label>
+      <input type="text" id="vUrl" placeholder="https://sfile.co/xxxxxxx">
+    </div>
+    <div class="field">
+      <label for="vNotes">Catatan Update (opsional)</label>
+      <textarea id="vNotes" placeholder="cth: Perbaikan wallwasher, kecerahan dinaikkan."></textarea>
+    </div>
+    <div class="field">
+      <button class="btn btn-primary" id="applyBtn">Apply — Publikasikan Update</button>
+    </div>
+    <div class="status" id="statusBox"></div>
+  </div>
+
+  <footer>version.json · edo99025-hash/nvlghting · docs/</footer>
+</div>
+
+<script>
+const REPO = 'edo99025-hash/nvlghting';
+const FILE_PATH = 'version.json';
+const API_BASE = 'https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH;
+
+const els = {
+  curBadge: document.getElementById('curBadge'),
+  curBox: document.getElementById('curBox'),
+  ghToken: document.getElementById('ghToken'),
+  toggleTok: document.getElementById('toggleTok'),
+  vCode: document.getElementById('vCode'),
+  vName: document.getElementById('vName'),
+  vUrl: document.getElementById('vUrl'),
+  vNotes: document.getElementById('vNotes'),
+  applyBtn: document.getElementById('applyBtn'),
+  statusBox: document.getElementById('statusBox'),
+};
+
+// ---- Token: simpan/lihat di localStorage, tidak pernah dikirim ke mana pun
+// selain langsung ke api.github.com dari browser ini sendiri.
+const TOKEN_KEY = 'nova_gh_token';
+els.ghToken.value = localStorage.getItem(TOKEN_KEY) || '';
+els.ghToken.addEventListener('input', () => {
+  localStorage.setItem(TOKEN_KEY, els.ghToken.value.trim());
+});
+els.toggleTok.addEventListener('click', () => {
+  const isPw = els.ghToken.type === 'password';
+  els.ghToken.type = isPw ? 'text' : 'password';
+  els.toggleTok.textContent = isPw ? 'Sembunyikan' : 'Lihat';
+});
+
+function setStatus(kind, msg){
+  els.statusBox.className = 'status show ' + kind;
+  els.statusBox.textContent = msg;
+}
+function clearStatus(){
+  els.statusBox.className = 'status';
+  els.statusBox.textContent = '';
+}
+
+// ---- Load version.json saat ini (baca publik, tanpa token, langsung dari raw)
+let _currentSha = null; // perlu buat proses "update" file lewat GitHub API
+
+async function loadCurrent(){
+  els.curBadge.textContent = 'memuat…';
+  try{
+    // Ambil lewat GitHub Contents API (bukan raw) supaya sekalian dapat `sha`
+    // file saat ini — wajib disertakan saat update file yang sama via API.
+    const headers = {};
+    const tok = els.ghToken.value.trim();
+    if(tok) headers['Authorization'] = 'Bearer ' + tok;
+    const res = await fetch(API_BASE + '?t=' + Date.now(), { headers, cache: 'no-store' });
+    if(!res.ok){
+      if(res.status === 404){
+        els.curBadge.textContent = 'belum ada version.json';
+        els.curBox.innerHTML = '<span class="empty">File version.json belum ada di repo. Isi form di bawah lalu Apply untuk membuatnya.</span>';
+        _currentSha = null;
+        return;
+      }
+      throw new Error('HTTP ' + res.status);
+    }
+    const data = await res.json();
+    _currentSha = data.sha;
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+    els.curBadge.textContent = 'v' + (decoded.versionName || '?') + ' (code ' + (decoded.versionCode || '?') + ')';
+    els.curBox.innerHTML =
+      '<div class="current">' +
+      '<div><span class="k">Version Code</span>' + esc(decoded.versionCode) + '</div>' +
+      '<div><span class="k">Version Name</span>' + esc(decoded.versionName) + '</div>' +
+      '<div><span class="k">Link Download</span>' + (decoded.downloadUrl ? '<a href="'+esc(decoded.downloadUrl)+'" target="_blank" rel="noopener">'+esc(decoded.downloadUrl)+'</a>' : '<span class="empty">(kosong)</span>') + '</div>' +
+      '<div><span class="k">Catatan</span>' + (decoded.notes ? esc(decoded.notes) : '<span class="empty">(kosong)</span>') + '</div>' +
+      '<div><span class="k">Diupdate</span>' + (decoded.updatedAt ? esc(decoded.updatedAt) : '<span class="empty">—</span>') + '</div>' +
+      '</div>';
+
+    // Pre-fill form dengan versi berikutnya sebagai starting point
+    if(!els.vCode.value) els.vCode.value = (Number(decoded.versionCode)||0) + 1;
+  }catch(err){
+    els.curBadge.textContent = 'gagal memuat';
+    els.curBox.innerHTML = '<span class="empty">Gagal memuat version.json: ' + esc(err.message) + '</span>';
+  }
+}
+
+function esc(s){
+  s = (s===undefined||s===null) ? '' : String(s);
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+els.applyBtn.addEventListener('click', async () => {
+  clearStatus();
+  const tok = els.ghToken.value.trim();
+  const vCode = Number(els.vCode.value);
+  const vName = els.vName.value.trim();
+  const vUrl = els.vUrl.value.trim();
+  const vNotes = els.vNotes.value.trim();
+
+  if(!tok){ setStatus('err', 'Token GitHub belum diisi.'); return; }
+  if(!vCode || vCode < 1){ setStatus('err', 'Version Code wajib diisi angka valid.'); return; }
+  if(!vName){ setStatus('err', 'Version Name wajib diisi.'); return; }
+  if(!vUrl){ setStatus('err', 'Link download wajib diisi.'); return; }
+
+  els.applyBtn.disabled = true;
+  setStatus('busy', 'Mengirim ke GitHub…');
+
+  const payload = {
+    versionCode: vCode,
+    versionName: vName,
+    downloadUrl: vUrl,
+    notes: vNotes,
+    updatedAt: new Date().toISOString()
+  };
+  // GitHub Contents API mewajibkan base64 dari konten file. Perlu encode
+  // UTF-8 secara eksplisit (unescape/escape trick) supaya karakter non-ASCII
+  // di catatan update tidak rusak saat di-decode balik oleh app.
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+
+  try{
+    const res = await fetch(API_BASE, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + tok,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Update rilis ke v' + vName + ' (code ' + vCode + ')',
+        content: b64,
+        sha: _currentSha || undefined
+      })
+    });
+    if(!res.ok){
+      const errBody = await res.json().catch(()=>({}));
+      throw new Error((errBody && errBody.message) ? errBody.message : ('HTTP ' + res.status));
+    }
+    setStatus('ok', '✅ Berhasil dipublikasikan. App akan mendeteksi update ini saat dibuka berikutnya.');
+    await loadCurrent();
+  }catch(err){
+    setStatus('err', '❌ Gagal: ' + err.message);
+  }finally{
+    els.applyBtn.disabled = false;
+  }
+});
+
+loadCurrent();
+</script>
+</body>
+</html>
