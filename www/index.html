@@ -803,8 +803,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           <div id="sWallSelRow" class="fix-sel-row"></div>
           <div class="row"><div class="lbl">Scale</div><input type="range" class="sldr" id="sWallScale" min="0.3" max="3" step="0.1" value="1" style="flex:1"><div class="val" id="sWallScaleV">1.0</div></div>
           <div class="row"><div class="lbl" style="color:var(--green)">Panjang</div><input type="range" class="sldr" id="sWallLen" min="10" max="120" step="1" value="50" style="flex:1"><div class="val" id="sWallLenV">50</div></div>
-          <div class="row"><div class="lbl" style="color:var(--teal)">Rot H°</div><input type="range" class="sldr" id="sWallRot" min="-360" max="360" step="1" value="0" style="flex:1"><div class="val" id="sWallRotV">0°</div></div>
-          <div class="row"><div class="lbl" style="color:var(--purple)">Rot V°</div><input type="range" class="sldr" id="sWallRotV2" min="-180" max="180" step="1" value="0" style="flex:1"><div class="val" id="sWallRotV2V">0°</div></div>
+          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin:3px 0 5px;line-height:1.5">Rotasi wallwasher diatur di <span style="color:var(--teal)">Editor 3D</span>.</div>
           <div class="row"><div class="lbl">Dimmer</div><input type="range" class="sldr" id="sWallDim" min="0" max="100" step="1" value="95" style="flex:1"><div class="val" id="sWallDimV">95%</div></div>
           <div class="row"><button class="btn" id="sWallRainbow">🌈 RAINBOW OFF</button></div>
           <div class="row"><button class="btn on-t" id="sSpawnWall">SPAWN</button><button class="btn on-r" id="sClearWall">CLR</button></div>
@@ -814,11 +813,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sParC" min="0" max="12" value="4" style="flex:1"><div class="val" id="sParCV">4</div></div>
           <div class="lbl" style="font-size:7px;margin-bottom:3px">Pilih fixture:</div>
           <div id="sParSelRow" class="fix-sel-row"></div>
-          <div class="row"><div class="lbl">Scale</div><input type="range" class="sldr" id="sParScale" min="0.3" max="3" step="0.1" value="1" style="flex:1"><div class="val" id="sParScaleV">1.0</div></div>
-          <div class="row"><div class="lbl">Rotate</div><input type="range" class="sldr" id="sParRot" min="-180" max="180" step="1" value="0" style="flex:1"><div class="val" id="sParRotV">0°</div></div>
-          <div class="row"><div class="lbl">Angle</div><input type="range" class="sldr" id="sParAngle" min="5" max="60" step="1" value="14" style="flex:1"><div class="val" id="sParAngleV">14°</div></div>
-          <div class="row"><div class="lbl" style="color:var(--teal)">Pan &#x2194;</div><input type="range" class="sldr" id="sParPan" min="-180" max="180" step="1" value="0" style="flex:1"><div class="val" id="sParPanV">0°</div></div>
-          <div class="row"><div class="lbl" style="color:var(--purple)">Tilt &#x2195;</div><input type="range" class="sldr" id="sParTilt" min="-180" max="180" step="1" value="0" style="flex:1"><div class="val" id="sParTiltV">0°</div></div>
+          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin:3px 0 5px;line-height:1.5">Posisi, scale, rotate, pan/tilt diatur di <span style="color:var(--teal)">Editor 3D</span>.</div>
           <div class="row"><div class="lbl">Dimmer</div><input type="range" class="sldr" id="sParDim" min="0" max="100" step="1" value="95" style="flex:1"><div class="val" id="sParDimV">95%</div></div>
           <div class="row"><button class="btn" id="sParRainbow">🌈 RAINBOW OFF</button></div>
           <div class="row"><button class="btn on-t" id="sSpawnPar">SPAWN</button><button class="btn on-r" id="sClearPar">CLR</button></div>
@@ -831,7 +826,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
             <button class="btn on-t" id="sMbVar2" onclick="setMbVariant(2)" style="flex:1;font-size:9px">2 MATA</button>
             <button class="btn" id="sMbVar4" onclick="setMbVariant(4)" style="flex:1;font-size:9px">4 MATA</button>
           </div>
-          <div class="row"><div class="lbl">Scale</div><input type="range" class="sldr" id="sMbScale" min="0.1" max="3" step="0.1" value="1" style="flex:1"><div class="val" id="sMbScaleV">1.0</div></div>
+          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:3px;line-height:1.5">Posisi & scale diatur di <span style="color:var(--teal)">Editor 3D</span>.</div>
           <div class="row"><div class="lbl">Cahaya</div><input type="range" class="sldr" id="sMbBright" min="10" max="100" step="1" value="95" style="flex:1"><div class="val" id="sMbBrightV">95%</div></div>
           <div class="row"><button class="btn on-t" id="sSpawnMb">SPAWN</button><button class="btn on-r" id="sClearMb">CLR</button></div>
         </div>
@@ -857,7 +852,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           <div class="row">
             <button class="btn" id="sFanToggleFollowStrobe" style="flex:1">⚡ IKUT MASTER STROBE: OFF</button>
           </div>
-          <div class="row"><div class="lbl">Scale</div><input type="range" class="sldr" id="sFanScale" min="0.3" max="8" step="0.1" value="1" style="flex:1"><div class="val" id="sFanScaleV">1.0</div></div>
+          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:3px;line-height:1.5">Posisi & scale diatur di <span style="color:var(--teal)">Editor 3D</span>.</div>
           <div class="row"><div class="lbl">Speed</div><input type="range" class="sldr" id="sFanSpeed" min="0" max="10" step="0.1" value="3" style="flex:1"><div class="val" id="sFanSpeedV">3.0</div></div>
           <div class="row"><div class="lbl">Dimmer</div><input type="range" class="sldr" id="sFanBright" min="10" max="150" step="1" value="90" style="flex:1"><div class="val" id="sFanBrightV">90%</div></div>
           <div class="row"><div class="lbl">Warna</div><input type="color" id="sFanColor" value="#ffe080" style="width:40px;height:28px;border:none;padding:0;background:none;cursor:pointer"><button class="btn" id="sFanRainbow">🌈 RAINBOW OFF</button></div>
@@ -865,6 +860,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
         <div class="sec">
 
           <div class="sec-h">⚡ MARTIN STROBO 3D</div>
+
           <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:5px;line-height:1.5">Model 3D LED Martin muncul di canvas scene. Posisi, scale, rot → Editor 3D.</div>
           <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sMartC" min="0" max="20" value="2" style="flex:1"><div class="val" id="sMartCV">2</div></div>
           <div class="row"><button class="btn on-t" id="sSpawnMart">SPAWN</button><button class="btn on-r" id="sClearMart">CLR</button></div>
@@ -887,35 +883,13 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           </div>
         </div>
 
-        <!-- ROTASI FISIK FIXTURE -->
-        <div class="sec">
-          <div class="sec-h">🔄 ROTASI FISIK FIXTURE</div>
-          <!-- Mode: SEMUA / PILIH -->
-          <div class="row" style="margin-bottom:4px">
-            <div class="lbl">Mode</div>
-            <button class="led on" id="sFixRotModeAll" style="flex:1;font-size:8px">SEMUA</button>
-            <button class="led" id="sFixRotModeSel" style="flex:1;font-size:8px">PILIH</button>
-          </div>
-          <!-- Beam selector (muncul saat mode PILIH) -->
-          <div id="sFixRotBeamSel" style="display:none;flex-wrap:wrap;gap:3px;padding:4px 0;margin-bottom:4px"></div>
-          <!-- Fader rotasi -->
-          <div class="row" style="align-items:center">
-            <div class="lbl" style="color:var(--amber)">Rotasi Z</div>
-            <input type="range" class="sldr" id="sFixRotZ" min="-180" max="180" value="0" step="1" style="flex:1">
-            <div class="val" id="sFixRotZV">0°</div>
-            <button class="btn" id="sFixRotZRst" style="margin-left:4px;padding:2px 8px;font-size:8px">RST</button>
-          </div>
-          <div class="row" style="margin-top:3px">
-            <button class="btn" id="sFixRot0"   style="flex:1;font-size:8px">0°</button>
-            <button class="btn" id="sFixRot45"  style="flex:1;font-size:8px">45°</button>
-            <button class="btn" id="sFixRot90"  style="flex:1;font-size:8px">90°</button>
-            <button class="btn" id="sFixRotN45" style="flex:1;font-size:8px">-45°</button>
-            <button class="btn" id="sFixRot180" style="flex:1;font-size:8px">180°</button>
-          </div>
-          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-top:4px;line-height:1.5">
-            <span style="color:var(--amber)">SEMUA</span>: putar semua fixture sekaligus &nbsp;·&nbsp; <span style="color:var(--teal)">PILIH</span>: pilih fixture yang mau diputar satu-satu
-          </div>
-        </div>
+        <!-- ROTASI FISIK FIXTURE, RESET ROTASI, Z BEAM DEPTH, LOCK POSISI FIXTURE,
+             dan POSISI 3D FIXTURE (Z/Y offset per jenis) DIHAPUS dari halaman ini —
+             semua transform (posisi/rotasi/scale) fixture sekarang HANYA diatur
+             lewat tab EDITOR 3D (pilih objek di layer list → fader TRANSFORM).
+             Nilai default posisi Z/Y bawaan tiap fixture tetap dipakai di balik
+             layar (lihat var f3Pos di script fixture 3D), Editor 3D tinggal
+             menambah offset manual per-objek di atasnya. -->
 
         <!-- ZOOM KAMERA -->
         <div class="sec">
@@ -957,54 +931,11 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           </div>
         </div>
 
-        <!-- RESET ROTASI FIXTURE (perbaiki bar/beam yang miring) -->
+        <!-- Tombol reset kamera (bukan rotasi fixture) tetap ada, hanya bagian
+             "RATAKAN SEMUA FIXTURE" yang dihapus karena itu transform fixture -->
         <div class="sec">
-          <div class="sec-h">📐 RESET ROTASI FIXTURE</div>
-          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:5px;line-height:1.5">
-            Kalau wallwasher/par/beam keliatan miring (roll/rotasi nyangkut), tekan ini untuk meratakan semua fixture ke 0°.
-          </div>
-          <button class="btn" id="sFixRotRst" style="width:100%;font-size:8px;color:var(--amber);border-color:var(--amber)">↺ RATAKAN SEMUA FIXTURE (ROT=0°)</button>
-          <button class="btn" id="sCamFullRst" style="width:100%;font-size:8px;margin-top:4px;color:var(--green);border-color:var(--green)">📷 RESET KAMERA TOTAL (LURUS KE STAGE)</button>
-        </div>
-
-        <!-- Z BEAM — DEPTH FIXTURE -->
-        <div class="sec">
-          <div class="sec-h">📐 Z BEAM — KEDALAMAN FIXTURE</div>
-          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:5px;line-height:1.5">
-            Geser beam maju/mundur di 3D — atur jarak fixture dari kamera.
-          </div>
-          <div class="row" style="margin-bottom:4px">
-            <div class="lbl">Mode</div>
-            <button class="led on" id="sBeamZModeAll" style="flex:1;font-size:8px">SEMUA</button>
-            <button class="led" id="sBeamZModeSel" style="flex:1;font-size:8px">PILIH</button>
-          </div>
-          <div id="sBeamZSel" style="display:none;flex-wrap:wrap;gap:3px;padding:4px 0;margin-bottom:4px"></div>
-          <div class="row" style="align-items:center">
-            <div class="lbl" style="color:var(--purple);font-size:8px">DEPAN ←</div>
-            <input type="range" class="sldr" id="sBeamZ" min="-150" max="80" value="-30" step="1" style="flex:1;height:8px">
-            <div class="val" id="sBeamZV">-30</div>
-            <button class="btn" id="sBeamZRst" style="margin-left:4px;padding:2px 8px;font-size:8px">RST</button>
-          </div>
-          <div class="row" style="margin-top:3px">
-            <button class="btn" id="sBeamZn100" style="flex:1;font-size:8px">-100</button>
-            <button class="btn" id="sBeamZn60"  style="flex:1;font-size:8px">-60</button>
-            <button class="btn" id="sBeamZn30"  style="flex:1;font-size:8px">-30</button>
-            <button class="btn" id="sBeamZ0"    style="flex:1;font-size:8px">0</button>
-            <button class="btn" id="sBeamZ50"   style="flex:1;font-size:8px">+50</button>
-          </div>
-        </div>
-
-        <div class="sec">
-          <div class="sec-h">🔒 LOCK POSISI FIXTURE</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-            <button class="btn" id="lockHeads" onclick="toggleLock('heads')">🔓 BEAM</button>
-            <button class="btn" id="lockWalls" onclick="toggleLock('walls')">🔓 WALLWASHER</button>
-            <button class="btn" id="lockPars" onclick="toggleLock('pars')">🔓 PAR LED</button>
-            <button class="btn" id="lockMb" onclick="toggleLock('mb')">🔓 MINI BRUTE</button>
-            <button class="btn" id="lockMart" onclick="toggleLock('mart')">🔓 MARTIN</button>
-            <button class="btn" id="lockFan" onclick="toggleLock('fan')">🔓 LAMPU KIPAS</button>
-            <button class="btn" id="lockPhoto" onclick="toggleLock('photo')">🔓 FOTO/VIDEO</button>
-          </div>
+          <div class="sec-h">📐 RESET KAMERA</div>
+          <button class="btn" id="sCamFullRst" style="width:100%;font-size:8px;color:var(--green);border-color:var(--green)">📷 RESET KAMERA TOTAL (LURUS KE STAGE)</button>
         </div>
 
         <!-- GRAPHICS QUALITY (resolusi render internal) -->
@@ -1017,42 +948,6 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
             <button class="btn" id="gfxQLow" style="flex:1">LOW</button>
             <button class="btn" id="gfxQNormal" style="flex:1">NORMAL</button>
             <button class="btn on-t" id="gfxQHigh" style="flex:1">HIGH</button>
-          </div>
-        </div>
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- POSISI 3D FIXTURE — maju/mundur di scene  -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="sec">
-          <div class="sec-h" style="color:var(--teal)">📦 POSISI 3D FIXTURE</div>
-          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:6px;line-height:1.6">
-            Fixture dirender sebagai <b style="color:var(--teal)">plane 3D</b> di scene Three.js.<br>
-            Geser <b style="color:var(--amber)">Z</b> untuk maju/mundur di scene.
-          </div>
-          <!-- MINI BRUTE -->
-          <div style="font-size:8px;font-weight:700;color:var(--amber);font-family:Share Tech Mono,monospace;letter-spacing:.1em;margin-bottom:3px">MINI BRUTE</div>
-          <div class="row"><div class="lbl" style="font-size:7px;color:var(--amber)">Z ←→</div><input type="range" class="sldr" id="f3z_mb" min="-130" max="70" value="15" step="1" style="flex:1"><div class="val" id="f3z_mbV">15</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Y ↕</div><input type="range" class="sldr" id="f3y_mb" min="-40" max="70" value="-5" step="1" style="flex:1"><div class="val" id="f3y_mbV">-5</div></div>
-          <!-- PAR LED -->
-          <div style="font-size:8px;font-weight:700;color:var(--purple);font-family:Share Tech Mono,monospace;letter-spacing:.1em;margin:5px 0 3px">PAR LED</div>
-          <div class="row"><div class="lbl" style="font-size:7px;color:var(--amber)">Z ←→</div><input type="range" class="sldr" id="f3z_par" min="-130" max="70" value="20" step="1" style="flex:1"><div class="val" id="f3z_parV">20</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Y ↕</div><input type="range" class="sldr" id="f3y_par" min="-40" max="70" value="-10" step="1" style="flex:1"><div class="val" id="f3y_parV">-10</div></div>
-          <!-- WALLWASHER -->
-          <div style="font-size:8px;font-weight:700;color:var(--teal);font-family:Share Tech Mono,monospace;letter-spacing:.1em;margin:5px 0 3px">WALLWASHER</div>
-          <div class="row"><div class="lbl" style="font-size:7px;color:var(--amber)">Z ←→</div><input type="range" class="sldr" id="f3z_wall" min="-130" max="70" value="-70" step="1" style="flex:1"><div class="val" id="f3z_wallV">-70</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Y ↕</div><input type="range" class="sldr" id="f3y_wall" min="-40" max="70" value="28" step="1" style="flex:1"><div class="val" id="f3y_wallV">28</div></div>
-          <!-- MARTIN -->
-          <div style="font-size:8px;font-weight:700;color:var(--red);font-family:Share Tech Mono,monospace;letter-spacing:.1em;margin:5px 0 3px">⚡ MARTIN STROBO</div>
-          <div class="row"><div class="lbl" style="font-size:7px;color:var(--amber)">Z ←→</div><input type="range" class="sldr" id="f3z_mart" min="-130" max="70" value="-75" step="1" style="flex:1"><div class="val" id="f3z_martV">-75</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Y ↕</div><input type="range" class="sldr" id="f3y_mart" min="-40" max="70" value="22" step="1" style="flex:1"><div class="val" id="f3y_martV">22</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Scale</div><input type="range" class="sldr" id="f3sc_mart" min="0.1" max="4" step="0.05" value="1" style="flex:1"><div class="val" id="f3sc_martV">1.0</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Rot Y°</div><input type="range" class="sldr" id="f3ry_mart" min="-180" max="180" step="5" value="0" style="flex:1"><div class="val" id="f3ry_martV">0°</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Tilt X°</div><input type="range" class="sldr" id="f3rx_mart" min="-90" max="90" step="5" value="0" style="flex:1"><div class="val" id="f3rx_martV">0°</div></div>
-          <!-- FAN -->
-          <div style="font-size:8px;font-weight:700;color:var(--green);font-family:Share Tech Mono,monospace;letter-spacing:.1em;margin:5px 0 3px">LAMPU KIPAS</div>
-          <div class="row"><div class="lbl" style="font-size:7px;color:var(--amber)">Z ←→</div><input type="range" class="sldr" id="f3z_fan" min="-130" max="70" value="25" step="1" style="flex:1"><div class="val" id="f3z_fanV">25</div></div>
-          <div class="row"><div class="lbl" style="font-size:7px">Y ↕</div><input type="range" class="sldr" id="f3y_fan" min="-40" max="70" value="-14" step="1" style="flex:1"><div class="val" id="f3y_fanV">-14</div></div>
-          <div class="row" style="margin-top:4px">
-            <button class="btn" id="f3z_reset" style="flex:1;font-size:8px">↺ RESET</button>
           </div>
         </div>
 
@@ -5442,6 +5337,121 @@ function novaIsNativeApp(){
   }catch(e){ return false; }
 }
 
+// ════════════════════════════════════════════════════════════════════
+// AUTO-CHECK UPDATE
+// App cek file version.json di repo GitHub (di-update manual lewat panel
+// admin docs/index.html) setiap kali dibuka, banding versionCode-nya
+// dengan versionCode APK yang sedang terpasang (dibaca dari
+// @capacitor/app). Kalau ada yang lebih baru, tampilkan banner dengan
+// link download — TIDAK auto-download, cuma buka link di browser HP
+// (link sfile.co dsb harus dibuka manual oleh user).
+// ════════════════════════════════════════════════════════════════════
+var NOVA_VERSION_CHECK_URL = 'https://raw.githubusercontent.com/edo99025-hash/nvlghting/main/version.json';
+
+async function novaGetInstalledVersionCode(){
+  // Di luar APK (browser biasa) tidak ada versionCode asli — anggap 0
+  // supaya banner update tidak pernah muncul di mode web biasa.
+  if(!novaIsNativeApp()) return 0;
+  try{
+    var AppPlugin = window.Capacitor.Plugins.App;
+    if(!AppPlugin || !AppPlugin.getInfo) return 0;
+    var info = await AppPlugin.getInfo();
+    // Android: field `build` = versionCode (string, perlu di-parse ke number)
+    var code = parseInt(info.build, 10);
+    return isNaN(code) ? 0 : code;
+  }catch(e){
+    console.warn('[Nova] Gagal baca versi APK terpasang', e);
+    return 0;
+  }
+}
+
+function novaShowUpdateBanner(remoteInfo){
+  try{
+    if(document.getElementById('novaUpdateBanner')) return; // sudah tampil, jangan dobel
+    var box = document.createElement('div');
+    box.id = 'novaUpdateBanner';
+    box.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:99999;'
+      + 'background:#141820;border:1px solid #ffaa00;border-radius:6px;padding:10px 12px;'
+      + 'font-family:"Share Tech Mono",monospace;box-shadow:0 4px 24px rgba(0,0,0,.6);'
+      + 'display:flex;flex-direction:column;gap:6px;';
+
+    var row1 = document.createElement('div');
+    row1.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    var title = document.createElement('div');
+    title.textContent = '🔔 Update tersedia: v' + (remoteInfo.versionName || '?');
+    title.style.cssText = 'flex:1;color:#ffaa00;font-size:11px;font-weight:bold;';
+    var close = document.createElement('button');
+    close.textContent = '✕';
+    close.style.cssText = 'flex:0 0 auto;background:none;border:1px solid #2a3040;color:#9ab0c8;'
+      + 'border-radius:4px;width:22px;height:22px;font-size:11px;cursor:pointer;';
+    close.addEventListener('click', function(){ if(box.parentNode) box.parentNode.removeChild(box); });
+    row1.appendChild(title);
+    row1.appendChild(close);
+    box.appendChild(row1);
+
+    if(remoteInfo.notes){
+      var notes = document.createElement('div');
+      notes.textContent = remoteInfo.notes;
+      notes.style.cssText = 'color:#c8d0dc;font-size:10px;line-height:1.5;';
+      box.appendChild(notes);
+    }
+
+    var row2 = document.createElement('div');
+    row2.style.cssText = 'display:flex;gap:8px;';
+    var dlBtn = document.createElement('button');
+    dlBtn.textContent = '⬇️ Download Update';
+    dlBtn.style.cssText = 'flex:1;background:#ffaa00;border:1px solid #ffaa00;color:#100b00;'
+      + 'border-radius:4px;padding:8px;font-size:11px;font-weight:bold;cursor:pointer;';
+    dlBtn.addEventListener('click', function(){
+      // Buka link di browser HP (bukan auto-download) — user download &
+      // install manual dari sana (sfile.co dsb).
+      if(novaIsNativeApp() && window.Capacitor.Plugins.App){
+        // Tidak ada cara resmi buka browser eksternal dari App plugin;
+        // window.open dengan target _system/_blank tetap jalan di WebView
+        // Capacitor untuk membuka link eksternal di browser default HP.
+        window.open(remoteInfo.downloadUrl, '_system');
+      } else {
+        window.open(remoteInfo.downloadUrl, '_blank');
+      }
+    });
+    var laterBtn = document.createElement('button');
+    laterBtn.textContent = 'Nanti';
+    laterBtn.style.cssText = 'flex:0 0 auto;background:transparent;border:1px solid #2a3040;color:#9ab0c8;'
+      + 'border-radius:4px;padding:8px 14px;font-size:11px;cursor:pointer;';
+    laterBtn.addEventListener('click', function(){ if(box.parentNode) box.parentNode.removeChild(box); });
+    row2.appendChild(dlBtn);
+    row2.appendChild(laterBtn);
+    box.appendChild(row2);
+
+    document.body.appendChild(box);
+  }catch(e){ console.warn('[Nova] Gagal menampilkan banner update', e); }
+}
+
+async function novaCheckForUpdate(){
+  try{
+    var res = await fetch(NOVA_VERSION_CHECK_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) return; // version.json belum ada / repo belum di-setup — diam saja
+    var remoteInfo = await res.json();
+    var remoteCode = Number(remoteInfo.versionCode) || 0;
+    if(!remoteCode || !remoteInfo.downloadUrl) return; // data belum lengkap
+
+    var installedCode = await novaGetInstalledVersionCode();
+    // installedCode 0 berarti mode web biasa (bukan APK) — jangan tampilkan
+    // banner update APK di situ.
+    if(installedCode > 0 && remoteCode > installedCode){
+      novaShowUpdateBanner(remoteInfo);
+    }
+  }catch(e){
+    // Gagal cek update (offline, repo private, dsb) — diam saja, jangan
+    // ganggu penggunaan app.
+    console.warn('[Nova] Gagal cek update', e);
+  }
+}
+
+// Cek update sekali saat app dibuka, ditunda beberapa detik supaya tidak
+// ganggu proses loading awal / render 3D pertama kali.
+setTimeout(novaCheckForUpdate, 4000);
+
 // Ubah Blob jadi base64 murni (tanpa prefix data:...;base64,) — dibutuhkan
 // oleh Capacitor Filesystem.writeFile.
 function novaBlobToBase64(blob){
@@ -5457,29 +5467,48 @@ function novaBlobToBase64(blob){
   });
 }
 
+// Tebak MIME type dari ekstensi filename — dipakai MediaStore di sisi native
+// supaya file terdaftar dengan tipe yang benar (biar File Manager/aplikasi
+// lain bisa buka filenya dengan app yang tepat).
+function novaGuessMime(filename){
+  var ext = (filename.split('.').pop() || '').toLowerCase();
+  var map = {
+    json: 'application/json',
+    webm: 'video/webm',
+    mp4: 'video/mp4',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    txt: 'text/plain',
+    csv: 'text/csv'
+  };
+  return map[ext] || 'application/octet-stream';
+}
+
 async function novaSaveFileNative(blob, filename){
-  var Filesystem = window.Capacitor.Plugins.Filesystem;
-  var Share = window.Capacitor.Plugins.Share;
+  // Plugin native custom (NovaDownload) — nulis file LANGSUNG ke folder
+  // Downloads PUBLIK milik sistem (kelihatan di app File Manager/Files
+  // bawaan HP), bukan ke folder privat aplikasi. Jalan konsisten di semua
+  // versi Android (pakai MediaStore utk Android 10+, path langsung utk
+  // Android 9 ke bawah — logic percabangannya ada di kode native Kotlin/Java).
+  var NovaDownload = window.Capacitor.Plugins.NovaDownload;
+  if(!NovaDownload){
+    throw new Error('Plugin NovaDownload tidak terpasang di build APK ini');
+  }
   var base64Data = await novaBlobToBase64(blob);
-
-  // Directory.Documents ada di area yang bisa diakses & terlihat user lewat
-  // app File Manager (Android/data/<package>/files/Documents), dan tidak
-  // butuh permission runtime tambahan di Android 10+ (scoped storage).
-  var writeResult = await Filesystem.writeFile({
-    path: filename,
+  var result = await NovaDownload.saveToDownloads({
+    filename: filename,
     data: base64Data,
-    directory: 'DOCUMENTS',
-    recursive: true
+    mimeType: novaGuessMime(filename)
   });
-
-  return writeResult;
+  return result;
 }
 
 function novaDownloadFile(blob, filename){
   if(novaIsNativeApp()){
     novaSaveFileNative(blob, filename).then(function(res){
       if(typeof setStatus==='function'){
-        setStatus('✅ Tersimpan: '+filename+' (folder Documents)');
+        setStatus('✅ Tersimpan di folder Downloads: '+filename);
       }
       novaShowDownloadFallback(null, filename, res && res.uri);
     }).catch(function(err){
@@ -5534,12 +5563,11 @@ function novaShowDownloadFallback(url, filename, nativeUri){
     row.style.cssText = 'display:flex;align-items:center;gap:8px;';
 
     if(nativeUri){
-      // Mode APK: file sudah tersimpan di folder Documents. Kasih tombol
-      // "Bagikan" (pindah ke Downloads/WhatsApp/Drive dll via Android share
-      // sheet) karena itu cara paling pasti user bisa mindahin file ke
-      // tempat yang mereka mau.
+      // Mode APK: file sudah tersimpan langsung di folder Downloads publik
+      // HP. Tombol "Bagikan" tetap disediakan sebagai jalan pintas kalau
+      // user mau langsung kirim ke WhatsApp/Drive/dll tanpa buka File Manager.
       var info = document.createElement('div');
-      info.textContent = '✅ '+filename+' tersimpan di folder Documents app';
+      info.textContent = '✅ '+filename+' tersimpan di folder Downloads';
       info.style.cssText = 'flex:1;color:#00d4ff;font-size:10px;word-break:break-all;';
       var shareBtn = document.createElement('button');
       shareBtn.textContent = '📤 Bagikan';
@@ -5595,12 +5623,8 @@ function buildFixtureSelectors(){
         if(state.selectedWall>=0){
           const sel=state.wallwashers[state.selectedWall];
           if(sel){
-            const rs=document.getElementById('sWallRot'),rv=document.getElementById('sWallRotV');
-            const rx=document.getElementById('sWallRotV2'),rxv=document.getElementById('sWallRotV2V');
             const ss=document.getElementById('sWallScale'),sv=document.getElementById('sWallScaleV');
             const sl=document.getElementById('sWallLen'),slv=document.getElementById('sWallLenV');
-            if(rs){rs.value=sel.rotation||0;if(rv)rv.textContent=(sel.rotation||0)+'°';}
-            if(rx){rx.value=sel.rotationX||0;if(rxv)rxv.textContent=(sel.rotationX||0)+'°';}
             if(ss){ss.value=sel.scale||1;if(sv)sv.textContent=(sel.scale||1).toFixed(1);}
             if(sl){sl.value=sel.barLen||50;if(slv)slv.textContent=sel.barLen||50;}
           }
@@ -5823,6 +5847,20 @@ function restoreUI(){
       window._pendingG3dRestore = d.g3dSpawned;
     }
   } catch(e) {}
+  // === RESTORE EDITOR 3D ASSET BROWSER MODELS ===
+  // FIX: sebelumnya d.e3dModels HANYA di-restore lewat doLoadProject() (load
+  // file project manual) — TIDAK PERNAH di-restore lewat restoreUI() (auto-load
+  // localStorage saat app dibuka/refresh). Akibatnya model 3D yang di-spawn dari
+  // Asset Browser hilang begitu app dibuka ulang, dan begitu masterSave() jalan
+  // lagi (dari aksi apapun) localStorage ditimpa dengan array e3dModels kosong
+  // -> hilang PERMANEN. Fix: set _e3dPendingRestore di sini juga, sama seperti
+  // doLoadProject(), supaya e3dInit() (yang jalan otomatis saat boot, lihat
+  // pemanggilan e3dInit() awal di bawah) bisa memulihkannya.
+  try {
+    if(d.e3dModels && d.e3dModels.length) {
+      window._e3dPendingRestore = d.e3dModels;
+    }
+  } catch(e) {}
   // Update rotation UI
   if(d.rotateMode){
     const autoBtn=document.getElementById('sRotateAuto');
@@ -5873,10 +5911,30 @@ function restoreUI(){
 }
 restoreUI();
 
+// FIX AUTOLOAD ASSET 3D: sebelumnya e3dInit() (modul Editor 3D yang menangani
+// Asset Browser + restore model tersimpan) HANYA dipanggil saat user membuka
+// tab "EDITOR 3D" secara manual (lihat setPage()). Kalau user tidak pernah
+// membuka tab itu, _e3dPendingRestore (diisi restoreUI() di atas) tidak
+// pernah diproses -> asset 3D yang sudah di-spawn sebelumnya kelihatan hilang,
+// padahal datanya masih ada di localStorage. e3dInit() sendiri sudah aman
+// dipanggil lebih dini karena dia polling (setTimeout ulang) sampai
+// window._gbRenderer/_gbScene/_gbCamera (viewport 3D utama) benar-benar siap,
+// jadi cukup dipanggil sekali di sini agar restore jalan otomatis begitu app
+// dibuka, tanpa perlu buka tab Editor 3D dulu.
+(function _bootE3dInit(triesLeft){
+  try{
+    if(typeof window.e3dInit==='function'){ window.e3dInit(); return; }
+  }catch(e){ console.warn('[Nova] Gagal auto-init Editor 3D saat boot', e); }
+  // window.e3dInit belum terdaftar (script Editor 3D di bawah belum selesai
+  // parse) — coba lagi sebentar, bukan cuma sekali, supaya tidak silent-fail.
+  if(triesLeft > 0) setTimeout(function(){ _bootE3dInit(triesLeft-1); }, 200);
+})(25); // ~5 detik toleransi
+
 function spawnWalls(n){
   const old=state.wallwashers||[];
   const m=40,u=canvas.width-m*2,sp=n>1?u/(n-1):0,y=Math.round(canvas.height*0.55);
-  const rot=Number(document.getElementById('sWallRot')?.value||0);
+  // Rotasi wallwasher baru selalu mulai dari 0° — diatur lebih lanjut lewat Editor 3D.
+  const rot=0;
   const sc=Number(document.getElementById('sWallScale')?.value||1);
   const bl=Number(document.getElementById('sWallLen')?.value||50);
   const wdim=Number(document.getElementById('sWallDim')?.value||95)/100;
@@ -9500,13 +9558,23 @@ function masterSave(){
   // EDITOR 3D models (VT Jockey panels excluded — persisted separately via
   // vtjLayout/masterSave wrapper so their shape/media/effect state can be
   // rebuilt properly instead of collapsing to a generic placeholder box)
-  if(window.e3dState) d.e3dModels=window.e3dState.models.filter(function(m){ return !m._isVtjPanel; }).map(function(m){
-    return {id:m.id,modelId:m.modelId,name:m.name,type:m.type,
-      px:m.obj3d?m.obj3d.position.x:0,py:m.obj3d?m.obj3d.position.y:0,pz:m.obj3d?m.obj3d.position.z:0,
-      rx:m.obj3d?m.obj3d.rotation.x:0,ry:m.obj3d?m.obj3d.rotation.y:0,rz:m.obj3d?m.obj3d.rotation.z:0,
-      sx:m.obj3d?m.obj3d.scale.x:1,sy:m.obj3d?m.obj3d.scale.y:1,sz:m.obj3d?m.obj3d.scale.z:1,
-      scale:m.obj3d?m.obj3d.scale.x:1,visible:m.visible,locked:m.locked,group:m.group};
-  });
+  // FIX (anti hilang-permanen): kalau restore dari localStorage/project masih
+  // "pending" (window._e3dPendingRestore belum diproses — misal masterSave()
+  // ke-trigger oleh aksi lain sebelum e3dInit() sempat memulihkan model lama),
+  // JANGAN timpa d.e3dModels dengan array kosong dari e3dState.models yang
+  // memang belum terisi. Biarkan nilai lama di storage tetap utuh sampai
+  // restore benar-benar selesai — baru setelah itu masterSave() boleh
+  // menulis ulang berdasarkan e3dState.models yang sudah lengkap.
+  var _e3dRestoreStillPending = !!(window._e3dPendingRestore && window._e3dPendingRestore.length);
+  if(window.e3dState && !_e3dRestoreStillPending){
+    d.e3dModels=window.e3dState.models.filter(function(m){ return !m._isVtjPanel; }).map(function(m){
+      return {id:m.id,modelId:m.modelId,name:m.name,type:m.type,
+        px:m.obj3d?m.obj3d.position.x:0,py:m.obj3d?m.obj3d.position.y:0,pz:m.obj3d?m.obj3d.position.z:0,
+        rx:m.obj3d?m.obj3d.rotation.x:0,ry:m.obj3d?m.obj3d.rotation.y:0,rz:m.obj3d?m.obj3d.rotation.z:0,
+        sx:m.obj3d?m.obj3d.scale.x:1,sy:m.obj3d?m.obj3d.scale.y:1,sz:m.obj3d?m.obj3d.scale.z:1,
+        scale:m.obj3d?m.obj3d.scale.x:1,visible:m.visible,locked:m.locked,group:m.group};
+    });
+  }
   // === ROTASI FISIK FIXTURE ===
   try {
     var _frEl = document.getElementById('sFixRotZ');
@@ -10141,24 +10209,20 @@ sbtn('sClearWall',()=>{state.wallwashers=[];saveUI();setStatus('Wall cleared');}
 slink('sWallScale',e=>{
   const v=Number(e.target.value);
   document.getElementById('sWallScaleV').textContent=v.toFixed(1);
-  if(state.selectedWall>=0&&state.wallwashers[state.selectedWall])
+  if(state.selectedWall>=0&&state.wallwashers[state.selectedWall]){
     state.wallwashers[state.selectedWall].scale=v;
-  else state.wallwashers.forEach(w=>w.scale=v);
+    // Reset lock SCALE Editor 3D — supaya slider Settings ini langsung
+    // kelihatan efeknya, bukan ketimpa lagi oleh nilai lama Editor 3D.
+    state.wallwashers[state.selectedWall].e3dScaled=false;
+    var w3dArr0=window._jawir3DWalls||[]; if(w3dArr0[state.selectedWall]) w3dArr0[state.selectedWall]._e3dScaled=false;
+  } else {
+    state.wallwashers.forEach((w,wi)=>{
+      w.scale=v;
+      w.e3dScaled=false;
+      var w3dArr1=window._jawir3DWalls||[]; if(w3dArr1[wi]) w3dArr1[wi]._e3dScaled=false;
+    });
+  }
   saveUI();
-});
-slink('sWallRot',e=>{
-  const v=Number(e.target.value);
-  document.getElementById('sWallRotV').textContent=v+'°';
-  if(state.selectedWall>=0&&state.wallwashers[state.selectedWall])
-    state.wallwashers[state.selectedWall].rotation=v;
-  else state.wallwashers.forEach(w=>w.rotation=v);
-});
-slink('sWallRotV2',e=>{
-  const v=Number(e.target.value);
-  document.getElementById('sWallRotV2V').textContent=v+'°';
-  if(state.selectedWall>=0&&state.wallwashers[state.selectedWall])
-    state.wallwashers[state.selectedWall].rotationX=v;
-  else state.wallwashers.forEach(w=>w.rotationX=v);
 });
 slink('sWallLen',e=>{
   const v=Number(e.target.value);
@@ -14499,11 +14563,22 @@ function _jawirSpawnWall3D() {
     var initX = hasE3dOffset && w.e3dX !== undefined ? w.e3dX : wx;
     var initY = hasE3dOffset && w.e3dY !== undefined ? w.e3dY : wy;
     var initZ = hasE3dOffset && w.e3dZ !== undefined ? w.e3dZ : wz;
+    // Restore rotasi (Rot Y / Rot Z) hasil fader Editor 3D (tersimpan di
+    // Save Project) — sama seperti pola offset posisi di atas.
+    var hasE3dRot = !!w.e3dRotMoved;
+    var initRotY = hasE3dRot && w.e3dRotY !== undefined ? w.e3dRotY : ((w.rotation || 0) * Math.PI / 180);
+    var initRotZ = hasE3dRot && w.e3dRotZ !== undefined ? w.e3dRotZ : ((w.rotationX || 0) * Math.PI / 180);
+    // Restore ukuran hasil SCALE manual di Editor 3D (tersimpan di Save Project)
+    // — dipisah dari w.scale (dipakai juga untuk hitung barLen di atas)
+    // supaya keduanya tidak saling nimpa, sama seperti pola PAR/MB.
+    var hasE3dScale = !!w.e3dScaled;
+    var initGroupScale = hasE3dScale && w.e3dScale !== undefined ? w.e3dScale : 1;
 
     var group = new THREE.Group();
     group.position.set(initX, initY, initZ);
-    group.rotation.y = ((w.rotation || 0) * Math.PI / 180);
-    group.rotation.z = ((w.rotationX || 0) * Math.PI / 180);
+    group.rotation.y = initRotY;
+    group.rotation.z = initRotZ;
+    group.scale.setScalar(initGroupScale);
 
     // ─ Chassis bar ─
     var metalMat = new THREE.MeshStandardMaterial({ color: 0x15151c, metalness: 0.9, roughness: 0.1 });
@@ -14562,7 +14637,12 @@ function _jawirSpawnWall3D() {
       _e3dMoved: hasE3dOffset,
       _e3dX: hasE3dOffset ? initX : undefined,
       _e3dY: hasE3dOffset ? initY : undefined,
-      _e3dZ: hasE3dOffset ? initZ : undefined
+      _e3dZ: hasE3dOffset ? initZ : undefined,
+      _e3dRotMoved: hasE3dRot,
+      _e3dRotY: hasE3dRot ? initRotY : undefined,
+      _e3dRotZ: hasE3dRot ? initRotZ : undefined,
+      _e3dScaled: hasE3dScale,
+      _e3dScale: hasE3dScale ? initGroupScale : undefined
     });
   });
 }
@@ -15132,11 +15212,24 @@ function _jawirAnimate3DFixtures(now, dt) {
         w3d.group.position.z += (wz - w3d.group.position.z) * 0.15;
       }
     }
-    w3d.group.rotation.y = ((w.rotation || 0) * Math.PI / 180);
-    w3d.group.rotation.z = ((w.rotationX || 0) * Math.PI / 180);
+    // Rotasi & scale — hormati hasil transform manual di Editor 3D (fader
+    // Rot Y / Rot Z / Scale) kalau sudah pernah di-drag, supaya animate loop
+    // tidak menimpanya balik tiap frame ke nilai lama dari state.wallwashers.
+    // Sebelumnya rotasi/scale wallwasher SELALU dipaksa balik ke w.rotation/
+    // w.rotationX/w.scale di sini — itu sebabnya Rot Y & Rot Z di Editor 3D
+    // kelihatan "gak bisa" (kegeser sesaat, lalu ketimpa lagi frame berikutnya).
+    if(_isE3dDragging('wall_'+i)){
+      // Sedang di-drag fader — biarkan nilai dari Editor 3D, jangan dioverride.
+    } else if(w3d._e3dRotMoved){
+      w3d.group.rotation.y = w3d._e3dRotY !== undefined ? w3d._e3dRotY : ((w.rotation || 0) * Math.PI / 180);
+      w3d.group.rotation.z = w3d._e3dRotZ !== undefined ? w3d._e3dRotZ : ((w.rotationX || 0) * Math.PI / 180);
+    } else {
+      w3d.group.rotation.y = ((w.rotation || 0) * Math.PI / 180);
+      w3d.group.rotation.z = ((w.rotationX || 0) * Math.PI / 180);
+    }
 
-    // Scale dari state
-    var wSc = w.scale || 1;
+    // Scale dari state, kecuali sudah di-scale manual lewat Editor 3D
+    var wSc = w3d._e3dScaled ? w3d._e3dScale : (w.scale || 1);
     w3d.group.scale.set(wSc, wSc, wSc);
 
     // Strobe flash multiplier dari jawir
@@ -15170,6 +15263,8 @@ function _jawirAnimate3DFixtures(now, dt) {
     // dimBase: pakai dimmer SENDIRI wallwasher (w.intensity), TIDAK ikut
     // s.dimmer (dimmer beam utama) atau s.power — supaya wallwasher tidak
     // ikut redup/mati saat beam utama diturunkan atau BEAM OFF.
+    // Max Dimmer (state.wallMaxDim) sudah dihapus — dimmer sekarang bisa
+    // full 0-100% tanpa batas atas tambahan.
     var wIntensity = (w.intensity !== undefined && w.intensity !== null) ? w.intensity : 0.95;
     var dimBase = wIntensity * flashM;
 
@@ -15307,12 +15402,16 @@ function _jawirAnimate3DFixtures(now, dt) {
       // Apply ke mesh
       var seg = w3d.segments[j];
       seg.material.emissive.copy(segCol);
-      // Saat rainbow: cap intensity agar warna HSL tidak overblown jadi putih
-      seg.material.emissiveIntensity = rainbow ? finalBright * 6 : finalBright * 26;
+      // Wallwasher dinaikkan kecerahan dasarnya (35/8, dari sebelumnya 26/6)
+      // supaya lebih terang & lebih "nendang" secara visual, sejajar dengan
+      // PAR LED yang emissive-nya jauh lebih tinggi (22) DAN masih punya
+      // real PointLight tambahan. Saat rainbow tetap di-cap lebih rendah
+      // supaya warna HSL tidak overblown jadi putih.
+      seg.material.emissiveIntensity = rainbow ? finalBright * 8 : finalBright * 35;
 
       var glow = w3d.glows[j];
       glow.material.color.copy(segCol);
-      glow.material.opacity = finalBright * 0.28;
+      glow.material.opacity = Math.min(1, finalBright * 0.4);
 
       var lt = w3d.lights[j];
       // lights sudah null (dihapus) — skip
@@ -18347,7 +18446,7 @@ window._f3Pos = f3Pos; // expose untuk debug
     // blob+<a download> normal.
     novaDownloadFile(blob, filename);
     if(typeof novaIsNativeApp==='function' && novaIsNativeApp()){
-      _setRecStatus('✅ Selesai ('+_fmtTime((Date.now()-_recStartTime)/1000)+') — '+(blob.size/1048576).toFixed(1)+' MB — tersimpan di folder Documents app');
+      _setRecStatus('✅ Selesai ('+_fmtTime((Date.now()-_recStartTime)/1000)+') — '+(blob.size/1048576).toFixed(1)+' MB — tersimpan di folder Downloads');
     } else {
       const url=URL.createObjectURL(blob);
       _showRecResultLink(url, filename, blob.size);
@@ -18853,6 +18952,16 @@ function _syncFixtureState(entry, obj){
         w3dArr[fidx]._e3dX = obj.position.x;
         w3dArr[fidx]._e3dY = obj.position.y;
         w3dArr[fidx]._e3dZ = obj.position.z;
+        // Rot Y & Rot Z: simpan rotasi hasil fader Editor 3D langsung
+        // (radian, sama seperti yang ditulis obj.rotation.y/z oleh fader),
+        // supaya animate loop wallwasher berhenti menimpanya balik tiap
+        // frame ke w.rotation/w.rotationX lama.
+        w3dArr[fidx]._e3dRotMoved = true;
+        w3dArr[fidx]._e3dRotY = obj.rotation.y;
+        w3dArr[fidx]._e3dRotZ = obj.rotation.z;
+        // Scale: simpan ukuran hasil fader SCALE Editor 3D, sama seperti PAR/MB.
+        w3dArr[fidx]._e3dScaled = true;
+        w3dArr[fidx]._e3dScale = obj.scale.x;
       }
       // Simpan juga ke state.wallwashers agar offset E3D ikut tersimpan di Save Project
       // (array _jawir3DWalls dibuat ulang dari nol tiap load/respawn, jadi tidak persist sendiri)
@@ -18861,6 +18970,11 @@ function _syncFixtureState(entry, obj){
         arr[fidx].e3dX = obj.position.x;
         arr[fidx].e3dY = obj.position.y;
         arr[fidx].e3dZ = obj.position.z;
+        arr[fidx].e3dRotMoved = true;
+        arr[fidx].e3dRotY = obj.rotation.y;
+        arr[fidx].e3dRotZ = obj.rotation.z;
+        arr[fidx].e3dScaled = true;
+        arr[fidx].e3dScale = obj.scale.x;
       }
     }
     // Untuk mb: tandai unit sebagai sudah di-drag/scale E3D agar animasi loop
@@ -19702,9 +19816,24 @@ function _onResize(){
 function _restorePending(){
   var pending = window._e3dPendingRestore;
   if(!pending || !pending.length) return;
+  // FIX: sebelumnya window._e3dPendingRestore di-null-kan DI SINI, sebelum
+  // memastikan _gbScene siap. Kalau _gbScene belum siap, retry di bawah
+  // memanggil _restorePending lagi tapi window._e3dPendingRestore sudah
+  // kosong -> pending list HILANG, model 3D gagal di-restore secara diam-diam
+  // (tanpa error). Jangan clear sampai benar-benar akan diproses.
+  if(!window._gbScene){
+    if(!window._e3dRestoreTries) window._e3dRestoreTries = 0;
+    window._e3dRestoreTries++;
+    if(window._e3dRestoreTries > 40){ // ~20 detik (40 x 500ms)
+      console.warn('[Nova][E3D] Scene 3D utama tidak pernah siap — model tersimpan gagal dipulihkan.');
+      if(typeof setStatus==='function') setStatus('⚠ Asset 3D gagal dimuat — coba refresh');
+      return;
+    }
+    setTimeout(_restorePending, 500);
+    return;
+  }
   window._e3dPendingRestore = null;
-  // Tunggu scene utama siap
-  if(!window._gbScene){ setTimeout(_restorePending, 500); return; }
+  window._e3dRestoreTries = 0;
   // Pastikan scene lokal sudah terhubung ke _gbScene
   if(!scene) scene = window._gbScene;
   pending.forEach(function(m){
