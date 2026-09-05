@@ -105,38 +105,61 @@ jobs:
       - name: Configure Android permissions
         shell: bash
         run: |
-          python3 - <<'PY'
-          import re
-          from pathlib import Path
-          p = Path("android/app/src/main/AndroidManifest.xml")
-          s = p.read_text()
-          marker = "</manifest>"
-          perms = [
-              '<uses-permission android:name="android.permission.INTERNET" />',
-              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />',
-              '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />',
-              '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />'
-          ]
-          for perm in perms:
-              if perm not in s:
-                  s = s.replace(marker, "    " + perm + "\n" + marker, 1)
+          set -e
+          python3 "android-template/scripts/patch_manifest.py" \
+            "android/app/src/main/AndroidManifest.xml"
 
-          # Pastikan <application> punya requestLegacyExternalStorage="true"
-          # supaya penulisan file (via Capacitor Filesystem plugin) tetap
-          # kompatibel di Android 10 (API 29) yang pakai scoped storage.
-          if 'android:requestLegacyExternalStorage' not in s:
-              s = re.sub(
-                  r'(<application\b)',
-                  r'\1 android:requestLegacyExternalStorage="true"',
-                  s,
-                  count=1
-              )
-          p.write_text(s)
-          PY
+      - name: Add native download-to-Downloads plugin
+        shell: bash
+        run: |
+          set -e
+          # Copy source plugin Java kita (yang nulis file ke folder Downloads
+          # publik lewat MediaStore) ke dalam project android/ hasil generate
+          # `cap add android`.
+          SRC_DIR="android-template/app/src/main/java/com/nova/lighting"
+          DEST_DIR="android/app/src/main/java/com/nova/lighting"
+          mkdir -p "$DEST_DIR"
+          cp "$SRC_DIR/NovaDownloadPlugin.java" "$DEST_DIR/NovaDownloadPlugin.java"
+
+          # Daftarkan plugin di MainActivity yang digenerate Capacitor, supaya
+          # jembatan JS <-> native kebentuk. Tanpa ini, pemanggilan dari
+          # index.html cuma dapat error "plugin not implemented".
+          MAIN_ACTIVITY=$(find android/app/src/main/java -name "MainActivity.java" | head -n 1)
+          test -n "$MAIN_ACTIVITY"
+          python3 "android-template/scripts/patch_main_activity.py" "$MAIN_ACTIVITY"
 
       - name: Sync Nova
         run: npx cap sync android
+
+      - name: Use stable debug keystore (so updates install in-place)
+        shell: bash
+        run: |
+          set -e
+          # Runner GitHub Actions BARU tiap kali workflow jalan, jadi kalau
+          # dibiarkan default, Gradle auto-generate debug.keystore BARU tiap
+          # build → signature APK beda tiap kali → Android nolak "update"
+          # (harus uninstall dulu). Fix: pakai satu keystore yang sudah
+          # di-commit ke repo (android-template/app/debug.keystore), jadi
+          # signature-nya SELALU sama di semua build.
+          cp android-template/app/debug.keystore android/app/debug.keystore
+          GRADLE_FILE="android/app/build.gradle"
+          python3 "android-template/scripts/patch_signing.py" "$GRADLE_FILE"
+          echo "--- android/app/build.gradle (cuplikan signing) ---"
+          grep -A4 "signingConfigs" "$GRADLE_FILE" || true
+
+      - name: Bump app version (versionCode & versionName)
+        shell: bash
+        run: |
+          set -e
+          # Android CUMA mau nawarin "Update" (install-over tanpa uninstall)
+          # kalau versionCode APK baru LEBIH BESAR dari yang lagi terpasang,
+          # DAN signature-nya sama (langkah sebelumnya sudah pastikan itu
+          # konsisten lewat debug.keystore yang di-commit). run_number GitHub
+          # Actions naik terus tiap kali workflow ini jalan, jadi dipakai
+          # langsung sebagai versionCode — gak akan pernah mundur.
+          GRADLE_FILE="android/app/build.gradle"
+          python3 "android-template/scripts/bump_version.py" "$GRADLE_FILE" "${{ github.run_number }}"
+          grep -E "versionCode|versionName" "$GRADLE_FILE"
 
       - name: Build APK
         working-directory: android
