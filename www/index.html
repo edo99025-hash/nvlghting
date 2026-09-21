@@ -2145,6 +2145,31 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
               <!-- filled by vtjBuildEditor3DPanel() -->
             </div>
 
+            <!-- UPLOAD GAMBAR (masuk ke LAYERS, bisa di-TRANSFORM) -->
+            <div id="e3dImgPanel" style="background:var(--panel);border-bottom:1px solid var(--border);padding:5px 8px 6px">
+              <div style="font-size:8px;letter-spacing:.2em;color:var(--teal);margin-bottom:5px;font-family:'Share Tech Mono',monospace;display:flex;align-items:center;justify-content:space-between">
+                <span>🖼 UPLOAD GAMBAR</span>
+                <span style="display:flex;align-items:center;gap:5px">
+                  <span id="e3dImgCount" class="val">0 gbr</span>
+                  <button id="e3dImgPanelToggleBtn" onclick="e3dTogglePanel('e3dImgPanelBody')" style="background:var(--btn);border:1px solid var(--border2);border-radius:3px;color:var(--lbl);font-size:8px;padding:2px 7px;cursor:pointer;letter-spacing:.05em">👁 HIDE</button>
+                </span>
+              </div>
+              <div id="e3dImgPanelBody">
+                <label class="btn on-t" style="display:block;width:100%;box-sizing:border-box;text-align:center;font-size:10px;font-weight:700;padding:7px;cursor:pointer;margin-bottom:4px">📤 PILIH GAMBAR<input type="file" id="e3dImgFileInput" accept="image/*" multiple style="display:none" onchange="e3dImgHandleFiles(this.files);this.value=''"></label>
+                <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.5;margin-bottom:4px">Gambar otomatis masuk ke <span style="color:var(--amber)">LAYERS</span> — pilih lalu atur POS / ROT / SCALE di panel TRANSFORM.</div>
+                <div id="e3dImgList" style="display:flex;flex-direction:column;gap:3px;max-height:150px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:3px;margin-bottom:5px"></div>
+                <div class="row" style="margin-bottom:5px">
+                  <div class="lbl" style="min-width:48px">Opacity</div>
+                  <input type="range" class="sldr" id="e3dImgOpacity" min="0" max="100" step="1" value="100" style="flex:1" disabled>
+                  <div class="val" id="e3dImgOpacityV" style="min-width:32px">100%</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <button class="btn" onclick="e3dImgSetAllVisible(false)" style="font-size:8px">🚫 HIDE SEMUA</button>
+                  <button class="btn on-t" onclick="e3dImgSetAllVisible(true)" style="font-size:8px">👁 SHOW SEMUA</button>
+                </div>
+              </div>
+            </div>
+
             <!-- LAYERS + GROUP TOOLS -->
           <div style="background:var(--panel);border-bottom:1px solid var(--border);padding:5px 8px 6px">
             <div style="font-size:8px;letter-spacing:.2em;color:var(--amber);margin-bottom:4px;font-family:'Share Tech Mono',monospace">🗂 LAYERS <span id="e3dSelCount" style="color:var(--teal);font-weight:400"></span></div>
@@ -9497,6 +9522,17 @@ document.addEventListener('visibilitychange', function(){
 // ========================================================
 // AUTO SAVE EVERY 2 SECONDS
 // ========================================================
+// Tambahan field untuk layer GAMBAR (Editor 3D) saat serialisasi model.
+// embed=true (download project) menyertakan data gambar; localStorage hanya
+// menyimpan imgKey (data gambar ada di IndexedDB).
+function _e3dImgExtra(m,o,embed){
+  if(m && m._isImageLayer){
+    o.isImage=true; o.imgKey=m._imgKey; o.imgAspect=m._imgAspect;
+    o.imgOpacity=(m._imgOpacity===undefined?1:m._imgOpacity);
+    if(embed && m._imgSrc) o.imgSrc=m._imgSrc;
+  }
+  return o;
+}
 function masterSave(){
   const d=ls();
   // State
@@ -9568,11 +9604,11 @@ function masterSave(){
   var _e3dRestoreStillPending = !!(window._e3dPendingRestore && window._e3dPendingRestore.length);
   if(window.e3dState && !_e3dRestoreStillPending){
     d.e3dModels=window.e3dState.models.filter(function(m){ return !m._isVtjPanel; }).map(function(m){
-      return {id:m.id,modelId:m.modelId,name:m.name,type:m.type,
+      return _e3dImgExtra(m,{id:m.id,modelId:m.modelId,name:m.name,type:m.type,
         px:m.obj3d?m.obj3d.position.x:0,py:m.obj3d?m.obj3d.position.y:0,pz:m.obj3d?m.obj3d.position.z:0,
         rx:m.obj3d?m.obj3d.rotation.x:0,ry:m.obj3d?m.obj3d.rotation.y:0,rz:m.obj3d?m.obj3d.rotation.z:0,
         sx:m.obj3d?m.obj3d.scale.x:1,sy:m.obj3d?m.obj3d.scale.y:1,sz:m.obj3d?m.obj3d.scale.z:1,
-        scale:m.obj3d?m.obj3d.scale.x:1,visible:m.visible,locked:m.locked,group:m.group};
+        scale:m.obj3d?m.obj3d.scale.x:1,visible:m.visible,locked:m.locked,group:m.group},false);
     });
   }
   // === ROTASI FISIK FIXTURE ===
@@ -10566,12 +10602,12 @@ function doSaveProject(){
   // Sertakan e3dModels (Editor 3D) dalam project download — VT Jockey panels excluded (see above)
   if(window.e3dState && window.e3dState.models && window.e3dState.models.length){
     proj.e3dModels = window.e3dState.models.filter(function(m){ return !m._isVtjPanel; }).map(function(m){
-      return {id:m.id,modelId:m.modelId,name:m.name,type:m.type,
+      return _e3dImgExtra(m,{id:m.id,modelId:m.modelId,name:m.name,type:m.type,
         color:m._color||0x888888,visible:m.visible,locked:m.locked,group:m.group||null,
         px:m.obj3d?m.obj3d.position.x:0,py:m.obj3d?m.obj3d.position.y:0,pz:m.obj3d?m.obj3d.position.z:0,
         rx:m.obj3d?m.obj3d.rotation.x:0,ry:m.obj3d?m.obj3d.rotation.y:0,rz:m.obj3d?m.obj3d.rotation.z:0,
         sx:m.obj3d?m.obj3d.scale.x:1,sy:m.obj3d?m.obj3d.scale.y:1,sz:m.obj3d?m.obj3d.scale.z:1,
-        scale:m.obj3d?m.obj3d.scale.x:1};
+        scale:m.obj3d?m.obj3d.scale.x:1},true);
     });
   }
   // Sertakan saved e3d scenes agar bisa di-load ulang
@@ -16524,7 +16560,7 @@ function _dedupeFixtureLayers(){
   st.models.forEach(function(m){ if(m._jawirFixture) liveFixtureNames[m.name] = true; });
   var cleaned = [];
   st.models.forEach(function(m){
-    if(!m._jawirFixture && liveFixtureNames[m.name]){
+    if(!m._jawirFixture && !m._isImageLayer && liveFixtureNames[m.name]){
       if(m.obj3d && sceneObj){ try{ sceneObj.remove(m.obj3d); }catch(e){} }
       removed++;
       return;
@@ -19411,6 +19447,7 @@ function _rebuildLayers(){
   st.models.filter(function(m){ return !m.group; }).forEach(function(e){
     list.appendChild(_makeLayerItem(e, false));
   });
+  try{ if(typeof _imgRenderList==='function') _imgRenderList(); }catch(err){}
 }
 
 function _makeLayerItem(entry, indented){
@@ -19523,6 +19560,7 @@ window.e3dDuplicate = function(){
   ids.forEach(function(id){
     var e = window.e3dState.models.find(function(m){ return m.id===id; });
     if(!e) return;
+    if(e._isImageLayer){ var _ni=_imgDuplicate(e); if(_ni) newIds.push(_ni.id); return; }
     var uid = 'm' + (window.e3dState.nextId++);
     var clone = {
       id: uid, modelId: e.modelId, name: e.name+' copy',
@@ -19628,6 +19666,7 @@ window.e3dDeleteSelected = function(){
 
     // ── Model biasa: remove dari scene ─────────────────────────
     if(e.obj3d) scene.remove(e.obj3d);
+    if(e._isImageLayer){ window.e3dState.models.splice(idx, 1); _imgDisposeEntry(e); return; }
     window.e3dState.models.splice(idx, 1);
   });
   window.e3dState.selected = [];
@@ -19837,6 +19876,7 @@ function _restorePending(){
   // Pastikan scene lokal sudah terhubung ke _gbScene
   if(!scene) scene = window._gbScene;
   pending.forEach(function(m){
+    if(m && m.isImage){ _imgRestoreOne(m); return; }
     var mdef = window.MODEL_DB.find(function(d){ return d.id===m.modelId; }) || {id:m.modelId||m.type, name:m.name, category:m.type||'CUSTOM', url:null, color:0x888888};
     var uid = m.id || ('m' + (window.e3dState.nextId++));
     var entry = {
@@ -19887,7 +19927,7 @@ window._e3dRedoStack = [];
 var _E3D_UNDO_MAX = 40;
 
 function _e3dSnapshotModels(){
-  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture; });
+  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
   return models.map(function(m){
     return {
       id: m.id, modelId: m.modelId, name: m.name, type: m.type,
@@ -19920,8 +19960,8 @@ function _e3dRestoreModelsSnapshot(snapArr){
   var st = window.e3dState;
   var sceneObj = scene || window._gbScene;
   if(!sceneObj) return;
-  var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture; });
-  var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture; });
+  var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture || !!m._isImageLayer; });
+  var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
   nonFixtureModels.forEach(function(m){ if(m.obj3d) sceneObj.remove(m.obj3d); });
   st.models = fixtureModels.slice();
   st.selected = [];
@@ -20015,7 +20055,7 @@ window.e3dSaveScene = function(){
   // itu objek panggung dari console, bukan dekorasi editor. Kalau ikut
   // tersimpan, saat di-load nanti dia dianggap objek baru (placeholder kotak)
   // dan fixture aslinya malah ke-hapus dari scene → wallwasher/par hilang.
-  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture; });
+  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
   if(!models.length){
     if(typeof setStatus==='function') setStatus('Tidak ada model di editor');
     return;
@@ -20116,8 +20156,8 @@ function _e3dLoadScene(scId){
   // ── Pisahkan fixture LIVE (wallwasher/par/beam/mb/martin/fan) dari model editor biasa ──
   // Fixture itu objek panggung yang dikontrol console, BUKAN bagian dari scene yang
   // di-save/load di sini. Kalau ikut dihapus, mereka hilang dari panggung (bug lama).
-  var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture; });
-  var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture; });
+  var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture || !!m._isImageLayer; });
+  var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
 
   // Hapus dari scene HANYA model editor (non-fixture)
   nonFixtureModels.forEach(function(m){ if(m.obj3d) sceneObj.remove(m.obj3d); });
@@ -20195,7 +20235,7 @@ function _e3dLoadScene(scId){
 
 // === DOWNLOAD SCENE ke file JSON ===
 window.e3dDownloadScene = function(){
-  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture; });
+  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
   if(!models.length){ if(typeof setStatus==='function') setStatus('Tidak ada model di editor'); return; }
   var nameEl = document.getElementById('e3dSceneName');
   var name = (nameEl && nameEl.value.trim()) || ('Scene_' + new Date().toISOString().slice(0,10));
@@ -20240,8 +20280,8 @@ window.e3dLoadSceneFromFile = function(jsonText){
     var sceneObj = scene || window._gbScene;
     if(!sceneObj){ if(typeof setStatus==='function') setStatus('Scene 3D belum siap'); return; }
     // Pisahkan fixture LIVE (wallwasher/par/beam/dll) — jangan dihapus dari scene
-    var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture; });
-    var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture; });
+    var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture || !!m._isImageLayer; });
+    var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
     nonFixtureModels.forEach(function(m){ if(m.obj3d) sceneObj.remove(m.obj3d); });
     st.models = fixtureModels.slice(); st.selected = []; st.nextId = 1; st.groupCounter = 1;
     // Spawn dari file
@@ -20343,6 +20383,393 @@ window.addEventListener('load', function(){
     if(typeof window._e3dRegisterAllFixtures === 'function') window._e3dRegisterAllFixtures();
   }, 3200);
 });
+
+// ==================== UPLOAD GAMBAR → LAYER EDITOR 3D ====================
+// Gambar yang di-upload jadi bidang (plane) 3D di scene utama, terdaftar di
+// e3dState.models (type 'GAMBAR') → otomatis muncul di LAYERS, bisa dipilih
+// dari layer list / klik di viewport, dan bisa di-TRANSFORM (POS/ROT/SCALE)
+// lewat panel TRANSFORM yang sama dengan objek lain.
+// Data gambar disimpan di IndexedDB (bukan localStorage) supaya tidak bikin
+// kuota localStorage penuh. Project download menyertakan gambar (embedded).
+var _IMG_BASE = 6;   // sisi terpanjang bidang gambar (unit scene)
+var _IMG_MAX_PX = 2048;
+var _imgSeq = 1;
+
+// ---- IndexedDB ----
+var _imgDbPromise = null;
+function _imgDb(){
+  if(_imgDbPromise) return _imgDbPromise;
+  _imgDbPromise = new Promise(function(resolve, reject){
+    try{
+      var rq = indexedDB.open('nova_e3d_images', 1);
+      rq.onupgradeneeded = function(){ rq.result.createObjectStore('imgs'); };
+      rq.onsuccess = function(){ resolve(rq.result); };
+      rq.onerror = function(){ reject(rq.error); };
+    }catch(err){ reject(err); }
+  });
+  return _imgDbPromise;
+}
+function _imgPut(key, val){
+  if(!key) return Promise.resolve(false);
+  return _imgDb().then(function(db){
+    return new Promise(function(resolve){
+      var tx = db.transaction('imgs', 'readwrite');
+      tx.objectStore('imgs').put(val, key);
+      tx.oncomplete = function(){ resolve(true); };
+      tx.onerror = tx.onabort = function(){ resolve(false); };
+    });
+  }).catch(function(){ return false; });
+}
+function _imgGet(key){
+  if(!key) return Promise.resolve(null);
+  return _imgDb().then(function(db){
+    return new Promise(function(resolve){
+      var rq = db.transaction('imgs', 'readonly').objectStore('imgs').get(key);
+      rq.onsuccess = function(){ resolve(rq.result || null); };
+      rq.onerror = function(){ resolve(null); };
+    });
+  }).catch(function(){ return null; });
+}
+function _imgDelKey(key){
+  if(!key) return;
+  _imgDb().then(function(db){
+    db.transaction('imgs', 'readwrite').objectStore('imgs').delete(key);
+  }).catch(function(){});
+}
+
+// ---- Helpers ----
+function _imgPlaneSize(aspect){
+  var a = aspect > 0 ? aspect : 1;
+  return a >= 1 ? {w:_IMG_BASE, h:_IMG_BASE / a} : {w:_IMG_BASE * a, h:_IMG_BASE};
+}
+function _imgReadFile(file){
+  return new Promise(function(resolve, reject){
+    var fr = new FileReader();
+    fr.onload = function(){
+      var im = new Image();
+      im.onload = function(){ resolve(im); };
+      im.onerror = function(){ reject(new Error('decode')); };
+      im.src = fr.result;
+    };
+    fr.onerror = function(){ reject(fr.error); };
+    fr.readAsDataURL(file);
+  });
+}
+function _imgEncode(im, file){
+  var w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+  var k = Math.min(1, _IMG_MAX_PX / Math.max(w, h));
+  var cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+  var c = document.createElement('canvas');
+  c.width = cw; c.height = ch;
+  c.getContext('2d').drawImage(im, 0, 0, cw, ch);
+  var keepAlpha = /png|webp|gif|svg/i.test(file.type || file.name || '');
+  return {
+    dataURL: keepAlpha ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.9),
+    aspect: cw / ch
+  };
+}
+function _imgMakeThumb(im){
+  try{
+    var w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+    var k = 56 / Math.max(w, h);
+    var c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    return c.toDataURL('image/png');
+  }catch(err){ return null; }
+}
+function _imgImageEntries(){
+  return window.e3dState.models.filter(function(m){ return m._isImageLayer; });
+}
+function _imgNewId(preferred){
+  var st = window.e3dState;
+  function taken(id){ return st.models.some(function(m){ return m.id === id; }); }
+  if(preferred && !taken(preferred)){
+    var pn = parseInt(String(preferred).replace('img_', ''));
+    if(pn >= _imgSeq) _imgSeq = pn + 1;
+    return preferred;
+  }
+  var id;
+  do { id = 'img_' + (_imgSeq++); } while(taken(id));
+  return id;
+}
+
+// ---- Texture ----
+function _imgApplyTexture(entry, src){
+  if(!src) return;
+  var im = new Image();
+  im.onload = function(){
+    var mesh = entry.obj3d;
+    if(!mesh || !mesh.material) return;   // entry sudah dihapus
+    var tex = new THREE.Texture(im);
+    tex.minFilter = THREE.LinearFilter;
+    tex.generateMipmaps = false;
+    tex.needsUpdate = true;
+    if(mesh.material.map) mesh.material.map.dispose();
+    mesh.material.map = tex;
+    mesh.material.color.set(0xffffff);
+    mesh.material.needsUpdate = true;
+    if(!entry._imgThumb){ entry._imgThumb = _imgMakeThumb(im); _imgRenderList(); }
+  };
+  im.src = src;
+}
+
+// ---- Buat entry layer ----
+function _imgCreateEntry(o){
+  var st = window.e3dState;
+  var sc = scene || window._gbScene;
+  if(!sc) return null;
+  var sz = _imgPlaneSize(o.aspect);
+  var opacity = (o.opacity === undefined || o.opacity === null) ? 1 : o.opacity;
+  var geo = new THREE.PlaneGeometry(sz.w, sz.h);
+  var mat = new THREE.MeshBasicMaterial({
+    color: 0x444444, side: THREE.DoubleSide, transparent: true,
+    opacity: opacity, alphaTest: 0.01, toneMapped: false, fog: false
+  });
+  var mesh = new THREE.Mesh(geo, mat);
+  var uid = _imgNewId(o.id);
+  mesh.position.set(o.px || 0, o.py || 0, o.pz || 0);
+  mesh.rotation.set(o.rx || 0, o.ry || 0, o.rz || 0);
+  mesh.scale.set(o.sx || 1, o.sy || 1, o.sz || 1);
+  mesh.visible = o.visible !== false;
+  mesh.userData.e3dId = uid;
+  sc.add(mesh);
+  var entry = {
+    id: uid, modelId: 'image-layer', name: o.name || 'Gambar', type: 'GAMBAR',
+    obj3d: mesh, visible: o.visible !== false, locked: !!o.locked, group: o.group || null,
+    _color: '#ff66cc', _isImageLayer: true,
+    _imgKey: o.key, _imgSrc: o.src || null, _imgAspect: o.aspect || 1,
+    _imgOpacity: opacity, _imgThumb: o.thumb || null
+  };
+  st.models.push(entry);
+  if(o.src) _imgApplyTexture(entry, o.src);
+  return entry;
+}
+
+// ---- Upload ----
+function _imgAddFile(file){
+  return _imgReadFile(file).then(function(im){
+    var enc = _imgEncode(im, file);
+    var key = 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    var n = _imgImageEntries().length;
+    var entry = _imgCreateEntry({
+      name: (file.name || 'Gambar').replace(/\.[^.]+$/, '').slice(0, 24) || 'Gambar',
+      key: key, src: enc.dataURL, aspect: enc.aspect, thumb: _imgMakeThumb(im),
+      px: ((n % 5) - 2) * 1.5, py: 5, pz: -18 + n * 0.02
+    });
+    if(entry) _imgPut(key, enc.dataURL);
+    return entry;
+  });
+}
+
+window.e3dImgHandleFiles = function(fileList){
+  var files = Array.prototype.slice.call(fileList || []).filter(function(f){
+    return /^image\//.test(f.type) || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(f.name || '');
+  });
+  if(!files.length){
+    if(typeof setStatus === 'function') setStatus('⚠ Pilih file gambar (PNG/JPG/WEBP/GIF)');
+    return;
+  }
+  if(!(scene || window._gbScene)){
+    if(typeof setStatus === 'function') setStatus('⚠ Scene 3D belum siap, coba lagi sebentar');
+    return;
+  }
+  var newIds = [], failed = 0;
+  var chain = Promise.resolve();
+  files.forEach(function(f){
+    chain = chain.then(function(){ return _imgAddFile(f); })
+      .then(function(entry){ if(entry) newIds.push(entry.id); })
+      .catch(function(){ failed++; });
+  });
+  chain.then(function(){
+    if(newIds.length){
+      _selectObjects(newIds);
+      _rebuildLayers();
+      if(typeof masterSave === 'function') setTimeout(masterSave, 200);
+    }
+    if(typeof setStatus === 'function'){
+      setStatus(newIds.length
+        ? ('✅ ' + newIds.length + ' gambar masuk ke LAYERS' + (failed ? (' (' + failed + ' gagal)') : ''))
+        : '⚠ Gambar gagal dimuat');
+    }
+  });
+};
+
+// ---- Hapus / duplikat ----
+function _imgDisposeEntry(e){
+  var others = window.e3dState.models.filter(function(m){
+    return m !== e && m._isImageLayer && m._imgKey === e._imgKey;
+  });
+  try{
+    if(e.obj3d){
+      if(e.obj3d.geometry) e.obj3d.geometry.dispose();
+      var mat = e.obj3d.material;
+      if(mat){ if(mat.map) mat.map.dispose(); mat.dispose(); }
+    }
+  }catch(err){}
+  if(!others.length) _imgDelKey(e._imgKey);
+}
+
+window.e3dImgDelete = function(id){
+  var st = window.e3dState;
+  var idx = st.models.findIndex(function(m){ return m.id === id && m._isImageLayer; });
+  if(idx < 0) return;
+  var e = st.models[idx];
+  if(e.obj3d) (scene || window._gbScene).remove(e.obj3d);
+  st.models.splice(idx, 1);
+  _imgDisposeEntry(e);
+  var si = st.selected.indexOf(id);
+  if(si >= 0){ var ns = st.selected.slice(); ns.splice(si, 1); _selectObjects(ns); }
+  _rebuildLayers();
+  if(typeof masterSave === 'function') setTimeout(masterSave, 200);
+};
+
+function _imgDuplicate(e){
+  var o = e.obj3d;
+  if(!o) return null;
+  return _imgCreateEntry({
+    name: e.name + ' copy', key: e._imgKey, src: e._imgSrc, aspect: e._imgAspect,
+    opacity: e._imgOpacity, thumb: e._imgThumb,
+    px: o.position.x + 1.5, py: o.position.y, pz: o.position.z,
+    rx: o.rotation.x, ry: o.rotation.y, rz: o.rotation.z,
+    sx: o.scale.x, sy: o.scale.y, sz: o.scale.z,
+    visible: true, group: e.group
+  });
+}
+
+// ---- Restore (dari localStorage/project) ----
+function _imgRestoreOne(m){
+  var entry = _imgCreateEntry({
+    id: m.id, name: m.name, key: m.imgKey, aspect: m.imgAspect || 1,
+    opacity: m.imgOpacity, src: m.imgSrc || null,
+    px: m.px, py: m.py, pz: m.pz, rx: m.rx, ry: m.ry, rz: m.rz,
+    sx: m.sx || m.scale || 1, sy: m.sy || m.scale || 1, sz: m.sz || m.scale || 1,
+    visible: m.visible !== false, locked: m.locked, group: m.group
+  });
+  if(!entry) return;
+  if(m.imgSrc){
+    if(m.imgKey) _imgPut(m.imgKey, m.imgSrc);
+  } else if(m.imgKey){
+    _imgGet(m.imgKey).then(function(src){
+      if(src){ entry._imgSrc = src; _imgApplyTexture(entry, src); }
+      else if(typeof setStatus === 'function') setStatus('⚠ Gambar "' + entry.name + '" tidak ditemukan — upload ulang');
+    });
+  }
+}
+
+// ---- Hide / show ----
+window.e3dImgSetAllVisible = function(v){
+  var list = _imgImageEntries();
+  if(!list.length) return;
+  list.forEach(function(e){
+    e.visible = !!v;
+    if(e.obj3d) e.obj3d.visible = !!v;
+  });
+  _rebuildLayers();
+  if(typeof masterSave === 'function') setTimeout(masterSave, 200);
+};
+
+// Collapse/expand menu (VIDEO TRON & UPLOAD GAMBAR) — ingatan state disimpan
+var _PANEL_KEY = 'nova_e3d_panel_hidden';
+var _PANEL_MAP = { 'vtj-panel-body': 'vtjPanelToggleBtn', 'e3dImgPanelBody': 'e3dImgPanelToggleBtn' };
+function _panelState(){
+  try{ return JSON.parse(localStorage.getItem(_PANEL_KEY) || '{}'); }catch(err){ return {}; }
+}
+function _setPanelHidden(bodyId, hide){
+  var b = document.getElementById(bodyId);
+  var btn = document.getElementById(_PANEL_MAP[bodyId]);
+  if(b) b.style.display = hide ? 'none' : '';
+  if(btn) btn.textContent = hide ? '\uD83D\uDC41 SHOW' : '\uD83D\uDC41 HIDE';
+}
+window.e3dTogglePanel = function(bodyId){
+  var b = document.getElementById(bodyId);
+  if(!b) return;
+  var hide = b.style.display !== 'none';
+  _setPanelHidden(bodyId, hide);
+  var s = _panelState(); s[bodyId] = hide;
+  try{ localStorage.setItem(_PANEL_KEY, JSON.stringify(s)); }catch(err){}
+};
+window.e3dApplyPanelState = function(){
+  var s = _panelState();
+  Object.keys(_PANEL_MAP).forEach(function(id){ _setPanelHidden(id, !!s[id]); });
+};
+
+// ---- List UI ----
+function _imgRenderList(){
+  var box = document.getElementById('e3dImgList');
+  if(!box || !window.e3dState) return;
+  var st = window.e3dState;
+  var items = _imgImageEntries();
+  var cnt = document.getElementById('e3dImgCount');
+  if(cnt) cnt.textContent = items.length + ' gbr';
+  box.innerHTML = '';
+  if(!items.length){
+    var empty = document.createElement('div');
+    empty.style.cssText = 'font-size:8px;color:#333;text-align:center;padding:5px;font-family:Share Tech Mono,monospace';
+    empty.textContent = '— belum ada gambar —';
+    box.appendChild(empty);
+  }
+  items.forEach(function(e){
+    var sel = st.selected.indexOf(e.id) >= 0;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 4px;border-radius:3px;cursor:pointer;border:1px solid '
+      + (sel ? 'var(--teal)' : 'var(--border2)') + ';background:' + (sel ? 'var(--panel2)' : 'transparent') + ';';
+    var th = document.createElement('img');
+    th.style.cssText = 'width:22px;height:22px;object-fit:contain;background:#111;border-radius:2px;flex-shrink:0';
+    if(e._imgThumb) th.src = e._imgThumb;
+    var nm = document.createElement('span');
+    nm.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-family:Share Tech Mono,monospace;color:' + (sel ? 'var(--teal)' : 'var(--text)') + (e.visible ? '' : ';opacity:.45');
+    nm.textContent = e.name;
+    var eye = document.createElement('span');
+    eye.style.cssText = 'cursor:pointer;flex-shrink:0;padding:0 3px;font-size:11px';
+    eye.textContent = e.visible ? '\uD83D\uDC41' : '\uD83D\uDEAB';
+    eye.title = e.visible ? 'Hide' : 'Show';
+    eye.onclick = function(ev){ ev.stopPropagation(); window.e3dToggleVis(e.id); };
+    var del = document.createElement('span');
+    del.style.cssText = 'cursor:pointer;flex-shrink:0;padding:0 3px;font-size:11px';
+    del.textContent = '\uD83D\uDDD1';
+    del.title = 'Hapus gambar';
+    del.onclick = function(ev){ ev.stopPropagation(); window.e3dImgDelete(e.id); };
+    row.onclick = function(){ _selectObjects([e.id]); };
+    row.appendChild(th); row.appendChild(nm); row.appendChild(eye); row.appendChild(del);
+    box.appendChild(row);
+  });
+
+  // Sinkron slider opacity dengan gambar yang sedang dipilih
+  var slider = document.getElementById('e3dImgOpacity');
+  var sv = document.getElementById('e3dImgOpacityV');
+  if(slider){
+    var selImgs = items.filter(function(e){ return st.selected.indexOf(e.id) >= 0; });
+    slider.disabled = !selImgs.length;
+    if(selImgs.length){
+      var pct = Math.round((selImgs[0]._imgOpacity === undefined ? 1 : selImgs[0]._imgOpacity) * 100);
+      slider.value = pct;
+      if(sv) sv.textContent = pct + '%';
+    }
+  }
+}
+
+(function bindImgUI(){
+  var slider = document.getElementById('e3dImgOpacity');
+  if(slider){
+    slider.addEventListener('input', function(ev){
+      var v = parseInt(ev.target.value) / 100;
+      var sv = document.getElementById('e3dImgOpacityV');
+      if(sv) sv.textContent = Math.round(v * 100) + '%';
+      _imgImageEntries().forEach(function(e){
+        if(window.e3dState.selected.indexOf(e.id) < 0) return;
+        e._imgOpacity = v;
+        if(e.obj3d && e.obj3d.material){ e.obj3d.material.opacity = v; e.obj3d.material.transparent = true; }
+      });
+    });
+    slider.addEventListener('change', function(){
+      if(typeof masterSave === 'function') setTimeout(masterSave, 200);
+    });
+  }
+  window.e3dApplyPanelState();
+  _imgRenderList();
+})();
+window._e3dImgRenderList = _imgRenderList;
 
 // ---------- EXPOSE GLOBAL ----------
 window.e3dInit = e3dInit;
@@ -23842,8 +24269,11 @@ if(document.readyState === 'loading'){
 
     host.innerHTML =
       '<div style="font-size:8px;letter-spacing:.2em;color:var(--purple);margin-bottom:5px;font-family:\'Share Tech Mono\',monospace;display:flex;align-items:center;justify-content:space-between">' +
-        '<span>📺 VIDEO TRON (VT JOCKEY)</span><span id="vtj-total-badge" class="val">0 VT</span>' +
+        '<span>📺 VIDEO TRON (VT JOCKEY)</span>' +
+        '<span style="display:flex;align-items:center;gap:5px"><span id="vtj-total-badge" class="val">0 VT</span>' +
+        '<button id="vtjPanelToggleBtn" onclick="e3dTogglePanel(\'vtj-panel-body\')" style="background:var(--btn);border:1px solid var(--border2);border-radius:3px;color:var(--lbl);font-size:8px;padding:2px 7px;cursor:pointer;letter-spacing:.05em">👁 HIDE</button></span>' +
       '</div>' +
+      '<div id="vtj-panel-body">' +
 
       '<div class="row" style="margin-bottom:5px">' +
         '<button class="btn on-t" id="vtj-spawn-add" style="flex:1;font-size:9px;font-weight:700">➕ SPAWN</button>' +
@@ -23856,7 +24286,7 @@ if(document.readyState === 'loading'){
         '<button class="btn" id="vtj-sel-all" style="font-size:8px">ALL</button>' +
         '<button class="btn" id="vtj-sel-odd" style="font-size:8px">GANJIL</button>' +
         '<button class="btn" id="vtj-sel-even" style="font-size:8px">GENAP</button>' +
-        '<button class="btn" id="vtj-sel-hide" style="font-size:8px">👁 HIDE</button>' +
+        '<button class="btn" id="vtj-sel-hide" style="font-size:8px" title="Hide / Unhide VT terpilih">👁 HIDE/SHOW</button>' +
       '</div>' +
 
       '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin:6px 0 3px;letter-spacing:.1em">SHAPE</div>' +
@@ -23884,10 +24314,12 @@ if(document.readyState === 'loading'){
 
       '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.5;margin-top:8px">' +
         'Upload media, effect trigger (Flash/Wave/Shake/dll), dan Sequencer ada di halaman <b>GERAKAN</b>.' +
+      '</div>' +
       '</div>';
 
     buildShapeGrid();
     bindEvents();
+    if (typeof window.e3dApplyPanelState === 'function') window.e3dApplyPanelState();
 
     if (window._vtjManage) window._vtjManage.init();
   }
