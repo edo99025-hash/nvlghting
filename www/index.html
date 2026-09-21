@@ -10769,9 +10769,10 @@ function doLoadProject(jsonText){
         }
       });
     }
-    // EDITOR 3D restore
+    // EDITOR 3D restore (termasuk layer gambar — data gambar ikut di dalam file project)
     if(d.e3dModels && d.e3dModels.length){
-      window._e3dPendingRestore = d.e3dModels;
+      if(typeof window._e3dLoadFromProject === 'function') window._e3dLoadFromProject(d.e3dModels);
+      else window._e3dPendingRestore = d.e3dModels;
     }
     // VIDEO TRON (VT Jockey) restore — rebuilt from vtjLayout, media must be re-uploaded
     if(d.vtjLayout && typeof window._vtjRestoreFromProject === 'function'){
@@ -20055,7 +20056,7 @@ window.e3dSaveScene = function(){
   // itu objek panggung dari console, bukan dekorasi editor. Kalau ikut
   // tersimpan, saat di-load nanti dia dianggap objek baru (placeholder kotak)
   // dan fixture aslinya malah ke-hapus dari scene → wallwasher/par hilang.
-  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
+  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture; });
   if(!models.length){
     if(typeof setStatus==='function') setStatus('Tidak ada model di editor');
     return;
@@ -20066,8 +20067,9 @@ window.e3dSaveScene = function(){
     id: 'esc_' + Date.now(),
     name: name,
     savedAt: Date.now(),
+    imagesIncluded: true,
     models: models.map(function(m){
-      return {
+      return _e3dImgExtra(m, {
         id: m.id,
         modelId: m.modelId,
         name: m.name,
@@ -20086,7 +20088,7 @@ window.e3dSaveScene = function(){
         sy: m.obj3d ? m.obj3d.scale.y : 1,
         sz: m.obj3d ? m.obj3d.scale.z : 1,
         scale: m.obj3d ? m.obj3d.scale.x : 1,
-      };
+      }, false);
     })
   };
   var scenes = _e3dLoadSavedScenes();
@@ -20153,6 +20155,7 @@ function _e3dLoadScene(scId){
   var sceneObj = scene || window._gbScene;
   if(!sceneObj){ if(typeof setStatus==='function') setStatus('Scene 3D belum siap'); return; }
 
+  _e3dImgPrepareSceneLoad(sc);
   // ── Pisahkan fixture LIVE (wallwasher/par/beam/mb/martin/fan) dari model editor biasa ──
   // Fixture itu objek panggung yang dikontrol console, BUKAN bagian dari scene yang
   // di-save/load di sini. Kalau ikut dihapus, mereka hilang dari panggung (bug lama).
@@ -20168,6 +20171,7 @@ function _e3dLoadScene(scId){
 
   // Spawn ulang dari saved scene data
   sc.models.forEach(function(mdata){
+    if(mdata && mdata.isImage){ _imgRestoreOne(mdata); return; }
     // Backward-compat: scene lama mungkin masih menyimpan entry fixture (sebelum fix ini).
     // Skip entry semacam itu — fixture asli sudah otomatis ada via fixtureModels di atas.
     if(mdata.type === 'FIXTURE' || (mdata.id && /^fx_/.test(mdata.id))) return;
@@ -20235,18 +20239,19 @@ function _e3dLoadScene(scId){
 
 // === DOWNLOAD SCENE ke file JSON ===
 window.e3dDownloadScene = function(){
-  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
+  var models = (window.e3dState ? window.e3dState.models : []).filter(function(m){ return !m._jawirFixture; });
   if(!models.length){ if(typeof setStatus==='function') setStatus('Tidak ada model di editor'); return; }
   var nameEl = document.getElementById('e3dSceneName');
   var name = (nameEl && nameEl.value.trim()) || ('Scene_' + new Date().toISOString().slice(0,10));
   // Pastikan scene ini sudah tersimpan di localStorage sebelum download
   var sceneData = {
-    version: 2,
+    version: 3,
+    imagesIncluded: true,
     id: 'esc_' + Date.now(),
     name: name,
     savedAt: Date.now(),
     models: models.map(function(m){
-      return {
+      return _e3dImgExtra(m, {
         id: m.id, modelId: m.modelId, name: m.name, type: m.type,
         color: m._color, visible: m.visible, locked: m.locked, group: m.group || null,
         px: m.obj3d ? m.obj3d.position.x : 0,
@@ -20259,12 +20264,12 @@ window.e3dDownloadScene = function(){
         sy: m.obj3d ? m.obj3d.scale.y : 1,
         sz: m.obj3d ? m.obj3d.scale.z : 1,
         scale: m.obj3d ? m.obj3d.scale.x : 1,
-      };
+      }, true);
     })
   };
-  // Otomatis simpan ke localStorage juga
+  // Otomatis simpan ke localStorage juga (tanpa data gambar — data gambar ada di IndexedDB)
   var existingScenes = _e3dLoadSavedScenes();
-  if(!existingScenes.find(function(s){ return s.id===sceneData.id; })) existingScenes.push(sceneData);
+  if(!existingScenes.find(function(s){ return s.id===sceneData.id; })) existingScenes.push(_e3dStripSceneImages(sceneData));
   _e3dSaveScenesStore(existingScenes);
   _e3dRefreshSavedList();
   var blob = new Blob([JSON.stringify(sceneData, null, 2)], {type:'application/json'});
@@ -20279,6 +20284,7 @@ window.e3dLoadSceneFromFile = function(jsonText){
     var st = window.e3dState;
     var sceneObj = scene || window._gbScene;
     if(!sceneObj){ if(typeof setStatus==='function') setStatus('Scene 3D belum siap'); return; }
+    _e3dImgPrepareSceneLoad(sc);
     // Pisahkan fixture LIVE (wallwasher/par/beam/dll) — jangan dihapus dari scene
     var fixtureModels = st.models.filter(function(m){ return !!m._jawirFixture || !!m._isImageLayer; });
     var nonFixtureModels = st.models.filter(function(m){ return !m._jawirFixture && !m._isImageLayer; });
@@ -20286,6 +20292,7 @@ window.e3dLoadSceneFromFile = function(jsonText){
     st.models = fixtureModels.slice(); st.selected = []; st.nextId = 1; st.groupCounter = 1;
     // Spawn dari file
     sc.models.forEach(function(mdata){
+      if(mdata && mdata.isImage){ _imgRestoreOne(mdata); return; }
       // Skip entry fixture legacy yang mungkin tersimpan di file scene lama
       if(mdata.type === 'FIXTURE' || (mdata.id && /^fx_/.test(mdata.id))) return;
       var mdef = window.MODEL_DB
@@ -20322,7 +20329,7 @@ window.e3dLoadSceneFromFile = function(jsonText){
     if(typeof setStatus==='function') setStatus('✅ Scene dimuat dari file: ' + (sc.name||'?') + ' (' + sc.models.length + ' obj)');
     // Simpan ke daftar localStorage (tanpa duplikat)
     var scenes2 = _e3dLoadSavedScenes();
-    if(!scenes2.find(function(s){ return s.id===sc.id; })) scenes2.push(sc);
+    if(!scenes2.find(function(s){ return s.id===sc.id; })) scenes2.push(_e3dStripSceneImages(sc));
     _e3dSaveScenesStore(scenes2);
     _e3dRefreshSavedList();
     // Refresh G3D model selector agar scene baru muncul di tab Gerakan
@@ -20607,8 +20614,69 @@ function _imgDisposeEntry(e){
       if(mat){ if(mat.map) mat.map.dispose(); mat.dispose(); }
     }
   }catch(err){}
-  if(!others.length) _imgDelKey(e._imgKey);
+  // Jangan hapus data gambar dari IndexedDB kalau masih dipakai preset/scene tersimpan
+  if(!others.length && !_imgKeyUsedBySavedScenes(e._imgKey)) _imgDelKey(e._imgKey);
 }
+
+function _imgKeyUsedBySavedScenes(key){
+  if(!key) return false;
+  try{
+    return _e3dLoadSavedScenes().some(function(sc){
+      return (sc.models || []).some(function(m){ return m && m.isImage && m.imgKey === key; });
+    });
+  }catch(err){ return false; }
+}
+
+// Buang semua layer gambar live TANPA menghapus datanya (dipakai saat load preset)
+function _imgRemoveAllLive(){
+  var st = window.e3dState;
+  var sc = scene || window._gbScene;
+  st.models = st.models.filter(function(e){
+    if(!e._isImageLayer) return true;
+    try{
+      if(e.obj3d && sc) sc.remove(e.obj3d);
+      if(e.obj3d){
+        if(e.obj3d.geometry) e.obj3d.geometry.dispose();
+        if(e.obj3d.material){ if(e.obj3d.material.map) e.obj3d.material.map.dispose(); e.obj3d.material.dispose(); }
+      }
+    }catch(err){}
+    return false;
+  });
+}
+// Preset yang menyimpan gambar (imagesIncluded) → ganti gambar live dengan isi preset.
+// Preset lama (tanpa flag) → gambar yang sedang ada dibiarkan.
+function _e3dImgPrepareSceneLoad(sc){
+  if(sc && sc.imagesIncluded) _imgRemoveAllLive();
+}
+// Salinan preset tanpa data base64 gambar (untuk localStorage; data ada di IndexedDB)
+function _e3dStripSceneImages(sc){
+  var c = JSON.parse(JSON.stringify(sc));
+  (c.models || []).forEach(function(m){ if(m && m.isImage) delete m.imgSrc; });
+  return c;
+}
+// Dipakai tab Gerakan (SPAWN SCENE) untuk membuat bidang gambar dari data preset
+window._e3dImgBuildPlane = function(m){
+  var sz = _imgPlaneSize(m.imgAspect || 1);
+  var geo = new THREE.PlaneGeometry(sz.w, sz.h);
+  var mat = new THREE.MeshBasicMaterial({
+    color: 0x444444, side: THREE.DoubleSide, transparent: true,
+    opacity: (m.imgOpacity === undefined || m.imgOpacity === null) ? 1 : m.imgOpacity,
+    alphaTest: 0.01, toneMapped: false, fog: false
+  });
+  var mesh = new THREE.Mesh(geo, mat);
+  function apply(src){
+    if(!src) return;
+    var im = new Image();
+    im.onload = function(){
+      var t = new THREE.Texture(im);
+      t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
+      mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true;
+    };
+    im.src = src;
+  }
+  if(m.imgSrc) apply(m.imgSrc); else _imgGet(m.imgKey).then(apply);
+  return mesh;
+};
 
 window.e3dImgDelete = function(id){
   var st = window.e3dState;
@@ -20771,6 +20839,25 @@ function _imgRenderList(){
 })();
 window._e3dImgRenderList = _imgRenderList;
 
+// Load project saat app sudah jalan: ganti model editor (dekorasi + gambar) dengan isi project.
+// Fixture live dan panel VT Jockey tidak disentuh. Kalau Editor 3D belum init, restore
+// dilakukan lewat jalur boot (_e3dPendingRestore).
+window._e3dLoadFromProject = function(list){
+  var st = window.e3dState;
+  var sc = scene || window._gbScene;
+  if(!st || !st.initialized || !sc){ window._e3dPendingRestore = list; return; }
+  _imgRemoveAllLive();
+  st.models = st.models.filter(function(m){
+    if(m._jawirFixture || m._isVtjPanel) return true;
+    if(m.obj3d) sc.remove(m.obj3d);
+    return false;
+  });
+  st.selected = [];
+  window._e3dPendingRestore = list;
+  _restorePending();
+  _rebuildLayers();
+};
+
 // ---------- EXPOSE GLOBAL ----------
 window.e3dInit = e3dInit;
 window.e3dSpawnSelected = window.e3dSpawnSelected;
@@ -20858,7 +20945,9 @@ function _doSpawn(){
     var uid = 'g3d_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
     var clone;
 
-    if(srcModel && srcModel.obj3d){
+    if(mdata.isImage && typeof window._e3dImgBuildPlane === 'function'){
+      clone = window._e3dImgBuildPlane(mdata);
+    } else if(srcModel && srcModel.obj3d){
       clone = srcModel.obj3d.clone();
     } else {
       var geo = new THREE.BoxGeometry(1.2, 0.8, 0.8);
