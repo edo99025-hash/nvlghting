@@ -153,6 +153,32 @@
     <div class="status" id="statusBox"></div>
   </div>
 
+  <!-- FORM UPDATE KONTEN (HOT-UPDATE, TANPA APK BARU) -->
+  <div class="card">
+    <div class="card-h">Update Konten Offline (Tanpa APK Baru)</div>
+    <p class="sub" style="margin:0 0 16px;">
+      Ini beda dari "Rilis Baru" di atas. Isi ini men-download ulang
+      <b style="color:var(--text)">www/index.html</b> yang sudah kamu push ke
+      GitHub, lalu diterapkan otomatis ke app yang sudah terpasang — user
+      TIDAK perlu install ulang APK. Kosongkan / biarkan sama untuk tidak
+      mendorong update konten apa pun.
+    </p>
+    <div class="field">
+      <label for="cVersion">Content Version</label>
+      <input type="number" id="cVersion" placeholder="cth: 2" min="1" step="1">
+      <div class="hint">
+        Naikkan angka ini SETIAP KALI kamu mau app yang sudah terpasang
+        menarik ulang www/index.html terbaru dari GitHub. Ini terpisah dari
+        Version Code APK di atas — tidak perlu build APK baru untuk ini.
+      </div>
+    </div>
+    <div class="field">
+      <label for="cUrl">Content URL (raw index.html)</label>
+      <input type="text" id="cUrl" placeholder="https://raw.githubusercontent.com/.../www/index.html">
+      <div class="hint">Default: raw <b style="color:var(--text)">main</b> branch, <b style="color:var(--text)">www/index.html</b>. Ubah hanya kalau lokasi filenya beda.</div>
+    </div>
+  </div>
+
   <footer>version.json · edo99025-hash/nvlghting · docs/</footer>
 </div>
 
@@ -160,6 +186,7 @@
 const REPO = 'edo99025-hash/nvlghting';
 const FILE_PATH = 'version.json';
 const API_BASE = 'https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH;
+const DEFAULT_CONTENT_URL = 'https://raw.githubusercontent.com/' + REPO + '/main/www/index.html';
 
 const els = {
   curBadge: document.getElementById('curBadge'),
@@ -170,6 +197,8 @@ const els = {
   vName: document.getElementById('vName'),
   vUrl: document.getElementById('vUrl'),
   vNotes: document.getElementById('vNotes'),
+  cVersion: document.getElementById('cVersion'),
+  cUrl: document.getElementById('cUrl'),
   applyBtn: document.getElementById('applyBtn'),
   statusBox: document.getElementById('statusBox'),
 };
@@ -228,10 +257,16 @@ async function loadCurrent(){
       '<div><span class="k">Link Download</span>' + (decoded.downloadUrl ? '<a href="'+esc(decoded.downloadUrl)+'" target="_blank" rel="noopener">'+esc(decoded.downloadUrl)+'</a>' : '<span class="empty">(kosong)</span>') + '</div>' +
       '<div><span class="k">Catatan</span>' + (decoded.notes ? esc(decoded.notes) : '<span class="empty">(kosong)</span>') + '</div>' +
       '<div><span class="k">Diupdate</span>' + (decoded.updatedAt ? esc(decoded.updatedAt) : '<span class="empty">—</span>') + '</div>' +
+      '<div><span class="k">Content Version</span>' + esc(decoded.contentVersion || '(belum diset)') + '</div>' +
       '</div>';
 
     // Pre-fill form dengan versi berikutnya sebagai starting point
     if(!els.vCode.value) els.vCode.value = (Number(decoded.versionCode)||0) + 1;
+    // Content Version SENGAJA di-prefill dengan nilai SAAT INI (bukan +1) —
+    // update konten adalah keputusan terpisah, harus dinaikkan manual kalau
+    // memang mau mendorong hot-update ke app yang sudah terpasang.
+    if(!els.cVersion.value) els.cVersion.value = decoded.contentVersion || '';
+    if(!els.cUrl.value) els.cUrl.value = decoded.contentUrl || DEFAULT_CONTENT_URL;
   }catch(err){
     els.curBadge.textContent = 'gagal memuat';
     els.curBox.innerHTML = '<span class="empty">Gagal memuat version.json: ' + esc(err.message) + '</span>';
@@ -250,6 +285,8 @@ els.applyBtn.addEventListener('click', async () => {
   const vName = els.vName.value.trim();
   const vUrl = els.vUrl.value.trim();
   const vNotes = els.vNotes.value.trim();
+  const cVersion = els.cVersion.value.trim() ? Number(els.cVersion.value) : 0;
+  const cUrl = els.cUrl.value.trim() || DEFAULT_CONTENT_URL;
 
   if(!tok){ setStatus('err', 'Token GitHub belum diisi.'); return; }
   if(!vCode || vCode < 1){ setStatus('err', 'Version Code wajib diisi angka valid.'); return; }
@@ -264,7 +301,9 @@ els.applyBtn.addEventListener('click', async () => {
     versionName: vName,
     downloadUrl: vUrl,
     notes: vNotes,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    contentVersion: cVersion,
+    contentUrl: cUrl
   };
   // GitHub Contents API mewajibkan base64 dari konten file. Perlu encode
   // UTF-8 secara eksplisit (unescape/escape trick) supaya karakter non-ASCII
