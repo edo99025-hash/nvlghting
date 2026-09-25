@@ -113,13 +113,17 @@ jobs:
         shell: bash
         run: |
           set -e
-          # Copy source plugin Java kita (yang nulis file ke folder Downloads
-          # publik lewat MediaStore) ke dalam project android/ hasil generate
-          # `cap add android`.
+          # Copy source plugin Java kita ke dalam project android/ hasil
+          # generate `cap add android`:
+          #  - NovaDownloadPlugin: nulis file ke folder Downloads publik
+          #    lewat MediaStore.
+          #  - NovaUpdaterPlugin: hot-update konten web (index.html) tanpa
+          #    APK baru, dipakai fitur auto-update offline.
           SRC_DIR="android-template/app/src/main/java/com/nova/lighting"
           DEST_DIR="android/app/src/main/java/com/nova/lighting"
           mkdir -p "$DEST_DIR"
           cp "$SRC_DIR/NovaDownloadPlugin.java" "$DEST_DIR/NovaDownloadPlugin.java"
+          cp "$SRC_DIR/NovaUpdaterPlugin.java" "$DEST_DIR/NovaUpdaterPlugin.java"
 
           # Daftarkan plugin di MainActivity yang digenerate Capacitor, supaya
           # jembatan JS <-> native kebentuk. Tanpa ini, pemanggilan dari
