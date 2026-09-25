@@ -7937,6 +7937,10 @@ const KB_ACTIONS = [
     {id:'gobo2',label:'PRISM 5'},{id:'gobo3',label:'PRISM 16'},{id:'gobo4',label:'FAN'},
     {id:'rotate',label:'ROTATE toggle'},{id:'rainbow',label:'RAINBOW toggle'},
   ]},
+  {group:'STANDBY (slot 1-4)', items:[
+    {id:'sby1',label:'Standby 1'},{id:'sby2',label:'Standby 2'},
+    {id:'sby3',label:'Standby 3'},{id:'sby4',label:'Standby 4'},
+  ]},
 ];
 
 const KB_DEFAULT_MAP = {
@@ -7948,6 +7952,7 @@ const KB_DEFAULT_MAP = {
   mbToggle:'a', mbHold:'s', mbHoldBeam:'space',
   gobo0:'z',gobo1:'x',gobo2:'c',gobo3:'v',gobo4:'b',
   rotate:'n', rainbow:'m',
+  sby1:'[',sby2:']',sby3:';',sby4:'\'',
 };
 
 function saveKbMap(){
@@ -18072,6 +18077,16 @@ window._f3Pos = f3Pos; // expose untuk debug
   }
 
   // ═══════════════════════════════════════════════════════
+  // STANDBY — slot 1-4 (loadStandby sudah ada, tinggal panggil
+  // langsung sama seperti klik .sby-card di UI)
+  // ═══════════════════════════════════════════════════════
+  function doStandby(idx){
+    if(typeof loadStandby === 'function'){
+      loadStandby(idx);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
   // EVENT LISTENERS — SATU keydown (bubble) + SATU keyup untuk shortcut
   // Mode Main. (Ada SATU listener keydown lagi di bawah, khusus capture:true
   // untuk mode "dengarkan" di KEYBOARD SETTINGS — itu selalu jalan LEBIH
@@ -18166,6 +18181,10 @@ window._f3Pos = f3Pos; // expose untuk debug
     }
     if(actionId==='rotate'){ doRotate(); return; }
     if(actionId==='rainbow'){ doRainbow(); return; }
+    if(/^sby(\d)$/.test(actionId)){
+      doStandby(parseInt(actionId.slice(3),10)-1);
+      return;
+    }
   }, false);
 
   document.addEventListener('keyup', function(e){
@@ -18215,6 +18234,7 @@ window._f3Pos = f3Pos; // expose untuk debug
       +row(keyDisp('gobo4'),'FAN','#cc44ff')
       +row(keyDisp('rotate'),'ROTATE toggle','#cc44ff')
       +row(keyDisp('rainbow'),'RAINBOW toggle','#cc44ff')
+      +row(rangeKeys('sby',4),'STANDBY — load slot 1 – 4','#3388ff')
       +row('? atau /','Buka/tutup panel ini','#4a5868')
       +'<div style="display:flex;gap:8px;margin-top:16px" onclick="event.stopPropagation()">'
       +'<button id="_kbOpenSettingsBtn" style="flex:1;padding:10px;background:#1a2028;border:1px solid #ffaa00;color:#ffaa00;border-radius:6px;font-family:Share Tech Mono,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer">⚙ SETTING KEYBOARD (halaman Setting)</button>'
