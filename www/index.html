@@ -798,7 +798,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
         <!-- WALLWASHER / PAR / MARTIN -->
         <div class="sec">
           <div class="sec-h">WALLWASHER</div>
-          <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sWallC" min="0" max="8" value="3" style="flex:1"><div class="val" id="sWallCV">3</div></div>
+          <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sWallC" min="0" max="24" value="3" style="flex:1"><div class="val" id="sWallCV">3</div></div>
           <div class="lbl" style="font-size:7px;margin-bottom:3px">Pilih fixture:</div>
           <div id="sWallSelRow" class="fix-sel-row"></div>
           <div class="row"><div class="lbl">Scale</div><input type="range" class="sldr" id="sWallScale" min="0.3" max="3" step="0.1" value="1" style="flex:1"><div class="val" id="sWallScaleV">1.0</div></div>
@@ -810,7 +810,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
         </div>
         <div class="sec">
           <div class="sec-h">PAR LED</div>
-          <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sParC" min="0" max="12" value="4" style="flex:1"><div class="val" id="sParCV">4</div></div>
+          <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sParC" min="0" max="24" value="4" style="flex:1"><div class="val" id="sParCV">4</div></div>
           <div class="lbl" style="font-size:7px;margin-bottom:3px">Pilih fixture:</div>
           <div id="sParSelRow" class="fix-sel-row"></div>
           <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin:3px 0 5px;line-height:1.5">Posisi, scale, rotate, pan/tilt diatur di <span style="color:var(--teal)">Editor 3D</span>.</div>
@@ -862,7 +862,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           <div class="sec-h">⚡ MARTIN STROBO 3D</div>
 
           <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:5px;line-height:1.5">Model 3D LED Martin muncul di canvas scene. Posisi, scale, rot → Editor 3D.</div>
-          <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sMartC" min="0" max="20" value="2" style="flex:1"><div class="val" id="sMartCV">2</div></div>
+          <div class="row"><div class="lbl">Jumlah</div><input type="range" class="sldr" id="sMartC" min="0" max="24" value="2" style="flex:1"><div class="val" id="sMartCV">2</div></div>
           <div class="row"><button class="btn on-t" id="sSpawnMart">SPAWN</button><button class="btn on-r" id="sClearMart">CLR</button></div>
           <div class="row"><div class="lbl">Speed</div><input type="range" class="sldr" id="sMartSpeed" min="1" max="10" step="1" value="5" style="flex:1"><div class="val" id="sMartSpeedV">5</div></div>
           <div class="row"><div class="lbl">Sektor</div><input type="range" class="sldr" id="sMartSectors" min="4" max="16" step="2" value="8" style="flex:1"><div class="val" id="sMartSectorsV">8</div></div>
@@ -2708,10 +2708,10 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
   <!-- Hidden compat inputs -->
   <div style="display:none">
     <input id="mxrBeamCount" type="range" min="2" max="50" step="2" value="8">
-    <input id="mxrWallC" type="range" min="0" max="8" value="3">
-    <input id="mxrParC" type="range" min="0" max="12" value="4">
+    <input id="mxrWallC" type="range" min="0" max="24" value="3">
+    <input id="mxrParC" type="range" min="0" max="24" value="4">
     <input id="mxrMbC" type="range" min="1" max="8" value="4">
-    <input id="mxrMartC" type="range" min="0" max="20" value="2">
+    <input id="mxrMartC" type="range" min="0" max="24" value="2">
     <input id="mxrAngle" type="range" min="2" max="60" value="12">
     <input id="mxrRange" type="range" min="200" max="1600" value="900">
     <input id="mxrParScale" type="range" min="0.3" max="3" step="0.1" value="1">
@@ -5476,6 +5476,131 @@ async function novaCheckForUpdate(){
 // Cek update sekali saat app dibuka, ditunda beberapa detik supaya tidak
 // ganggu proses loading awal / render 3D pertama kali.
 setTimeout(novaCheckForUpdate, 4000);
+
+// ════════════════════════════════════════════════════════════════════
+// AUTO-UPDATE KONTEN WEB (WEB-TO-APP OFFLINE, TANPA APK BARU)
+// ------------------------------------------------------------------
+// Beda dengan banner update APK di atas (yang cuma kasih link download
+// APK baru untuk di-install manual), ini update KONTEN (index.html)
+// SENDIRI secara otomatis:
+//   1. App tetap jalan offline dari salinan index.html yang tersimpan
+//      di penyimpanan HP (bawaan APK di awal, lalu versi ter-update
+//      setelah pernah online sekali).
+//   2. Tiap dibuka, app diam-diam cek version.json di GitHub. Kalau ada
+//      contentVersion lebih baru, index.html versi baru di-download lalu
+//      disimpan ke penyimpanan HP lewat @capacitor/filesystem.
+//   3. Plugin native NovaUpdater (lihat NovaUpdaterPlugin.java) mengganti
+//      folder yang disajikan WebView ke folder itu lalu reload — jadi
+//      langsung aktif tanpa perlu uninstall/install APK baru.
+//   4. Kalau versi baru itu ternyata bikin app blank/error terus (gagal
+//      boot), app OTOMATIS balik ke versi bawaan APK di boot berikutnya
+//      (lihat novaContentSafetyCheck) — supaya app tidak pernah "kebrick".
+//
+// Publikasikan update konten lewat panel admin (docs/index.html), isi
+// field "Content Version" — terpisah dari Version Code APK, karena update
+// jenis ini TIDAK butuh rebuild APK sama sekali.
+// ════════════════════════════════════════════════════════════════════
+
+// Naikkan angka ini MANUAL tiap kali www/index.html di-build ulang jadi
+// APK baru (jadi APK baru selalu punya "modal" versi konten yang benar,
+// walau belum pernah download update apa pun).
+var NOVA_CONTENT_VERSION = 1;
+var NOVA_CONTENT_DIR = 'nova_web'; // sub-folder di Directory.Data (getFilesDir())
+var NOVA_CONTENT_META_KEY = 'nova_content_meta_v1';
+var NOVA_CONTENT_BOOT_KEY = 'nova_content_boot_ok_v1';
+
+function _novaContentMeta(){
+  try{ return JSON.parse(localStorage.getItem(NOVA_CONTENT_META_KEY) || 'null') || { version: 0, blacklist: [] }; }
+  catch(e){ return { version: 0, blacklist: [] }; }
+}
+function _novaContentSaveMeta(m){
+  try{ localStorage.setItem(NOVA_CONTENT_META_KEY, JSON.stringify(m)); }catch(e){}
+}
+
+// Tandai boot ini "berhasil" setelah app jalan normal beberapa detik tanpa
+// crash. localStorage dipakai (bukan variabel JS biasa) karena harus
+// bertahan lewat WebView reload yang dipicu applyUpdate/resetToBundled.
+setTimeout(function(){
+  try{ localStorage.setItem(NOVA_CONTENT_BOOT_KEY, 'ok'); }catch(e){}
+}, 7000);
+
+// Kalau boot SEBELUMNYA tidak sempat menandai "ok" (app keburu blank/error
+// sebelum 7 detik) DAN kita lagi menjalankan hasil content-update (bukan
+// bawaan APK) -> otomatis balik ke versi bawaan APK yang stabil, dan versi
+// yang gagal itu di-blacklist (tidak akan dicoba lagi otomatis).
+async function novaContentSafetyCheck(){
+  var bootFlag = null;
+  try{ bootFlag = localStorage.getItem(NOVA_CONTENT_BOOT_KEY); }catch(e){}
+  try{ localStorage.removeItem(NOVA_CONTENT_BOOT_KEY); }catch(e){}
+  if(!novaIsNativeApp()) return;
+  try{
+    var meta = _novaContentMeta();
+    if(meta.applied && meta.version > 0 && bootFlag !== 'ok'){
+      console.warn('[Nova] Content update v' + meta.version + ' gagal verifikasi boot, rollback ke bawaan APK');
+      meta.blacklist = meta.blacklist || [];
+      if(meta.blacklist.indexOf(meta.version) === -1) meta.blacklist.push(meta.version);
+      meta.applied = false;
+      _novaContentSaveMeta(meta);
+      var P = window.Capacitor && window.Capacitor.Plugins;
+      var Upd = P && P.NovaUpdater;
+      if(Upd && Upd.resetToBundled) await Upd.resetToBundled();
+    }
+  }catch(e){ console.warn('[Nova] content safety check gagal', e); }
+}
+novaContentSafetyCheck();
+
+async function novaCheckForContentUpdate(){
+  if(!novaIsNativeApp()) return; // fitur ini cuma relevan di dalam APK
+  try{
+    var P = window.Capacitor && window.Capacitor.Plugins;
+    var Fs = P && P.Filesystem;
+    var Upd = P && P.NovaUpdater;
+    if(!Fs || !Upd){
+      console.warn('[Nova] Filesystem/NovaUpdater plugin belum tersedia, skip content update');
+      return;
+    }
+
+    var res = await fetch(NOVA_VERSION_CHECK_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) return;
+    var remoteInfo = await res.json();
+    var remoteContentVersion = Number(remoteInfo.contentVersion) || 0;
+    var contentUrl = remoteInfo.contentUrl;
+    if(!remoteContentVersion || !contentUrl) return; // belum di-setup di version.json, diam saja
+
+    var meta = _novaContentMeta();
+    var bestKnown = Math.max(NOVA_CONTENT_VERSION, meta.version || 0);
+    var blacklist = meta.blacklist || [];
+    if(remoteContentVersion <= bestKnown) return; // sudah versi ini atau lebih baru
+    if(blacklist.indexOf(remoteContentVersion) !== -1) return; // pernah gagal, jangan coba lagi otomatis
+
+    var htmlRes = await fetch(contentUrl + '?t=' + Date.now(), { cache: 'no-store' });
+    if(!htmlRes.ok) return;
+    var html = await htmlRes.text();
+    // Sanity check dasar — jangan simpan hasil download yang jelas rusak/kepotong.
+    if(!html || html.length < 2000 || html.indexOf('<html') === -1 || html.indexOf('</html>') === -1) return;
+
+    await Fs.writeFile({
+      path: NOVA_CONTENT_DIR + '/index.html',
+      data: html,
+      directory: 'DATA',
+      encoding: 'utf8',
+      recursive: true
+    });
+
+    meta = { version: remoteContentVersion, applied: true, blacklist: blacklist };
+    _novaContentSaveMeta(meta);
+
+    if(typeof setStatus === 'function') setStatus('⬇️ Update konten v' + remoteContentVersion + ' terpasang, menerapkan…');
+    await Upd.applyUpdate({ path: NOVA_CONTENT_DIR });
+    // Setelah applyUpdate, WebView reload dari folder baru — kode JS di
+    // context/halaman lama ini boleh jadi tidak sempat lanjut lagi.
+  }catch(e){
+    console.warn('[Nova] Gagal cek/terapkan update konten', e);
+  }
+}
+// Ditunda sedikit lebih lambat dari cek update APK di atas, supaya tidak
+// baku-rebut jaringan/status di awal buka app.
+setTimeout(novaCheckForContentUpdate, 5000);
 
 // Ubah Blob jadi base64 murni (tanpa prefix data:...;base64,) — dibutuhkan
 // oleh Capacitor Filesystem.writeFile.
@@ -19042,17 +19167,19 @@ function _syncFixtureState(entry, obj){
     if(ftype==='mart'){
       var pool = window._m3Pool || [];
       var st2 = window._m3State || {};
-      var mRotY=0, mRotX=0, mScale=1;
+      var mRotY=0, mRotX=0, mRotZ=0, mScale=1;
       if(pool[fidx]){
         pool[fidx]._e3dMoved  = true;
         // Simpan rot/scale E3D saat ini (relatif terhadap slider sebagai base)
         pool[fidx]._e3dRotY   = obj.rotation.y   - (st2.rotY||0)*Math.PI/180;
         pool[fidx]._e3dRotX   = obj.rotation.x   - (st2.rotX||0)*Math.PI/180;
+        // ROT Z murni dari Editor 3D (tidak ada slider dasar di panel Setting untuk Z)
+        pool[fidx]._e3dRotZ   = obj.rotation.z;
         pool[fidx]._e3dScale  = obj.scale.x / Math.max(st2.scale||1, 0.001);
         pool[fidx]._e3dX = obj.position.x;
         pool[fidx]._e3dY = obj.position.y;
         pool[fidx]._e3dZ = obj.position.z;
-        mRotY = pool[fidx]._e3dRotY; mRotX = pool[fidx]._e3dRotX; mScale = pool[fidx]._e3dScale;
+        mRotY = pool[fidx]._e3dRotY; mRotX = pool[fidx]._e3dRotX; mRotZ = pool[fidx]._e3dRotZ; mScale = pool[fidx]._e3dScale;
       }
       // Simpan juga ke state.martins (posisi x/y/z 3D asli + rotasi + scale) agar
       // ikut tersimpan di Auto-Save / Save Project — dipulihkan lagi oleh window._m3Spawn
@@ -19063,6 +19190,7 @@ function _syncFixtureState(entry, obj){
         arr[fidx].e3dZ = obj.position.z;
         arr[fidx].e3dRotY = mRotY;
         arr[fidx].e3dRotX = mRotX;
+        arr[fidx].e3dRotZ = mRotZ;
         arr[fidx].e3dScale = mScale;
       }
     }
@@ -19083,6 +19211,11 @@ function _syncFixtureState(entry, obj){
         arr[fidx].rotX = obj.rotation.x * 180 / Math.PI;
         arr[fidx].rotY = obj.rotation.y * 180 / Math.PI;
         arr[fidx].rotZ = obj.rotation.z * 180 / Math.PI;
+        // FIX: scale juga harus disimpan ke state.fanLamps — tanpa ini,
+        // _jawirAnimate3DFixtures (loop tiap frame) akan langsung menimpa
+        // balik scale hasil drag SCALE fader Editor 3D ke nilai lama
+        // (fl.scale default 1), sehingga scale kipas terlihat "tidak berfungsi".
+        arr[fidx].scale = obj.scale.x;
       }
     }
   }
@@ -21916,6 +22049,7 @@ window._m3Spawn = function(n){
       unit._e3dMoved = true;
       unit._e3dRotY  = saved.e3dRotY || 0;
       unit._e3dRotX  = saved.e3dRotX || 0;
+      unit._e3dRotZ  = saved.e3dRotZ || 0;
       unit._e3dScale = saved.e3dScale || 1;
       unit.group.position.set(
         saved.e3dX != null ? saved.e3dX : (-totalW/2 + i*spacing),
@@ -21926,6 +22060,7 @@ window._m3Spawn = function(n){
       unit._e3dMoved = false;
       unit._e3dRotY  = 0;
       unit._e3dRotX  = 0;
+      unit._e3dRotZ  = 0;
       unit._e3dScale = 1;
       var xPos = -totalW/2 + i*spacing;
       unit.group.position.set(xPos, fp.y, fp.z);
@@ -21986,11 +22121,14 @@ function _m3ApplyTransformTo(group, unit){
     // Tambahkan slider rotasi sebagai offset di atas rotasi E3D yang sudah disimpan
     group.rotation.y = (unit._e3dRotY || 0) + (st.rotY||0) * Math.PI/180;
     group.rotation.x = (unit._e3dRotX || 0) + (st.rotX||0) * Math.PI/180;
+    // ROT Z murni hasil drag Editor 3D (tidak ada slider dasar Z di panel Setting)
+    group.rotation.z = (unit._e3dRotZ || 0);
     group.scale.setScalar((unit._e3dScale || 1) * (st.scale || 1));
   } else {
     group.scale.setScalar(st.scale || 1);
     group.rotation.y = (st.rotY||0) * Math.PI/180;
     group.rotation.x = (st.rotX||0) * Math.PI/180;
+    group.rotation.z = 0;
   }
 }
 
@@ -22016,6 +22154,47 @@ function _m3SyncPos(){
   });
 }
 
+// ── Anti-alias compensation untuk titik LED micro-dot matrix ────────
+// Tiap titik LED adalah CircleGeometry kecil (r=0.034) yang di-render sebagai
+// geometri asli (bukan sprite/texture), jadi ukurannya di layar tergantung
+// jarak kamera & pixelRatio renderer. Kalau kamera dijauhkan atau graphics
+// quality diturunkan (pixelRatio lebih rendah), titik jadi < 1px di layar →
+// flicker/moire/"gambar aneh". Di sini kita kompensasi dengan membesarkan
+// scale instance dot (bukan geometry asli, cuma object scale) berdasarkan
+// jarak kamera & quality scale, supaya ukuran tampil di layar tetap stabil
+// walau kamera menjauh/zoom out atau graphics quality diturunkan.
+function _m3ApplyDotAA(){
+  var cam = window._gbCamera;
+  if(!cam) return;
+  var qScale = window._novaQualityScale || 1.0; // 1.0 high, 0.75 normal, 0.5 low
+  // Kompensasi kebalikan dari qScale — makin rendah quality, makin besar titik
+  // supaya tetap "penuh" 1px+ di layar walau resolusi render diturunkan.
+  var qBoost = 1 / Math.max(0.5, qScale);
+  _m3Pool.forEach(function(u){
+    if(!u.ledMesh || !u.group) return;
+    var wp = new THREE.Vector3();
+    u.group.getWorldPosition(wp);
+    var dist = cam.position.distanceTo(wp);
+    // Jarak referensi "normal" ~75 unit (posisi default rig Martin). Di bawah/​
+    // sekitar itu, dot tetap ukuran asli (1x). Makin jauh dari referensi,
+    // scale naik proporsional supaya ukuran APPARENT (sudut pandang) konstan.
+    var refDist = 75;
+    var distBoost = Math.max(1, dist / refDist);
+    var finalScale = distBoost * qBoost;
+    // Clamp supaya tidak membesar berlebihan di jarak ekstrem/zoom out jauh
+    finalScale = Math.min(finalScale, 6);
+    if(u.ledMesh.scale.x !== finalScale){
+      u.ledMesh.scale.setScalar(finalScale);
+      u.ledMesh.updateMatrixWorld();
+    }
+    if(u.glowMesh && u.glowMesh.scale.x !== finalScale){
+      u.glowMesh.scale.setScalar(finalScale);
+      u.glowMesh.updateMatrixWorld();
+    }
+  });
+}
+window._m3ApplyDotAA = _m3ApplyDotAA;
+
 // ── Main render loop — diproses tiap frame untuk semua unit Martin ──
 window._m3Loop = function(now){
   var st = window._m3State;
@@ -22028,6 +22207,7 @@ window._m3Loop = function(now){
   }
 
   _m3SyncPos();
+  _m3ApplyDotAA();
 
   // Kalau STANDBY / POWER utama OFF, matikan semua LED Martin (termasuk mode teks) —
   // panel jadi gelap total, ikut kondisi standby, tapi geometri & setting tetap tersimpan
