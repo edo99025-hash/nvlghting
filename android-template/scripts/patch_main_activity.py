@@ -1,14 +1,20 @@
 """
-Sisipkan import + registerPlugin(NovaDownloadPlugin.class) ke MainActivity.java
-yang digenerate otomatis oleh `npx cap add android`, supaya plugin native
-NovaDownload (nulis file ke folder Downloads publik) bisa dipanggil dari
-JavaScript lewat window.Capacitor.Plugins.NovaDownload.
+Sisipkan import + registerPlugin(...) ke MainActivity.java yang digenerate
+otomatis oleh `npx cap add android`, supaya plugin native custom kita bisa
+dipanggil dari JavaScript lewat window.Capacitor.Plugins.<Nama>.
+
+Plugin yang didaftarkan:
+  - NovaDownloadPlugin — nulis file ke folder Downloads publik.
+  - NovaUpdaterPlugin  — hot-update konten web (index.html) tanpa APK baru,
+    dipakai fitur auto-update offline (lihat NovaUpdaterPlugin.java).
 
 Dipanggil sebagai: python3 patch_main_activity.py <path/to/MainActivity.java>
 """
 import re
 import sys
 from pathlib import Path
+
+PLUGINS = ["NovaDownloadPlugin", "NovaUpdaterPlugin"]
 
 
 def main():
@@ -22,13 +28,15 @@ def main():
     # Import HARUS ditaruh di atas file (sebelum deklarasi class), tidak
     # boleh di tengah body class. Disisipkan tepat setelah baris
     # `package ...;` supaya posisinya selalu valid.
-    if "import com.nova.lighting.NovaDownloadPlugin;" not in text:
-        text = re.sub(
-            r"(package [^\n]+\n)",
-            r"\1import com.nova.lighting.NovaDownloadPlugin;\n",
-            text,
-            count=1,
-        )
+    for plugin in PLUGINS:
+        import_line = "import com.nova.lighting.{};".format(plugin)
+        if import_line not in text:
+            text = re.sub(
+                r"(package [^\n]+\n)",
+                r"\1" + import_line + "\n",
+                text,
+                count=1,
+            )
     if "import android.os.Bundle;" not in text:
         text = re.sub(
             r"(package [^\n]+\n)",
@@ -37,7 +45,13 @@ def main():
             count=1,
         )
 
-    if "registerPlugin(NovaDownloadPlugin.class)" not in text:
+    register_lines = "\n".join(
+        "        registerPlugin({}.class);".format(p)
+        for p in PLUGINS
+        if "registerPlugin({}.class)".format(p) not in text
+    )
+
+    if register_lines:
         has_on_create = re.search(
             r"protected void onCreate\(Bundle savedInstanceState\)\s*\{", text
         )
@@ -46,7 +60,7 @@ def main():
             # registerPlugin sebagai baris pertama di body-nya.
             text = re.sub(
                 r"(protected void onCreate\(Bundle savedInstanceState\)\s*\{)",
-                r"\1\n        registerPlugin(NovaDownloadPlugin.class);",
+                r"\1\n" + register_lines,
                 text,
                 count=1,
             )
@@ -57,7 +71,7 @@ def main():
                 "\n"
                 "    @Override\n"
                 "    protected void onCreate(Bundle savedInstanceState) {\n"
-                "        registerPlugin(NovaDownloadPlugin.class);\n"
+                + register_lines + "\n"
                 "        super.onCreate(savedInstanceState);\n"
                 "    }\n"
             )
