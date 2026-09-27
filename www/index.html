@@ -539,61 +539,6 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
   display: none; /* hidden — controls are jawir's own */
 }
 </style>
-  <style id="vtjStyles">
-  .vtj-slot{
-    display:flex; align-items:center; gap:4px;
-    background:var(--btn); border:1px solid var(--border2); border-radius:3px;
-    color:var(--lbl); font-size:8px; font-family:'Share Tech Mono',monospace;
-    padding:3px 6px; cursor:pointer;
-  }
-  .vtj-slot .vtj-slot-dot{ width:5px; height:5px; border-radius:50%; background:#444; flex-shrink:0; }
-  .vtj-slot.selected{ border-color:var(--purple); color:var(--purple); background:#1a0e26; }
-  .vtj-slot.selected .vtj-slot-dot{ background:var(--purple); box-shadow:0 0 4px var(--purple); }
-  .vtj-slot.vtj-hidden-vt{ opacity:0.45; }
-  .vtj-slot .vtj-grp-badge{
-    background:var(--teal); color:#000; border-radius:2px; padding:0 3px;
-    font-size:7px; font-weight:800; margin-left:2px;
-  }
-
-  .vtj-shape-btn{ padding:6px 0 !important; }
-  .vtj-shape-btn.on-p{ box-shadow:0 0 6px var(--purple); }
-
-  .vtj-chip{
-    display:inline-flex; align-items:center;
-    background:var(--btn); border:1px solid var(--border2); border-radius:12px;
-    color:var(--lbl); font-size:8px; font-family:'Share Tech Mono',monospace;
-    padding:4px 9px; cursor:pointer;
-  }
-  .vtj-chip:active{ filter:brightness(1.3); }
-  .vtj-empty-txt, .vtj-empty-hint{
-    font-size:8px; color:var(--lbl); font-family:'Share Tech Mono',monospace; opacity:0.6;
-  }
-
-  .vtj-group-row{
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--btn); border:1px solid var(--border2); border-radius:4px;
-    padding:4px 6px; margin-bottom:4px; font-size:8px;
-  }
-  .vtj-group-row-l{ display:flex; align-items:center; gap:5px; }
-  .vtj-group-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .vtj-group-name{ color:var(--lbl); font-weight:700; }
-  .vtj-group-members{ color:var(--lbl); opacity:0.6; font-size:7px; }
-  .btn.vtj-btn-sm{ padding:3px 8px; font-size:7px; min-height:0; }
-
-  .vtj-tl-step{
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    background:var(--btn); border:1px solid var(--border2); border-radius:4px;
-    padding:5px 8px; font-size:8px; color:var(--lbl); font-family:'Share Tech Mono',monospace;
-    position:relative; cursor:default; min-width:52px;
-  }
-  .vtj-tl-step.playing{ border-color:var(--teal); color:var(--teal); box-shadow:0 0 6px rgba(0,229,255,.3); }
-  .vtj-tl-name{ white-space:nowrap; }
-  .vtj-tl-dur{ opacity:0.6; font-size:7px; }
-  .vtj-tl-del{ position:absolute; top:-5px; right:-5px; width:14px; height:14px; border-radius:50%;
-    background:var(--red); color:#fff; display:flex; align-items:center; justify-content:center;
-    font-size:9px; cursor:pointer; }
-  .vtj-tl-arrow{ color:var(--lbl); opacity:0.5; font-size:11px; }
-  </style>
   <!-- Capacitor native bridge — WAJIB dimuat supaya plugin Filesystem/Share
        (dipakai untuk simpan file di Android) bisa jalan. File capacitor.js ini
        otomatis dibikin/di-copy ke folder www/ oleh proses `npx cap sync android`
@@ -951,11 +896,87 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           </div>
         </div>
 
-        <!-- (Old "TRON VIDEO/FOTO (LAMA)" single-upload and "VIDEO TRON MULTI-PANEL"
-             sections removed — replaced by VT Jockey. Spawn/select/transform
-             controls live in Editor 3D (#vtj-editor3d-panel); effect triggers,
-             media upload, sequencer, and scene presets live in their own tab
-             on the Gerakan page (#vtj-gerakan-section, tab "VIDEO TRON"). -->
+        <!-- Videotron sekarang jadi objek 3D asli di scene utama (window._gbScene),
+             sama seperti Martin/Mini Brute — bisa didrag/discale di Editor 3D.
+             Panel kontrol Videotron 3D ada di bawah ini. Sistem lama "VT Jockey"
+             (2D canvas + panel Editor3D/Gerakan terpisah) sudah dicabut total. -->
+        <div class="sec">
+          <div class="sec-h">VIDEOTRON 3D <span id="vt3d-qty-val" style="color:var(--teal)">1</span></div>
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <button class="btn" style="flex:1" onclick="changeVt3DCount(-1)">− UNIT</button>
+            <button class="btn" style="flex:1" onclick="changeVt3DCount(1)">+ UNIT</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <button class="btn" style="flex:1;font-size:8px" onclick="selAllVt3D()">ALL</button>
+            <button class="btn" style="flex:1;font-size:8px" onclick="selOddVt3D()">GANJIL</button>
+            <button class="btn" style="flex:1;font-size:8px" onclick="selEvenVt3D()">GENAP</button>
+          </div>
+          <div id="vt3d-select-list" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+          <div style="font-size:8px;color:var(--teal);margin-bottom:4px" id="vt3d-selection-label">ALL</div>
+
+          <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--btn);border:2px dashed var(--border2);border-radius:6px;text-align:center;cursor:pointer;font-size:9px;font-weight:700;color:var(--teal);margin-bottom:6px">
+            📹 UPLOAD VIDEO
+            <input type="file" accept="video/*" style="display:none" onchange="vt3DUploadVideo(this)">
+          </label>
+          <div id="vt3d-filename" style="font-size:7px;color:var(--lbl);opacity:.7;margin-bottom:6px"></div>
+
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <button class="btn" style="flex:1" onclick="vt3DPlay()">▶ PLAY</button>
+            <button class="btn" style="flex:1" onclick="vt3DPause()">⏸ PAUSE</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;font-size:8px">
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" onchange="toggleVt3DSound(this.checked)"> SUARA</label>
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" checked onchange="vt3DSetLoop(this.checked)"> LOOP</label>
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" onchange="toggleVt3DFollowFlashMB(this.checked)"> IKUT FLASH MB</label>
+          </div>
+          <button class="btn" id="vt3d-toggle-vis-btn" style="width:100%;margin-bottom:8px" onclick="toggleVt3DVisibility()">HIDE VT</button>
+
+          <button class="btn" style="width:100%;margin-bottom:8px;border-color:var(--teal);color:var(--teal)" onclick="openVt3DCropModal()">✂ CROP / ZOOM</button>
+
+          <div style="font-size:8px;color:var(--lbl);margin-bottom:3px">SHAPE</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px">
+            <button class="btn vt3d-shape-btn active" id="vt3d-shape-RECT" style="font-size:7px" onclick="uVt3D('shape','RECT')">RECT</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-CIRCLE" style="font-size:7px" onclick="uVt3D('shape','CIRCLE')">CIRCLE</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-TRIANGLE" style="font-size:7px" onclick="uVt3D('shape','TRIANGLE')">TRI</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-DIAMOND" style="font-size:7px" onclick="uVt3D('shape','DIAMOND')">DIAMOND</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-HEXAGON" style="font-size:7px" onclick="uVt3D('shape','HEXAGON')">HEX</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-STAR" style="font-size:7px" onclick="uVt3D('shape','STAR')">STAR</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-ARCH" style="font-size:7px" onclick="uVt3D('shape','ARCH')">ARCH</button>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>POSISI X</span><span id="vt3d-posX-disp">0</span></div>
+          <input type="range" id="vt3d-posX" min="-400" max="400" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('x',this.value);document.getElementById('vt3d-posX-disp').innerText=this.value">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>POSISI Y</span><span id="vt3d-posY-disp">25</span></div>
+          <input type="range" id="vt3d-posY" min="0" max="150" value="25" style="width:100%;margin-bottom:6px" oninput="uVt3D('y',this.value);document.getElementById('vt3d-posY-disp').innerText=this.value">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>POSISI Z</span><span id="vt3d-posZ-disp">-35</span></div>
+          <input type="range" id="vt3d-posZ" min="-200" max="200" value="-35" style="width:100%;margin-bottom:6px" oninput="uVt3D('z',this.value);document.getElementById('vt3d-posZ-disp').innerText=this.value">
+
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>ROTASI Y</span><span id="vt3d-rotY-disp">0</span></div>
+          <input type="range" id="vt3d-rotY" min="-180" max="180" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('rotY',this.value);document.getElementById('vt3d-rotY-disp').innerText=this.value">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>ROTASI X</span><span id="vt3d-rotX-disp">0</span></div>
+          <input type="range" id="vt3d-rotX" min="-90" max="90" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('rotX',this.value);document.getElementById('vt3d-rotX-disp').innerText=this.value">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>ROTASI Z</span><span id="vt3d-rotZ-disp">0</span></div>
+          <input type="range" id="vt3d-rotZ" min="-180" max="180" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('rotZ',this.value);document.getElementById('vt3d-rotZ-disp').innerText=this.value">
+
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>SCALE</span><span id="vt3d-scale-disp">1</span></div>
+          <input type="range" id="vt3d-scale" min="0.2" max="4" step="0.05" value="1" style="width:100%;margin-bottom:6px" oninput="uVt3D('scale',this.value);document.getElementById('vt3d-scale-disp').innerText=this.value">
+
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>LEBAR</span></div>
+          <input type="range" id="vt3d-width" min="20" max="300" value="80" style="width:100%;margin-bottom:6px" oninput="uVt3D('width',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>TINGGI</span></div>
+          <input type="range" id="vt3d-height" min="10" max="200" value="45" style="width:100%;margin-bottom:6px" oninput="uVt3D('height',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>SUDUT (ROUNDED)</span></div>
+          <input type="range" id="vt3d-corner" min="0" max="100" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('corner',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>UKURAN FRAME</span></div>
+          <input type="range" id="vt3d-frame-size" min="0" max="10" step="0.2" value="1" style="width:100%;margin-bottom:6px" oninput="uVt3D('frameSize',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>KECERAHAN</span></div>
+          <input type="range" id="vt3d-bright" min="10" max="300" value="100" style="width:100%;margin-bottom:6px" oninput="uVt3D('bright',this.value)">
+
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:8px;color:var(--lbl)">WARNA FRAME</span>
+            <div id="vt3d-frame-color-swatch" data-color="#222244" style="width:20px;height:20px;border-radius:4px;background:#222244;border:1px solid var(--border2);cursor:pointer" onclick="var el=document.createElement('input');el.type='color';el.value=this.dataset.color;el.oninput=()=>{this.style.background=el.value;this.dataset.color=el.value;uVt3DFrameColor(el.value);};el.click();"></div>
+          </div>
+        </div>
 
         <!-- PHOTO LAYERS -->
         <div class="sec">
@@ -2001,7 +2022,6 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
            a harmless no-op. Old "3D MODEL" tab UI removed too; g3dBuildTab()
            kept intact and null-guarded at its other call site.) -->
       <div class="ger-page" id="gp4">
-        <div id="vtj-gerakan-section"><!-- filled by vtjBuildGerakanSection() --></div>
         <div class="sec">
           <div class="sec-h" style="color:var(--purple)">🎬 VIDEO OVERLAY (GLOBAL)</div>
           <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;line-height:1.4;margin-bottom:6px;background:rgba(0,0,0,.2);padding:5px;border-radius:4px">
@@ -2140,10 +2160,10 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
               <button class="btn" id="e3dGridToggleBtn" onclick="if(window.gb_toggleGrid)gb_toggleGrid();" style="width:100%;font-size:9px;border-color:var(--teal);color:var(--teal)">👁 GRID: ON</button>
             </div>
 
-            <!-- VIDEO TRON (VT Jockey — spawn/select/transform di sini; effect & media di halaman Gerakan) -->
-            <div id="vtj-editor3d-panel" style="background:var(--panel);border-bottom:1px solid var(--border);padding:5px 8px 6px">
-              <!-- filled by vtjBuildEditor3DPanel() -->
-            </div>
+            <!-- Videotron 3D — transform-nya sekarang lewat panel Editor 3D
+                 standar (sama seperti Martin/Mini Brute), tidak perlu panel
+                 khusus lagi seperti VT Jockey dulu. Kontrol dedicated ada di
+                 tab Gerakan (VIDEOTRON 3D). -->
 
             <!-- UPLOAD GAMBAR (masuk ke LAYERS, bisa di-TRANSFORM) -->
             <div id="e3dImgPanel" style="background:var(--panel);border-bottom:1px solid var(--border);padding:5px 8px 6px">
@@ -3696,7 +3716,6 @@ function setGerTab(n){
     buildCSBeamGrid();buildCSSlotBtns();renderCSTimeline(csActiveSlot);if(typeof buildCSWallGrid==='function')buildCSWallGrid();if(typeof buildCSParGrid==='function')buildCSParGrid();
     if(typeof csxCheckColorConflict==='function') csxCheckColorConflict();
   }
-  if(n===4){ if(typeof window.vtjBuildGerakanSection==='function') window.vtjBuildGerakanSection(); }
   if(n!==1&&n!==2&&state.controlMode==='kfEdit') state.controlMode='auto';
 }
 
@@ -7937,10 +7956,6 @@ const KB_ACTIONS = [
     {id:'gobo2',label:'PRISM 5'},{id:'gobo3',label:'PRISM 16'},{id:'gobo4',label:'FAN'},
     {id:'rotate',label:'ROTATE toggle'},{id:'rainbow',label:'RAINBOW toggle'},
   ]},
-  {group:'STANDBY (slot 1-4)', items:[
-    {id:'sby1',label:'Standby 1'},{id:'sby2',label:'Standby 2'},
-    {id:'sby3',label:'Standby 3'},{id:'sby4',label:'Standby 4'},
-  ]},
 ];
 
 const KB_DEFAULT_MAP = {
@@ -7952,7 +7967,6 @@ const KB_DEFAULT_MAP = {
   mbToggle:'a', mbHold:'s', mbHoldBeam:'space',
   gobo0:'z',gobo1:'x',gobo2:'c',gobo3:'v',gobo4:'b',
   rotate:'n', rainbow:'m',
-  sby1:'[',sby2:']',sby3:';',sby4:'\'',
 };
 
 function saveKbMap(){
@@ -9548,6 +9562,9 @@ function loop(now){
 
   updateKFPlayback();
 
+  // Videotron 3D — redraw canvas texture tiap frame kalau video sedang main
+  if(typeof window._vt3dTick === 'function') window._vt3dTick();
+
   for(let i=0;i<state.heads.length;i++){
     const h=state.heads[i];
     if(state.controlMode!=='kfEdit'){
@@ -10745,11 +10762,12 @@ function doSaveProject(){
     var _sc=JSON.parse(localStorage.getItem('jawir_e3d_saved_scenes')||'[]');
     if(_sc.length) proj.e3dSavedScenes = _sc;
   }catch(e){}
-  // Sertakan layout VT Jockey (Video Tron) dalam project download
+  // Sertakan layout Videotron 3D dalam project download (posisi/shape/dll,
+  // video blob URL sendiri tidak ikut tersimpan — user upload ulang setelah load)
   try{
-    if(typeof window._vtjBuildSaveData === 'function'){
-      var _vtjData = window._vtjBuildSaveData();
-      if(_vtjData) proj.vtjLayout = _vtjData;
+    if(typeof window._vt3dSerialize === 'function'){
+      var _vt3dData = window._vt3dSerialize();
+      if(_vt3dData && _vt3dData.length) proj.vt3dLayout = _vt3dData;
     }
   }catch(e){}
   // Kalau dipanggil dengan returnOnly=true (misal dari multiplayer sync), jangan download
@@ -10904,9 +10922,18 @@ function doLoadProject(jsonText){
       if(typeof window._e3dLoadFromProject === 'function') window._e3dLoadFromProject(d.e3dModels);
       else window._e3dPendingRestore = d.e3dModels;
     }
-    // VIDEO TRON (VT Jockey) restore — rebuilt from vtjLayout, media must be re-uploaded
-    if(d.vtjLayout && typeof window._vtjRestoreFromProject === 'function'){
-      window._vtjRestoreFromProject(d.vtjLayout);
+    // VIDEOTRON 3D restore — dibangun ulang dari vt3dLayout, video harus di-upload ulang.
+    // Kalau scene 3D belum siap saat project di-load, coba lagi beberapa kali
+    // (sama seperti pola _e3dPendingRestore di atas).
+    if(d.vt3dLayout && d.vt3dLayout.length){
+      (function _tryRestoreVt3d(triesLeft){
+        if(typeof window._vt3dRestore === 'function' && window._gbScene){
+          window._vt3dRestore(d.vt3dLayout);
+          return;
+        }
+        if(triesLeft <= 0) return;
+        setTimeout(function(){ _tryRestoreVt3d(triesLeft-1); }, 300);
+      })(40);
     }
     // FOG restore
     if(d.vtedFog && typeof window.vtedApplyFog === 'function'){
@@ -14669,8 +14696,8 @@ gb_animate = function() {
   // ── JAWIR 3D WALLWASHER + PARLED ANIMATE ──────────────────────
   _jawirAnimate3DFixtures(now, deltaTime);
 
-  // ── VT JOCKEY: update semua VT (posisi/efek/canvas texture) ───
-  if (typeof window._vtjTick === 'function') window._vtjTick(now, deltaTime);
+  // ── VIDEOTRON 3D: update semua unit (posisi/efek/canvas texture video) ──
+  if (typeof window._vt3dTick === 'function') window._vt3dTick();
 
   gb_renderer.render(gb_scene, gb_camera);
 };
@@ -16513,6 +16540,7 @@ var FIX_COLOR = {
 
 // ── Helper: ambil e3dState (di-lazy agar tidak masalah urutan init) ──
 function _st(){ return window.e3dState || null; }
+window._st = _st; // expose agar modul lain (mis. Videotron 3D) bisa daftar fixture juga
 
 // ── Helper: rebuild layer list UI ────────────────────────────
 function _refreshLayerUI(){
@@ -16539,6 +16567,7 @@ function _clearFixtureEntries(prefix){
     return st.models.some(function(m){ return m.id===id; });
   });
 }
+window._clearFixtureEntries = _clearFixtureEntries; // expose agar modul lain bisa pakai
 
 // ── Daftarkan satu Three.js object ke e3dState ────────────────
 function _registerObj(label, fxKey, obj3d, color){
@@ -16573,6 +16602,7 @@ function _registerObj(label, fxKey, obj3d, color){
     _color:        color || '#00e5ff',
   });
 }
+window._registerObj = _registerObj; // expose agar modul lain (Videotron 3D) bisa daftar fixture
 
 // ────────────────────────────────────────────────────────────
 // BEAM (Moving Head) — gb_lamps array dari Photonic engine
@@ -16715,6 +16745,7 @@ function _registerAll(){
   _registerMbs();
   _registerMarts();
   _registerFans();
+  if(typeof window._registerVts === 'function') window._registerVts();
   var _n = _dedupeFixtureLayers();
   if(_n > 0){ _refreshLayerUI(); if(typeof setStatus==='function') setStatus('🧹 '+_n+' fixture duplikat dibersihkan'); }
 }
@@ -18077,16 +18108,6 @@ window._f3Pos = f3Pos; // expose untuk debug
   }
 
   // ═══════════════════════════════════════════════════════
-  // STANDBY — slot 1-4 (loadStandby sudah ada, tinggal panggil
-  // langsung sama seperti klik .sby-card di UI)
-  // ═══════════════════════════════════════════════════════
-  function doStandby(idx){
-    if(typeof loadStandby === 'function'){
-      loadStandby(idx);
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════
   // EVENT LISTENERS — SATU keydown (bubble) + SATU keyup untuk shortcut
   // Mode Main. (Ada SATU listener keydown lagi di bawah, khusus capture:true
   // untuk mode "dengarkan" di KEYBOARD SETTINGS — itu selalu jalan LEBIH
@@ -18181,10 +18202,6 @@ window._f3Pos = f3Pos; // expose untuk debug
     }
     if(actionId==='rotate'){ doRotate(); return; }
     if(actionId==='rainbow'){ doRainbow(); return; }
-    if(/^sby(\d)$/.test(actionId)){
-      doStandby(parseInt(actionId.slice(3),10)-1);
-      return;
-    }
   }, false);
 
   document.addEventListener('keyup', function(e){
@@ -18234,7 +18251,6 @@ window._f3Pos = f3Pos; // expose untuk debug
       +row(keyDisp('gobo4'),'FAN','#cc44ff')
       +row(keyDisp('rotate'),'ROTATE toggle','#cc44ff')
       +row(keyDisp('rainbow'),'RAINBOW toggle','#cc44ff')
-      +row(rangeKeys('sby',4),'STANDBY — load slot 1 – 4','#3388ff')
       +row('? atau /','Buka/tutup panel ini','#4a5868')
       +'<div style="display:flex;gap:8px;margin-top:16px" onclick="event.stopPropagation()">'
       +'<button id="_kbOpenSettingsBtn" style="flex:1;padding:10px;background:#1a2028;border:1px solid #ffaa00;color:#ffaa00;border-radius:6px;font-family:Share Tech Mono,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer">⚙ SETTING KEYBOARD (halaman Setting)</button>'
@@ -19058,6 +19074,28 @@ function _syncFixtureState(entry, obj){
         lamp._v2Head.rotation.y = obj.rotation.y;
       }
     }
+    return;
+  }
+
+  // VIDEOTRON 3D: posisinya dikontrol lewat window._vt3dVideotrons (array di
+  // engine Videotron 3D), bukan lewat canvas x/y seperti wall/par/mb/mart.
+  // Simpan posisi/rotasi/scale hasil drag/fader Editor 3D LANGSUNG ke v.state
+  // (koordinat 3D asli, tanpa konversi) supaya:
+  // - slider POSISI/ROTASI/SCALE di panel Gerakan > VIDEOTRON 3D ikut ke-update
+  // - Save/Load Project menyimpan posisi terbaru hasil drag, bukan nilai lama
+  if(ftype==='vt3d'){
+    var vtArr = (typeof window._vt3dGetPool === 'function') ? window._vt3dGetPool() : null;
+    var v = vtArr && vtArr[fidx];
+    if(v && v.state){
+      v.state.posX = obj.position.x;
+      v.state.posY = obj.position.y;
+      v.state.posZ = obj.position.z;
+      v.state.rotX = obj.rotation.x * 180 / Math.PI;
+      v.state.rotY = obj.rotation.y * 180 / Math.PI;
+      v.state.rotZ = obj.rotation.z * 180 / Math.PI;
+      v.state.scale = obj.scale.x;
+    }
+    if(typeof window.updateVt3DFadersFromE3D === 'function') window.updateVt3DFadersFromE3D();
     return;
   }
 
@@ -20890,9 +20928,9 @@ window.e3dImgSetAllVisible = function(v){
   if(typeof masterSave === 'function') setTimeout(masterSave, 200);
 };
 
-// Collapse/expand menu (VIDEO TRON & UPLOAD GAMBAR) — ingatan state disimpan
+// Collapse/expand menu (UPLOAD GAMBAR) — ingatan state disimpan
 var _PANEL_KEY = 'nova_e3d_panel_hidden';
-var _PANEL_MAP = { 'vtj-panel-body': 'vtjPanelToggleBtn', 'e3dImgPanelBody': 'e3dImgPanelToggleBtn' };
+var _PANEL_MAP = { 'e3dImgPanelBody': 'e3dImgPanelToggleBtn' };
 function _panelState(){
   try{ return JSON.parse(localStorage.getItem(_PANEL_KEY) || '{}'); }catch(err){ return {}; }
 }
@@ -22186,10 +22224,15 @@ function _m3SyncPos(){
 function _m3ApplyDotAA(){
   var cam = window._gbCamera;
   if(!cam) return;
-  var qScale = window._novaQualityScale || 1.0; // 1.0 high, 0.75 normal, 0.5 low
-  // Kompensasi kebalikan dari qScale — makin rendah quality, makin besar titik
-  // supaya tetap "penuh" 1px+ di layar walau resolusi render diturunkan.
-  var qBoost = 1 / Math.max(0.5, qScale);
+  // FIX (bug: LED lebih besar dari body / tidak pas):
+  // Body panel = 6.4 x 3.0, area matrix LED = 5.8 x 2.5 (sudah dikasih margin
+  // dari awal di _buildUnit). Margin itu cuma kasih headroom sekitar 1.10x di
+  // sumbu X sebelum titik LED mulai nongol keluar dari bingkai body.
+  // Sebelumnya boost di-clamp sampai 1.6x — itu MELEBIHI margin body, jadi LED
+  // kelihatan lebih besar dari body persis seperti yang dilaporkan.
+  // Sekarang di-clamp jauh lebih ketat (1.08x) supaya titik LED TIDAK PERNAH
+  // melebihi bingkai body — body tetap sedikit lebih besar dari LED di segala
+  // kondisi (jarak kamera, quality, scale).
   _m3Pool.forEach(function(u){
     if(!u.ledMesh || !u.group) return;
     var wp = new THREE.Vector3();
@@ -22197,12 +22240,11 @@ function _m3ApplyDotAA(){
     var dist = cam.position.distanceTo(wp);
     // Jarak referensi "normal" ~75 unit (posisi default rig Martin). Di bawah/​
     // sekitar itu, dot tetap ukuran asli (1x). Makin jauh dari referensi,
-    // scale naik proporsional supaya ukuran APPARENT (sudut pandang) konstan.
+    // scale naik dikit supaya titik tidak hilang jadi <1px di layar — tapi
+    // dibatasi ketat supaya tidak pernah melebihi bingkai body.
     var refDist = 75;
     var distBoost = Math.max(1, dist / refDist);
-    var finalScale = distBoost * qBoost;
-    // Clamp supaya tidak membesar berlebihan di jarak ekstrem/zoom out jauh
-    finalScale = Math.min(finalScale, 6);
+    var finalScale = Math.min(distBoost, 1.08);
     if(u.ledMesh.scale.x !== finalScale){
       u.ledMesh.scale.setScalar(finalScale);
       u.ledMesh.updateMatrixWorld();
@@ -23085,2077 +23127,6 @@ if(document.readyState === 'loading'){
 </script>
 <script>
 // ================================================================
-// VT JOCKEY — core state, shapes, VT object creation
-// Ported from vt_jockey_v2.html and adapted to run inside Nova's own
-// gb_scene / gb_animate render loop (no separate camera/renderer/scene).
-// ================================================================
-(function(){
-  'use strict';
-
-  // ---------- STATE ----------
-  const vtjVts = [];
-  let vtjSelected = [0];
-  let vtjUploadedMedia = [];
-  let vtjMappingMode = 'all';
-  const vtjGroups = []; // {id, name, vtIndices:[], frameColor, frameSize, cornerSmooth, hideInnerFrames}
-  let vtjSelectedGroupId = null;
-  let vtjIdCounter = 0;
-  let vtjGroupIdCounter = 1;
-
-  const vtjEffects = {
-    time: 0,
-    smoothing: 0.4,
-
-    flashActive: false, flashLevel: 0, _flashManualOn: false,
-    waveActive: false, waveLevel: 0, waveOffset: 0, waveSpeed: 1, waveDir: 'center-out', waveMode: 'rgb', waveColor: '#00ff66',
-    shakeActive: false, shakeLevel: 0, shakePower: 5, shakeSpeed: 1,
-
-    flashWaveActive: false, flashWaveLevel: 0, flashWaveOffset: 0, flashWaveSpeed: 2, flashWaveDir: 'center-out',
-    rgbFlashWaveActive: false, rgbFlashWaveLevel: 0, rgbFlashWaveOffset: 0, rgbFlashWaveSpeed: 2, rgbFlashWaveDir: 'center-out', rgbFlashWaveMode: 'rgb', rgbFlashWaveColor: '#00e5ff',
-    petirActive: false, petirLevel: 0, petirColor: '#00e5ff', petirThickness: 3, _petirManualOn: false,
-
-    strobeActive: false, strobeLevel: 0, strobeSpeed: 8, strobePhaseOn: false,
-    zoomPulseActive: false, zoomPulseLevel: 0, zoomAmount: 0.15, zoomSpeed: 4,
-    glitchActive: false, glitchLevel: 0, glitchIntensity: 5,
-
-    antiLag: false,
-
-    // linked-trigger flags (set by external hooks, not by the user directly)
-    _flashLinkedFromStrobe: false,
-    _petirLinkedFromMinibrut: false
-  };
-
-  const vtjDefaultVT = {
-    posX: 0, posY: 5, posZ: -20,
-    rotX: 0, rotY: 0, rotZ: 0,
-    width: 4, height: 4, corner: 0,
-    brightness: 100,
-    shape: 'RECT',
-    frameColor: '#333333',
-    frameSize: 0.05,
-    edgeSmooth: 0,
-    hidden: false,
-    aspectMode: 'contain',
-    mediaOffsetX: 0, mediaOffsetY: 0, mediaScale: 1,
-    loop: true,
-    mediaId: null,
-    mediaType: null,
-    groupId: null
-  };
-
-  function vtjApproach(current, target, dt, smoothing) {
-    if (smoothing <= 0.001) return target;
-    const rate = 1 - Math.pow(1 - smoothing, dt * 60 / 6);
-    return current + (target - current) * Math.min(1, rate * 2.2 + 0.18);
-  }
-
-  // ---------- SHAPE GEOMETRY (verbatim from vt_jockey_v2.html) ----------
-  function vtjRoundedRectShape(w, h, r) {
-    const shape = new THREE.Shape();
-    const x = -w / 2, y = -h / 2;
-    const maxR = Math.min(w / 2, h / 2);
-    r = Math.min(r, maxR);
-    if (r < 0.05) r = 0;
-
-    if (r === 0) {
-      shape.moveTo(x, y);
-      shape.lineTo(x + w, y);
-      shape.lineTo(x + w, y + h);
-      shape.lineTo(x, y + h);
-      shape.lineTo(x, y);
-      return shape;
-    }
-
-    shape.moveTo(x + r, y);
-    shape.lineTo(x + w - r, y);
-    shape.quadraticCurveTo(x + w, y, x + w, y + r);
-    shape.lineTo(x + w, y + h - r);
-    shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    shape.lineTo(x + r, y + h);
-    shape.quadraticCurveTo(x, y + h, x, y + h - r);
-    shape.lineTo(x, y + r);
-    shape.quadraticCurveTo(x, y, x + r, y);
-    return shape;
-  }
-
-  function vtjCustomShape(type, w, h, r, edgeSmoothSegBoost) {
-    let shape;
-    const hw = w / 2, hh = h / 2;
-    let geometry;
-    const segBoost = edgeSmoothSegBoost ? Math.round(32 + edgeSmoothSegBoost * 0.9) : 64;
-
-    switch (type) {
-      case 'RECT':
-        geometry = new THREE.ShapeGeometry(vtjRoundedRectShape(w, h, r), Math.max(6, Math.round(segBoost / 4)));
-        break;
-      case 'CIRCLE':
-        geometry = new THREE.CircleGeometry(1, segBoost);
-        geometry.scale(hw, hh, 1);
-        break;
-      case 'TRIANGLE':
-        geometry = new THREE.CircleGeometry(1, 3, Math.PI / 2);
-        geometry.scale(hw, hh, 1);
-        break;
-      case 'DIAMOND':
-        shape = new THREE.Shape();
-        shape.moveTo(0, hh);
-        shape.lineTo(hw, 0);
-        shape.lineTo(0, -hh);
-        shape.lineTo(-hw, 0);
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape);
-        break;
-      case 'DROP':
-        shape = new THREE.Shape();
-        shape.moveTo(0, hh);
-        shape.bezierCurveTo(hw, hh * 0.2, hw, -hh, 0, -hh);
-        shape.bezierCurveTo(-hw, -hh, -hw, hh * 0.2, 0, hh);
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape, Math.max(6, Math.round(segBoost / 4)));
-        break;
-      case 'HEXAGON':
-        geometry = new THREE.CircleGeometry(1, 6, Math.PI / 2);
-        geometry.scale(hw, hh, 1);
-        break;
-      case 'STAR': {
-        shape = new THREE.Shape();
-        const outerRadius = 1;
-        const innerRadius = 0.4;
-        for (let i = 0; i < 10; i++) {
-          const a = (i * Math.PI) / 5 - Math.PI / 2;
-          const radius = i % 2 === 0 ? outerRadius : innerRadius;
-          if (i === 0) shape.moveTo(Math.cos(a) * radius, Math.sin(a) * radius);
-          else shape.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
-        }
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape);
-        geometry.scale(hw, hh, 1);
-        break;
-      }
-      case 'ARCH': {
-        shape = new THREE.Shape();
-        const rArch = hw;
-        const archBaseY = hh - rArch;
-        shape.moveTo(-hw, -hh);
-        shape.lineTo(hw, -hh);
-        shape.lineTo(hw, archBaseY);
-        shape.absarc(0, archBaseY, rArch, 0, Math.PI, false);
-        shape.lineTo(-hw, -hh);
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape, Math.max(6, Math.round(segBoost / 4)));
-        break;
-      }
-      case 'WARU':
-        shape = new THREE.Shape();
-        shape.moveTo(0, hh);
-        shape.bezierCurveTo(hw * 1.1, hh * 0.4, hw * 1.0, -hh * 0.3, hw * 0.4, -hh * 0.4);
-        shape.lineTo(hw * 0.2, -hh);
-        shape.lineTo(-hw * 0.2, -hh);
-        shape.lineTo(-hw * 0.4, -hh * 0.4);
-        shape.bezierCurveTo(-hw * 1.0, -hh * 0.3, -hw * 1.1, hh * 0.4, 0, hh);
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape, Math.max(6, Math.round(segBoost / 4)));
-        break;
-      case 'LOVE':
-        shape = new THREE.Shape();
-        shape.moveTo(0, -hh);
-        shape.bezierCurveTo(hw * 1.2, -hh * 0.2, hw * 1.2, hh * 0.8, hw * 0.5, hh);
-        shape.bezierCurveTo(hw * 0.1, hh * 1.1, 0, hh * 0.6, 0, hh * 0.35);
-        shape.bezierCurveTo(0, hh * 0.6, -hw * 0.1, hh * 1.1, -hw * 0.5, hh);
-        shape.bezierCurveTo(-hw * 1.2, hh * 0.8, -hw * 1.2, -hh * 0.2, 0, -hh);
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape, Math.max(6, Math.round(segBoost / 4)));
-        break;
-      case 'MATAHARI': {
-        shape = new THREE.Shape();
-        const rays = 12;
-        const rOut = Math.min(hw, hh);
-        const rIn = rOut * 0.62;
-        for (let i = 0; i < rays * 2; i++) {
-          const angle = (i * Math.PI) / rays - Math.PI / 2;
-          const rr = i % 2 === 0 ? rOut : rIn;
-          const x = Math.cos(angle) * rr;
-          const y = Math.sin(angle) * rr;
-          if (i === 0) shape.moveTo(x, y);
-          else shape.lineTo(x, y);
-        }
-        shape.closePath();
-        geometry = new THREE.ShapeGeometry(shape);
-        break;
-      }
-      default:
-        geometry = new THREE.PlaneGeometry(w, h);
-        break;
-    }
-
-    geometry.computeBoundingBox();
-    const box = geometry.boundingBox;
-    const bMinX = box.min.x, bMaxX = box.max.x;
-    const bMinY = box.min.y, bMaxY = box.max.y;
-    const bW = bMaxX - bMinX;
-    const bH = bMaxY - bMinY;
-
-    const uvAttr = geometry.attributes.uv;
-    if (uvAttr && bW > 0 && bH > 0) {
-      for (let i = 0; i < uvAttr.count; i++) {
-        let vx = geometry.attributes.position.getX(i);
-        let vy = geometry.attributes.position.getY(i);
-        let u = (vx - bMinX) / bW;
-        let v = (vy - bMinY) / bH;
-        uvAttr.setXY(i, u, v);
-      }
-      uvAttr.needsUpdate = true;
-    }
-
-    return geometry;
-  }
-
-  // ---------- MEDIA TEXTURE (canvas-composited, same as source) ----------
-  function vtjCreateMediaTexture(mediaObj, vt) {
-    const canvas = document.createElement('canvas');
-
-    let w = vt.width || 1;
-    let h = vt.height || 1;
-    const vtAspect = w / h;
-
-    const maxRes = vtjEffects.antiLag ? 320 : 1024;
-    if (vtAspect > 1) {
-      canvas.width = maxRes;
-      canvas.height = Math.round(maxRes / vtAspect);
-    } else {
-      canvas.height = maxRes;
-      canvas.width = Math.round(maxRes * vtAspect);
-    }
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    let drawArgs = null;
-
-    if (mediaObj && mediaObj.element) {
-      const el = mediaObj.element;
-      const ew = el.videoWidth || el.width || canvas.width;
-      const eh = el.videoHeight || el.height || canvas.height;
-      const mediaAspect = ew / eh;
-      const canvasAspect = canvas.width / canvas.height;
-
-      let dw = canvas.width;
-      let dh = canvas.height;
-      let dx = 0;
-      let dy = 0;
-
-      if (vt.aspectMode === 'cover') {
-        if (mediaAspect > canvasAspect) {
-          dh = canvas.height;
-          dw = dh * mediaAspect;
-          dx = (canvas.width - dw) / 2;
-        } else {
-          dw = canvas.width;
-          dh = dw / mediaAspect;
-          dy = (canvas.height - dh) / 2;
-        }
-      } else if (vt.aspectMode === 'contain') {
-        if (mediaAspect > canvasAspect) {
-          dw = canvas.width;
-          dh = dw / mediaAspect;
-          dx = 0;
-          dy = (canvas.height - dh) / 2;
-        } else {
-          dh = canvas.height;
-          dw = dh * mediaAspect;
-          dx = (canvas.width - dw) / 2;
-          dy = 0;
-        }
-      } else if (vt.aspectMode === 'none') {
-        // "Asli (No Crop)" — video ditampilkan dengan proporsi aslinya utuh
-        // (tidak pernah di-crop), bukan dipaksa contain/cover/stretch.
-        // Basis netral (scale=1): video di-fit seperti "contain" (pas di
-        // dalam panel, proporsi asli terjaga) — dari situ user bebas
-        // membesarkan/mengecilkan (mediaScale) dan menggeser posisinya
-        // (mediaOffsetX/Y, dalam persen lebar/tinggi canvas). Canvas & mesh
-        // shape tetap jadi batas fisik panel, jadi bagian video yang
-        // digeser sampai keluar area panel otomatis tidak terlihat (clip),
-        // TANPA video itu sendiri pernah di-crop/dipotong datanya.
-        const mScale = (vt.mediaScale !== undefined ? vt.mediaScale : 1);
-        let fitW, fitH;
-        if (mediaAspect > canvasAspect) { fitW = canvas.width; fitH = fitW / mediaAspect; }
-        else { fitH = canvas.height; fitW = fitH * mediaAspect; }
-        dw = fitW * mScale;
-        dh = fitH * mScale;
-        const offX = (vt.mediaOffsetX !== undefined ? vt.mediaOffsetX : 0) / 100;
-        const offY = (vt.mediaOffsetY !== undefined ? vt.mediaOffsetY : 0) / 100;
-        dx = (canvas.width - dw) / 2 + offX * canvas.width;
-        dy = (canvas.height - dh) / 2 + offY * canvas.height;
-      } else {
-        dw = canvas.width;
-        dh = canvas.height;
-      }
-
-      drawArgs = { el, dx, dy, dw, dh };
-      try { ctx.drawImage(el, dx, dy, dw, dh); } catch(e){}
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    return { texture, canvas, ctx, drawArgs };
-  }
-
-  // ---------- VT OBJECT (mounted into gb_scene + e3dState) ----------
-  function vtjScene(){ return window._gbScene || (typeof gb_scene!=='undefined' ? gb_scene : null); }
-
-  function vtjCreateVTObject(){
-    const sc = vtjScene();
-    if (!sc) { console.warn('[VT Jockey] gb_scene belum siap — VT dibuat tapi belum masuk scene.'); }
-    const vtData = Object.assign({}, vtjDefaultVT, { id: vtjIdCounter++ });
-    const group = new THREE.Group();
-
-    const screenMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-    const frameMat = new THREE.MeshBasicMaterial({ color: vtData.frameColor, side: THREE.DoubleSide });
-
-    const geom = vtjCustomShape(vtData.shape, vtData.width, vtData.height, vtData.corner);
-
-    const screenMesh = new THREE.Mesh(geom, screenMat);
-    const frameMesh = new THREE.Mesh(geom, frameMat);
-    frameMesh.position.z = -0.05;
-
-    const s = 1 + (vtData.frameSize / Math.max(vtData.width, vtData.height));
-    frameMesh.scale.set(s, s, 1);
-
-    group.add(screenMesh);
-    group.add(frameMesh);
-    if (sc) sc.add(group);
-
-    vtData.group = group;
-    vtData.screenMesh = screenMesh;
-    vtData.frameMesh = frameMesh;
-    vtData.screenMat = screenMat;
-    vtData.frameMat = frameMat;
-
-    vtData.mediaElement = null;
-    vtData.mediaTexture = null;
-    vtData.mediaCanvas = null;
-    vtData.mediaCtx = null;
-    vtData.mediaDrawArgs = null;
-
-    // Register into Nova's Editor 3D state so it shows in Layers, is
-    // selectable/movable the same way as any other e3d object.
-    var uid = 'm' + (window.e3dState ? (window.e3dState.nextId++) : vtData.id);
-    vtData._e3dId = uid;
-    if (window.e3dState) {
-      window.e3dState.models.push({
-        id: uid, modelId: 'vtj-panel', name: 'VT ' + (vtData.id+1), type: 'VIDEOTRON',
-        obj3d: group, visible: true, locked: false, group: null,
-        _color: 0x00ff8c, _isVtjPanel: true, _vtjIndex: null // index filled by caller once pushed to vtjVts
-      });
-    }
-
-    vtjApplyVTStateToMesh(vtData);
-    return vtData;
-  }
-
-  function vtjApplyVTStateToMesh(vt) {
-    if (!vt.group) return;
-
-    vt.group.visible = !vt.hidden;
-    vt.basePosition = new THREE.Vector3(vt.posX, vt.posY, vt.posZ);
-
-    if (!vtjEffects.shakeActive) {
-      vt.group.position.copy(vt.basePosition);
-    }
-
-    vt.group.rotation.set(
-      vt.rotX * Math.PI / 180,
-      vt.rotY * Math.PI / 180,
-      vt.rotZ * Math.PI / 180
-    );
-
-    const newGeom = vtjCustomShape(vt.shape, vt.width, vt.height, vt.corner, vt.edgeSmooth);
-    vt.screenMesh.geometry.dispose();
-    vt.screenMesh.geometry = newGeom;
-    vt.frameMesh.geometry.dispose();
-    vt.frameMesh.geometry = newGeom;
-
-    const grp = vt.groupId ? vtjGroups.find(function(g){ return g.id === vt.groupId; }) : null;
-    if (grp) {
-      const isInner = grp.hideInnerFrames;
-      vt.frameMat.color.set(grp.frameColor);
-      const baseSize = Math.max(vt.width, vt.height);
-      const effFrameSize = isInner ? 0 : grp.frameSize;
-      const scaleAmount = baseSize > 0 ? 1 + (effFrameSize / baseSize * 2) : 1;
-      vt.frameMesh.scale.set(scaleAmount, scaleAmount, 1);
-      vt.frameMesh.visible = !isInner || grp.frameSize > 0;
-    } else {
-      vt.frameMat.color.set(vt.frameColor);
-      const baseSize = Math.max(vt.width, vt.height);
-      const scaleAmount = baseSize > 0 ? 1 + (vt.frameSize / baseSize * 2) : 1;
-      vt.frameMesh.scale.set(scaleAmount, scaleAmount, 1);
-      vt.frameMesh.visible = true;
-    }
-
-    vtjUpdateVTTexture(vt);
-
-    if (!vtjEffects.waveActive) {
-      let c = (vt.brightness / 100);
-      vt.screenMat.color.setRGB(c, c, c);
-    }
-  }
-
-  function vtjUpdateVTTexture(vt) {
-    let mediaObj = vtjUploadedMedia.find(function(m){ return m.id === vt.mediaId; }) || null;
-    let res = vtjCreateMediaTexture(mediaObj, vt);
-
-    if (vt.mediaTexture) vt.mediaTexture.dispose();
-
-    vt.mediaTexture = res.texture;
-    vt.mediaCanvas = res.canvas;
-    vt.mediaCtx = res.ctx;
-    vt.mediaDrawArgs = res.drawArgs;
-
-    vt.screenMat.map = vt.mediaTexture;
-    vt.screenMat.needsUpdate = true;
-  }
-
-  function vtjDrawLightningBolt(ctx, w, h, strokeColor, thickness) {
-    ctx.save();
-    const startX = w * (0.2 + Math.random() * 0.6);
-    const segments = 5 + Math.floor(Math.random() * 3);
-    const points = [{ x: startX, y: 0 }];
-    let currentX = startX;
-
-    for (let i = 1; i <= segments; i++) {
-      const targetY = (h / segments) * i;
-      const jitterX = (Math.random() - 0.5) * (w * 0.25);
-      currentX += jitterX;
-      points.push({ x: currentX, y: targetY });
-    }
-
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
-
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = thickness * 2.5;
-    ctx.globalAlpha = 0.5;
-    ctx.stroke();
-
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = Math.max(1, thickness * 0.8);
-    ctx.globalAlpha = 1.0;
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  // Expose internal pieces the UI-building script (next file) needs.
-  window._vtj = {
-    vts: vtjVts,
-    get selected(){ return vtjSelected; },
-    set selected(v){ vtjSelected = v; },
-    get uploadedMedia(){ return vtjUploadedMedia; },
-    get mappingMode(){ return vtjMappingMode; },
-    set mappingMode(v){ vtjMappingMode = v; },
-    groups: vtjGroups,
-    get selectedGroupId(){ return vtjSelectedGroupId; },
-    set selectedGroupId(v){ vtjSelectedGroupId = v; },
-    get groupIdCounter(){ return vtjGroupIdCounter; },
-    set groupIdCounter(v){ vtjGroupIdCounter = v; },
-    effects: vtjEffects,
-    defaultVT: vtjDefaultVT,
-    approach: vtjApproach,
-    customShape: vtjCustomShape,
-    createMediaTexture: vtjCreateMediaTexture,
-    createVTObject: vtjCreateVTObject,
-    applyVTStateToMesh: vtjApplyVTStateToMesh,
-    updateVTTexture: vtjUpdateVTTexture,
-    drawLightningBolt: vtjDrawLightningBolt,
-    scene: vtjScene
-  };
-
-})();
-
-// ================================================================
-// VT JOCKEY — management: spawn/remove, select, media, groups
-// ================================================================
-(function(){
-  'use strict';
-  var V = window._vtj;
-
-  // ---------- SPAWN / REMOVE ----------
-  function vtjInit(){
-    if (V.vts.length === 0){
-      var vt = V.createVTObject();
-      V.vts.push(vt);
-      _vtjSyncIndex();
-    }
-    vtjRenderVTSelectors();
-    vtjUpdateUIFromSelected();
-    vtjUpdateBadge();
-  }
-
-  function _vtjSyncIndex(){
-    // Keep each e3dState entry's _vtjIndex pointing at its current index in
-    // V.vts (needed after removal, since indices shift).
-    V.vts.forEach(function(vt, i){
-      if (!window.e3dState) return;
-      var entry = window.e3dState.models.find(function(m){ return m.id === vt._e3dId; });
-      if (entry) entry._vtjIndex = i;
-    });
-  }
-
-  function vtjAdjustCount(delta){
-    if (delta > 0){
-      var vt = V.createVTObject();
-      V.vts.push(vt);
-      _vtjSyncIndex();
-    } else if (delta < 0 && V.vts.length > 1){
-      var toRemove = V.vts.pop();
-      var sc = V.scene();
-      if (sc) sc.remove(toRemove.group);
-      toRemove.screenMesh.geometry.dispose();
-      toRemove.frameMesh.geometry.dispose();
-      toRemove.screenMat.dispose();
-      toRemove.frameMat.dispose();
-      if (toRemove.mediaTexture) toRemove.mediaTexture.dispose();
-
-      if (window.e3dState){
-        var idx = window.e3dState.models.findIndex(function(m){ return m.id === toRemove._e3dId; });
-        if (idx >= 0) window.e3dState.models.splice(idx, 1);
-      }
-
-      V.selected = V.selected.filter(function(idx){ return idx < V.vts.length; });
-      if (V.selected.length === 0) V.selected = [V.vts.length - 1];
-      _vtjSyncIndex();
-    }
-    vtjRenderVTSelectors();
-    vtjUpdateUIFromSelected();
-    vtjUpdateBadge();
-    if (typeof _rebuildLayers === 'function') _rebuildLayers();
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  function vtjUpdateBadge(){
-    var badge = document.getElementById('vtj-total-badge');
-    if (badge) badge.textContent = V.vts.length + ' VT';
-    var countDisp = document.getElementById('vtj-count-display');
-    if (countDisp) countDisp.textContent = V.vts.length;
-  }
-
-  // ---------- SELECT ----------
-  function vtjRenderVTSelectors(){
-    var container = document.getElementById('vtj-selector-group');
-    if (!container) return;
-    container.innerHTML = '';
-    V.vts.forEach(function(vt, i){
-      var btn = document.createElement('button');
-      var isSel = V.selected.indexOf(i) >= 0;
-      btn.className = 'vtj-slot' + (isSel ? ' selected' : '') + (vt.hidden ? ' vtj-hidden-vt' : '');
-      var grp = vt.groupId ? V.groups.find(function(g){ return g.id === vt.groupId; }) : null;
-      btn.innerHTML = '<span class="vtj-slot-dot"></span><span>VT' + (i+1) + '</span>' +
-        (grp ? '<span class="vtj-grp-badge">' + grp.name.charAt(0) + '</span>' : '');
-      btn.onclick = function(){
-        V.selected = [i];
-        vtjRenderVTSelectors();
-        vtjUpdateUIFromSelected();
-        vtjSyncE3dSelection();
-      };
-      container.appendChild(btn);
-    });
-  }
-
-  function vtjSelectMode(mode){
-    if (mode === 'all') V.selected = V.vts.map(function(_, i){ return i; });
-    else if (mode === 'odd') V.selected = V.vts.map(function(_, i){ return i; }).filter(function(i){ return (i+1) % 2 !== 0; });
-    else if (mode === 'even') V.selected = V.vts.map(function(_, i){ return i; }).filter(function(i){ return (i+1) % 2 === 0; });
-    vtjRenderVTSelectors();
-    vtjUpdateUIFromSelected();
-    vtjSyncE3dSelection();
-  }
-
-  // Mirror VT Jockey's own selection into Nova's Editor 3D selection/gizmo
-  // so picking a VT from either side stays consistent.
-  function vtjSyncE3dSelection(){
-    if (typeof _selectObjects !== 'function' || !window.e3dState) return;
-    var ids = V.selected.map(function(i){ return V.vts[i] && V.vts[i]._e3dId; }).filter(Boolean);
-    if (ids.length) _selectObjects(ids);
-  }
-
-  function vtjHideSelected(){
-    V.selected.forEach(function(idx){
-      V.vts[idx].hidden = !V.vts[idx].hidden;
-      V.applyVTStateToMesh(V.vts[idx]);
-    });
-    vtjRenderVTSelectors();
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  // ---------- PROPERTIES ----------
-  var NUMERIC_KEYS = ['posX','posY','posZ','rotX','rotY','rotZ','width','height','corner','brightness','frameSize','edgeSmooth','mediaOffsetX','mediaOffsetY','mediaScale'];
-
-  function vtjUpdateSelectedProperties(key, value){
-    if (NUMERIC_KEYS.indexOf(key) >= 0) value = parseFloat(value) || 0;
-    V.selected.forEach(function(idx){
-      if (!V.vts[idx]) return;
-      V.vts[idx][key] = value;
-      V.applyVTStateToMesh(V.vts[idx]);
-    });
-    if (typeof masterSave === 'function') clearTimeout(window._vtjSaveT), (window._vtjSaveT = setTimeout(masterSave, 400));
-  }
-
-  function vtjUpdateUIFromSelected(){
-    if (V.selected.length === 0) return;
-    var vt = V.vts[V.selected[0]];
-    if (!vt) return;
-
-    var set = function(id, val){ var el = document.getElementById(id); if (el) el.value = val; };
-    set('vtj-sel-bright', vt.brightness);
-    var brightVal = document.getElementById('vtj-sel-bright-val'); if (brightVal) brightVal.textContent = vt.brightness + '%';
-    set('vtj-sel-frame-color', vt.frameColor);
-    set('vtj-sel-frame-size', vt.frameSize);
-    var fsVal = document.getElementById('vtj-sel-frame-size-val'); if (fsVal) fsVal.textContent = parseFloat(vt.frameSize || 0).toFixed(2);
-    set('vtj-sel-edgesmooth', vt.edgeSmooth || 0);
-    var esVal = document.getElementById('vtj-sel-edgesmooth-val'); if (esVal) esVal.textContent = vt.edgeSmooth || 0;
-    set('vtj-loop-toggle', vt.loop);
-    var loopEl = document.getElementById('vtj-loop-toggle'); if (loopEl) loopEl.checked = vt.loop;
-    set('vtj-aspect-mode', vt.aspectMode);
-    var mOffX = document.getElementById('vtj-media-offset-x'); if (mOffX) mOffX.value = (vt.mediaOffsetX || 0);
-    var mOffXVal = document.getElementById('vtj-media-offset-x-val'); if (mOffXVal) mOffXVal.textContent = (vt.mediaOffsetX || 0);
-    var mOffY = document.getElementById('vtj-media-offset-y'); if (mOffY) mOffY.value = (vt.mediaOffsetY || 0);
-    var mOffYVal = document.getElementById('vtj-media-offset-y-val'); if (mOffYVal) mOffYVal.textContent = (vt.mediaOffsetY || 0);
-    var mScaleEl = document.getElementById('vtj-media-scale'); if (mScaleEl) mScaleEl.value = (vt.mediaScale !== undefined ? vt.mediaScale : 1);
-    var mScaleVal = document.getElementById('vtj-media-scale-val'); if (mScaleVal) mScaleVal.textContent = Number(vt.mediaScale !== undefined ? vt.mediaScale : 1).toFixed(2);
-    var mediaTransformRow = document.getElementById('vtj-media-transform-group');
-    if (mediaTransformRow) mediaTransformRow.style.display = (vt.aspectMode === 'none') ? '' : 'none';
-
-    document.querySelectorAll('.vtj-shape-btn').forEach(function(btn){
-      btn.classList.toggle('active', btn.getAttribute('data-vtjshape') === vt.shape);
-    });
-
-    var statusEl = document.getElementById('vtj-video-status');
-    if (statusEl) statusEl.textContent = vt.mediaId ? ('Terpasang: ' + vt.mediaId) : 'Belum ada media';
-  }
-
-  // ---------- MEDIA ----------
-  function vtjHandleMediaUpload(fileInput){
-    var file = fileInput.files && fileInput.files[0];
-    if (!file) return;
-
-    var mediaId = 'Media-' + (V.uploadedMedia.length + 1);
-    var isImage = file.type.startsWith('image/');
-    var url = URL.createObjectURL(file);
-
-    if (isImage){
-      var img = new Image();
-      img.src = url;
-      img.onload = function(){
-        var mediaObj = { id: mediaId, name: file.name, type: 'image', element: img };
-        V.uploadedMedia.push(mediaObj);
-        vtjUpdateMediaLibraryUI();
-        vtjAssignMediaToSelected(mediaObj);
-      };
-    } else {
-      var videoEl = document.createElement('video');
-      videoEl.src = url;
-      videoEl.loop = true;
-      videoEl.muted = true;
-      videoEl.playsInline = true;
-      videoEl.crossOrigin = 'anonymous';
-      videoEl.play().catch(function(){});
-
-      var mediaObjV = { id: mediaId, name: file.name, type: 'video', element: videoEl };
-      V.uploadedMedia.push(mediaObjV);
-      vtjUpdateMediaLibraryUI();
-      vtjAssignMediaToSelected(mediaObjV);
-    }
-    fileInput.value = '';
-  }
-
-  function vtjAssignMediaToSelected(mediaObj){
-    var targets = V.mappingMode === 'all' ? V.vts : V.selected.map(function(i){ return V.vts[i]; });
-    targets.forEach(function(vt){
-      if (!vt) return;
-      vt.mediaId = mediaObj.id;
-      vt.mediaType = mediaObj.type;
-      vt.mediaElement = mediaObj.element;
-      V.updateVTTexture(vt);
-      V.applyVTStateToMesh(vt);
-    });
-    vtjUpdateUIFromSelected();
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  function vtjUpdateMediaLibraryUI(){
-    var container = document.getElementById('vtj-media-library');
-    if (!container) return;
-    container.innerHTML = '';
-    if (!V.uploadedMedia.length){
-      container.innerHTML = '<span class="vtj-empty-txt">Belum ada media.</span>';
-      return;
-    }
-    V.uploadedMedia.forEach(function(med){
-      var btn = document.createElement('button');
-      btn.className = 'vtj-chip';
-      btn.textContent = (med.type === 'image' ? '📷 ' : '🎥 ') + med.id;
-      btn.onclick = function(){ vtjAssignMediaToSelected(med); };
-      container.appendChild(btn);
-    });
-  }
-
-  function vtjPlaySelectedMedia(){
-    V.selected.forEach(function(idx){
-      var vt = V.vts[idx];
-      if (vt && vt.mediaElement && vt.mediaElement.tagName === 'VIDEO') vt.mediaElement.play().catch(function(){});
-    });
-  }
-  function vtjPauseSelectedMedia(){
-    V.selected.forEach(function(idx){
-      var vt = V.vts[idx];
-      if (vt && vt.mediaElement && vt.mediaElement.tagName === 'VIDEO') vt.mediaElement.pause();
-    });
-  }
-
-  // ---------- GROUPS ----------
-  function vtjCreateGroupFromSelected(){
-    if (V.selected.length < 2){
-      if (typeof setStatus === 'function') setStatus('⚠ Pilih minimal 2 VT untuk digabungkan');
-      return;
-    }
-    var gid = 'vtjgrp' + (V.groupIdCounter++);
-    var first = V.vts[V.selected[0]];
-    var newGroup = {
-      id: gid,
-      name: 'Group ' + gid.replace('vtjgrp',''),
-      vtIndices: V.selected.slice(),
-      frameColor: first.frameColor || '#333333',
-      frameSize: first.frameSize || 0.05,
-      cornerSmooth: 0,
-      hideInnerFrames: true
-    };
-    V.groups.push(newGroup);
-    V.selected.forEach(function(idx){ V.vts[idx].groupId = gid; V.applyVTStateToMesh(V.vts[idx]); });
-    vtjRenderVTSelectors();
-    vtjRenderGroupList();
-    vtjOpenGroupEditor(gid);
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  function vtjUngroupSelected(){
-    var affected = {};
-    V.selected.forEach(function(idx){
-      var vt = V.vts[idx];
-      if (vt && vt.groupId){ affected[vt.groupId] = true; vt.groupId = null; V.applyVTStateToMesh(vt); }
-    });
-    Object.keys(affected).forEach(function(gid){
-      var g = V.groups.find(function(gr){ return gr.id === gid; });
-      if (!g) return;
-      g.vtIndices = g.vtIndices.filter(function(i){ return V.vts[i] && V.vts[i].groupId === gid; });
-      if (g.vtIndices.length < 2){
-        g.vtIndices.forEach(function(i){ if (V.vts[i]){ V.vts[i].groupId = null; V.applyVTStateToMesh(V.vts[i]); } });
-        var gi = V.groups.indexOf(g);
-        if (gi >= 0) V.groups.splice(gi, 1);
-      }
-    });
-    vtjRenderVTSelectors();
-    vtjRenderGroupList();
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  function vtjRenderGroupList(){
-    var container = document.getElementById('vtj-group-list');
-    if (!container) return;
-    if (V.groups.length === 0){
-      container.innerHTML = '<div class="vtj-empty-hint">Belum ada group. Pilih 2+ VT lalu tekan Gabungkan.</div>';
-      var ed = document.getElementById('vtj-group-editor'); if (ed) ed.style.display = 'none';
-      return;
-    }
-    container.innerHTML = '';
-    V.groups.forEach(function(g){
-      var row = document.createElement('div');
-      row.className = 'vtj-group-row';
-      row.innerHTML = '<div class="vtj-group-row-l"><span class="vtj-group-dot" style="background:' + g.frameColor + '"></span>' +
-        '<span class="vtj-group-name">' + g.name + '</span>' +
-        '<span class="vtj-group-members">(' + g.vtIndices.map(function(i){ return 'VT'+(i+1); }).join(', ') + ')</span></div>' +
-        '<button class="vtj-btn vtj-btn-sm">EDIT</button>';
-      row.querySelector('button').onclick = function(){ vtjOpenGroupEditor(g.id); };
-      container.appendChild(row);
-    });
-  }
-
-  function vtjOpenGroupEditor(gid){
-    V.selectedGroupId = gid;
-    var g = V.groups.find(function(gr){ return gr.id === gid; });
-    if (!g) return;
-    var ed = document.getElementById('vtj-group-editor'); if (ed) ed.style.display = 'block';
-    var set = function(id, val){ var el = document.getElementById(id); if (el) el.value = val; };
-    var nameEl = document.getElementById('vtj-group-editor-name'); if (nameEl) nameEl.textContent = g.name;
-    set('vtj-group-frame-color', g.frameColor);
-    set('vtj-group-frame-size', g.frameSize);
-    var gfsVal = document.getElementById('vtj-group-frame-size-val'); if (gfsVal) gfsVal.textContent = parseFloat(g.frameSize || 0).toFixed(2);
-    set('vtj-group-corner-smooth', g.cornerSmooth);
-    var cVal = document.getElementById('vtj-group-corner-val'); if (cVal) cVal.textContent = g.cornerSmooth;
-    var hideEl = document.getElementById('vtj-group-hide-inner-frames'); if (hideEl) hideEl.checked = g.hideInnerFrames;
-  }
-
-  function vtjUpdateGroupProperty(key, value){
-    var g = V.groups.find(function(gr){ return gr.id === V.selectedGroupId; });
-    if (!g) return;
-    if (key === 'frameSize' || key === 'cornerSmooth') value = parseFloat(value) || 0;
-    g[key] = value;
-    g.vtIndices.forEach(function(idx){
-      if (!V.vts[idx]) return;
-      if (key === 'cornerSmooth') V.vts[idx].corner = value;
-      V.applyVTStateToMesh(V.vts[idx]);
-    });
-    vtjRenderGroupList();
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  window._vtjManage = {
-    init: vtjInit,
-    adjustCount: vtjAdjustCount,
-    renderSelectors: vtjRenderVTSelectors,
-    selectMode: vtjSelectMode,
-    syncE3dSelection: vtjSyncE3dSelection,
-    hideSelected: vtjHideSelected,
-    updateSelectedProperties: vtjUpdateSelectedProperties,
-    updateUIFromSelected: vtjUpdateUIFromSelected,
-    handleMediaUpload: vtjHandleMediaUpload,
-    assignMediaToSelected: vtjAssignMediaToSelected,
-    updateMediaLibraryUI: vtjUpdateMediaLibraryUI,
-    playSelectedMedia: vtjPlaySelectedMedia,
-    pauseSelectedMedia: vtjPauseSelectedMedia,
-    createGroupFromSelected: vtjCreateGroupFromSelected,
-    ungroupSelected: vtjUngroupSelected,
-    renderGroupList: vtjRenderGroupList,
-    openGroupEditor: vtjOpenGroupEditor,
-    updateGroupProperty: vtjUpdateGroupProperty,
-    syncIndex: _vtjSyncIndex,
-    updateBadge: vtjUpdateBadge
-  };
-
-})();
-
-// ================================================================
-// VT JOCKEY — effects tick (ported from animate() in vt_jockey_v2.html)
-// Called once per frame from Nova's gb_animate, right before
-// gb_renderer.render(gb_scene, gb_camera). No own RAF loop, no own render
-// call — this only mutates VT meshes/canvases; Nova renders everything.
-// ================================================================
-(function(){
-  'use strict';
-
-  // Pattern generator mirroring Nova's main strobeVisible() (beam strobe),
-  // tapi digeneralisir untuk jumlah panel VT berapa pun — supaya VideoTron
-  // bisa flash dengan urutan/kecepatan yang SAMA PERSIS dengan mode Strobo
-  // yang sedang dipilih (blink/flow/random/alternate/chase/converge/split),
-  // bukan cuma nyala bareng semua. idx = urutan VT (VT1, VT2, VT3...),
-  // tot = jumlah VT yang sedang aktif.
-  function novaStroboVtOn(idx, tot){
-    if (typeof window.state === 'undefined' || !window.state) return false;
-    var s = window.state;
-    var t = Math.max(1, tot | 0);
-    var nIdx = ((idx % t) + t) % t;
-
-    // ── PHOTONIC SWIPE MODES (L-R SWIPE & COUNTER) ──
-    // Mode ini terpisah dari STROBE_MODES biasa (disimpan di photonicStrobeState),
-    // jadi harus dicek duluan sebelum s.strobeMode. Logikanya sama persis dengan
-    // versi beam-nya (strobeVisible) supaya videotron sinkron dengan beam.
-    if (typeof photonicStrobeState !== 'undefined' && photonicStrobeState.active) {
-      if (s.power === false) return false;
-      if (photonicStrobeState.active === 'sLR') {
-        var spdLR = (typeof photonicStrobeSpeeds !== 'undefined' && photonicStrobeSpeeds.sLR) || 25;
-        var sLRIdx = Math.floor((Date.now() / (1000 / spdLR)) % (t * 2));
-        var activeBeamLR = (sLRIdx < t) ? sLRIdx : ((t * 2 - 1) - sLRIdx);
-        return nIdx === activeBeamLR;
-      }
-      if (photonicStrobeState.active === 'sCt') {
-        var spdCt = (typeof photonicStrobeSpeeds !== 'undefined' && photonicStrobeSpeeds.sCt) || 25;
-        var halfCt = Math.max(1, Math.ceil(t / 2));
-        var sCtStep = Math.floor((Date.now() / (1000 / spdCt)) % (halfCt * 2));
-        var stepCt = (sCtStep < halfCt) ? sCtStep : ((halfCt * 2 - 1) - sCtStep);
-        return nIdx === stepCt || (t - 1 - nIdx) === stepCt;
-      }
-      return false;
-    }
-
-    var mode = s.strobeMode;
-    if (!mode || mode === 'off' || s.power === false) return false;
-
-    var rawSpeed = Math.max(0.5, Math.min(200, Number(s.strobeSpeed) || 14));
-    var sa = (typeof strobeAccum !== 'undefined') ? strobeAccum : 0;
-
-    if (mode === 'blink') {
-      var speedB = rawSpeed * 0.5;
-      return (sa * speedB) % 1.0 < 0.5;
-    }
-    if (mode === 'flow') {
-      // sama seperti beam FLOW: gelombang bergerak dari VT1 → VT2 → VT3 → ...
-      var speedFl = rawSpeed * 0.3;
-      var beamPhase = (sa * speedFl + nIdx / t) % 1.0;
-      return beamPhase < 0.5;
-    }
-    if (mode === 'random') {
-      var speedR = rawSpeed * 0.4;
-      var tickR = Math.floor(sa * speedR);
-      var seed = (tickR * 1000003 + nIdx * 999983) & 0x7fffffff;
-      var hv = Math.sin(seed * 127.1) * 43758.5453;
-      return (hv - Math.floor(hv)) > 0.45;
-    }
-    if (mode === 'alternate') {
-      var speedA = rawSpeed * 0.4;
-      var tickA = Math.floor(sa * speedA);
-      return tickA % 2 === nIdx % 2;
-    }
-    if (mode === 'chase') {
-      var stepsPerSecC = rawSpeed * 0.15;
-      var stepC = Math.floor(sa * stepsPerSecC) % t;
-      return nIdx === stepC;
-    }
-    if (mode === 'converge') {
-      // Dulu pakai "half = floor(t/2)" lalu modulo — kalau t kecil (2-3 VT)
-      // half jadi 1, sehingga step-nya selalu 0 dan videotron nyala PUTIH TERUS
-      // tanpa pernah kedip/gerak. Diganti ke phase kontinu berbasis jarak-ke-
-      // tengah, supaya tetap kedip & bergerak dari pinggir ke tengah walau
-      // jumlah VT cuma 2.
-      var speedCv = rawSpeed * 0.3;
-      var centerCv = (t - 1) / 2;
-      var maxDistCv = Math.max(centerCv, 0.0001);
-      var distCv = Math.abs(nIdx - centerCv) / maxDistCv; // 0 (tengah) .. 1 (pinggir)
-      var phaseCv = (sa * speedCv - distCv * 0.5 + 1000) % 1.0;
-      return phaseCv < 0.5;
-    }
-    if (mode === 'split') {
-      var speedS = rawSpeed * 0.3;
-      var half2 = Math.floor(t / 2);
-      var tickS = Math.floor(sa * speedS);
-      return tickS % 2 === 0 ? nIdx < half2 : nIdx >= half2;
-    }
-    return true;
-  }
-
-  function vtjTick(nowMs, deltaMs){
-    var V = window._vtj;
-    if (!V || !V.vts || !V.vts.length) return;
-    var vts = V.vts;
-    var effects = V.effects;
-    var groups = V.groups;
-    var approach = V.approach;
-    var drawLightningBolt = V.drawLightningBolt;
-
-    var dt = Math.min(0.05, (deltaMs || 16.7) / 1000);
-    effects.time += dt;
-
-    if (typeof window._vtjSequencerTick === 'function') window._vtjSequencerTick(nowMs);
-
-    var sm = effects.smoothing;
-
-    effects.flashLevel = approach(effects.flashLevel, effects.flashActive ? 1 : 0, dt, sm);
-    effects.flashWaveLevel = approach(effects.flashWaveLevel, effects.flashWaveActive ? 1 : 0, dt, sm);
-    effects.rgbFlashWaveLevel = approach(effects.rgbFlashWaveLevel, effects.rgbFlashWaveActive ? 1 : 0, dt, sm);
-    effects.petirLevel = approach(effects.petirLevel, effects.petirActive ? 1 : 0, dt, sm);
-    effects.shakeLevel = approach(effects.shakeLevel, effects.shakeActive ? 1 : 0, dt, sm);
-    effects.waveLevel = approach(effects.waveLevel, effects.waveActive ? 1 : 0, dt, sm);
-    effects.strobeLevel = approach(effects.strobeLevel, effects.strobeActive ? 1 : 0, dt, sm);
-    effects.zoomPulseLevel = approach(effects.zoomPulseLevel, effects.zoomPulseActive ? 1 : 0, dt, sm);
-    effects.glitchLevel = approach(effects.glitchLevel, effects.glitchActive ? 1 : 0, dt, sm);
-
-    var overlay = document.getElementById('vtj-flash-overlay');
-    if (overlay) overlay.style.opacity = effects.flashLevel.toFixed(3);
-
-    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    vts.forEach(function(vt){
-      if (vt.posX < minX) minX = vt.posX;
-      if (vt.posX > maxX) maxX = vt.posX;
-      if (vt.posY < minY) minY = vt.posY;
-      if (vt.posY > maxY) maxY = vt.posY;
-    });
-    var rangeX = (maxX - minX) || 1;
-    var rangeY = (maxY - minY) || 1;
-
-    if (effects.flashWaveActive) effects.flashWaveOffset += effects.flashWaveSpeed * 0.08;
-    if (effects.rgbFlashWaveActive) effects.rgbFlashWaveOffset += effects.rgbFlashWaveSpeed * 0.08;
-    if (effects.waveActive) effects.waveOffset += effects.waveSpeed * 0.05;
-
-    if (effects.strobeActive) {
-      var cyclePos = (effects.time * effects.strobeSpeed) % 1;
-      effects.strobePhaseOn = cyclePos < 0.5;
-    }
-
-    vts.forEach(function(vt, vtIdx){
-      if (vt.hidden || !vt.mediaCtx) return;
-
-      var ctx = vt.mediaCtx;
-      var canvas = vt.mediaCanvas;
-      var w = canvas.width;
-      var h = canvas.height;
-
-      if (vt.mediaTexture && vt.mediaElement && vt.mediaDrawArgs) {
-        var args = vt.mediaDrawArgs;
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, w, h);
-
-        if (effects.glitchActive && effects.glitchLevel > 0.05) {
-          var shift = effects.glitchIntensity * effects.glitchLevel * (w * 0.01);
-          ctx.globalCompositeOperation = 'lighter';
-          try { ctx.drawImage(args.el, args.dx - shift, args.dy, args.dw, args.dh); } catch(e){}
-          try { ctx.drawImage(args.el, args.dx + shift, args.dy, args.dw, args.dh); } catch(e){}
-          ctx.globalCompositeOperation = 'source-over';
-          if (Math.random() < 0.15 * effects.glitchLevel) {
-            var sliceY = Math.random() * h;
-            var sliceH = Math.random() * h * 0.08;
-            var sliceShift = (Math.random() - 0.5) * w * 0.1 * effects.glitchLevel;
-            try { ctx.drawImage(canvas, 0, sliceY, w, sliceH, sliceShift, sliceY, w, sliceH); } catch(e){}
-          }
-        } else {
-          try { ctx.drawImage(args.el, args.dx, args.dy, args.dw, args.dh); } catch(e){}
-        }
-      } else {
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      var normX = (vt.posX - minX) / rangeX;
-      var normY = (vt.posY - minY) / rangeY;
-      var distCenter = Math.sqrt(Math.pow(normX - 0.5, 2) + Math.pow(normY - 0.5, 2)) * 2;
-
-      if (effects.flashWaveLevel > 0.01) {
-        var phaseFW = 0;
-        if (effects.flashWaveDir === 'center-out') phaseFW = distCenter * Math.PI * 2 - effects.flashWaveOffset;
-        else if (effects.flashWaveDir === 'side-center') phaseFW = (1 - distCenter) * Math.PI * 2 - effects.flashWaveOffset;
-        else if (effects.flashWaveDir === 'top-bottom') phaseFW = (1 - normY) * Math.PI * 2 - effects.flashWaveOffset;
-        else if (effects.flashWaveDir === 'bottom-top') phaseFW = normY * Math.PI * 2 - effects.flashWaveOffset;
-
-        var waveValFW = Math.pow((Math.sin(phaseFW) + 1) / 2, 3) * effects.flashWaveLevel;
-        if (waveValFW > 0.03) {
-          ctx.fillStyle = 'rgba(255, 255, 255, ' + (waveValFW * 0.95) + ')';
-          ctx.fillRect(0, 0, w, h);
-        }
-      }
-
-      if (effects.rgbFlashWaveLevel > 0.01) {
-        var phaseRFW = 0;
-        if (effects.rgbFlashWaveDir === 'center-out') phaseRFW = distCenter * Math.PI * 2 - effects.rgbFlashWaveOffset;
-        else if (effects.rgbFlashWaveDir === 'side-center') phaseRFW = (1 - distCenter) * Math.PI * 2 - effects.rgbFlashWaveOffset;
-        else if (effects.rgbFlashWaveDir === 'top-bottom') phaseRFW = (1 - normY) * Math.PI * 2 - effects.rgbFlashWaveOffset;
-        else if (effects.rgbFlashWaveDir === 'bottom-top') phaseRFW = normY * Math.PI * 2 - effects.rgbFlashWaveOffset;
-
-        var waveValRFW = ((Math.sin(phaseRFW) + 1) / 2) * effects.rgbFlashWaveLevel;
-
-        if (waveValRFW > 0.03) {
-          if (effects.rgbFlashWaveMode === 'rgb') {
-            var hue = Math.floor(((normX + normY + effects.rgbFlashWaveOffset * 0.2) % 1) * 360);
-            ctx.fillStyle = 'hsla(' + hue + ', 100%, 50%, ' + (waveValRFW * 0.8) + ')';
-          } else {
-            var hex = effects.rgbFlashWaveColor;
-            var r = parseInt(hex.slice(1, 3), 16);
-            var g = parseInt(hex.slice(3, 5), 16);
-            var b = parseInt(hex.slice(5, 7), 16);
-            ctx.fillStyle = 'rgba(' + r + ', ' + g + ', ' + b + ', ' + (waveValRFW * 0.8) + ')';
-          }
-          ctx.fillRect(0, 0, w, h);
-        }
-      }
-
-      if (effects.petirLevel > 0.05) {
-        if (Math.random() > 0.35) {
-          var flashAlpha = Math.random() * 0.3 * effects.petirLevel;
-          ctx.fillStyle = 'rgba(255, 255, 255, ' + flashAlpha + ')';
-          ctx.fillRect(0, 0, w, h);
-          drawLightningBolt(ctx, w, h, effects.petirColor, effects.petirThickness);
-        }
-      }
-
-      if (effects.strobeLevel > 0.01 && effects.strobePhaseOn) {
-        ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * effects.strobeLevel) + ')';
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      // Strobo Nova → VideoTron: flash wave per-VT, urutan & kecepatan ikut
-      // mode Strobo yang aktif (gantinya flash layar putih polos).
-      var novaTargetOn = novaStroboVtOn(vtIdx, vts.length);
-      vt._novaFlashLevel = approach(vt._novaFlashLevel || 0, novaTargetOn ? 1 : 0, dt, sm);
-      if (vt._novaFlashLevel > 0.02) {
-        ctx.fillStyle = 'rgba(255, 255, 255, ' + (vt._novaFlashLevel * 0.92) + ')';
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      if (vt.mediaTexture) vt.mediaTexture.needsUpdate = true;
-    });
-
-    vts.forEach(function(vt){
-      if (vt.hidden) return;
-      var grp = vt.groupId ? groups.find(function(g){ return g.id === vt.groupId; }) : null;
-      var baseColorHex = grp ? grp.frameColor : vt.frameColor;
-
-      if (effects.waveLevel > 0.01) {
-        var posNorm = (vt.posX + 100) / 200;
-        var phaseW = 0;
-        if (effects.waveDir === 'left-right') phaseW = posNorm * Math.PI * 2 - effects.waveOffset;
-        else if (effects.waveDir === 'center-out') { var dW = Math.abs(posNorm - 0.5) * 2; phaseW = dW * Math.PI * 2 - effects.waveOffset; }
-        else if (effects.waveDir === 'side-center') { var dW2 = Math.abs(posNorm - 0.5) * 2; phaseW = (1 - dW2) * Math.PI * 2 - effects.waveOffset; }
-
-        var valW = (Math.sin(phaseW) + 1) / 2;
-        var baseColor = new THREE.Color(baseColorHex);
-        var target = new THREE.Color();
-
-        if (effects.waveMode === 'rgb') {
-          var hueW = (posNorm + effects.waveOffset * 0.2) % 1;
-          target.setHSL(hueW, 1, 0.5);
-        } else {
-          var cW = new THREE.Color(effects.waveColor);
-          target.setRGB(cW.r * valW, cW.g * valW, cW.b * valW);
-        }
-
-        vt.frameMat.color.copy(baseColor).lerp(target, effects.waveLevel);
-      } else if (effects.waveLevel <= 0.01) {
-        vt.frameMat.color.set(baseColorHex);
-      }
-    });
-
-    if (effects.shakeLevel > 0.005) {
-      var amt = effects.shakePower * effects.shakeLevel;
-      var spd = effects.shakeSpeed * 20;
-      vts.forEach(function(vt){
-        if (!vt.group || vt.hidden || !vt.basePosition) return;
-        var ox = Math.sin(effects.time * spd + vt.id * 1.7) * amt;
-        var oy = Math.cos(effects.time * spd * 1.1 + vt.id * 2.3) * amt;
-        vt.group.position.x = vt.basePosition.x + ox;
-        vt.group.position.y = vt.basePosition.y + oy;
-      });
-    } else {
-      // No shake: don't force-copy basePosition every frame — that would
-      // fight the user if they just dragged the VT via Nova's own Editor 3D
-      // transform (which writes straight into vt.group.position). Instead,
-      // pull the mesh's current (possibly user-dragged) position back into
-      // vt.posX/Y/Z + basePosition, so both stay in sync either way.
-      vts.forEach(function(vt){
-        if (!vt.group) return;
-        vt.posX = vt.group.position.x;
-        vt.posY = vt.group.position.y;
-        vt.posZ = vt.group.position.z;
-        vt.basePosition = vt.group.position.clone();
-      });
-    }
-
-    if (effects.zoomPulseLevel > 0.005) {
-      var pulse = Math.sin(effects.time * effects.zoomSpeed) * effects.zoomAmount * effects.zoomPulseLevel;
-      vts.forEach(function(vt){
-        if (!vt.group || vt.hidden) return;
-        if (typeof vt.baseScale !== 'number') vt.baseScale = vt.group.scale.x || 1;
-        var sZ = vt.baseScale * (1 + pulse);
-        vt.group.scale.set(sZ, sZ, sZ);
-      });
-    } else {
-      // No zoom pulse: don't force-reset scale to 1 every frame — that
-      // would fight the user if they just scaled the VT via Nova's own
-      // Editor 3D Transform panel (SCALE fader), which writes straight
-      // into vt.group.scale. Instead, remember the current (possibly
-      // user-set) scale as the baseline for the next pulse.
-      vts.forEach(function(vt){
-        if (!vt.group) return;
-        vt.baseScale = vt.group.scale.x || 1;
-      });
-    }
-
-    if (effects.waveLevel <= 0.01) {
-      vts.forEach(function(vt){
-        var c = (vt.brightness / 100);
-        vt.screenMat.color.setRGB(c, c, c);
-      });
-    }
-
-    // ---- LINKED TRIGGERS (Nova integration) ----
-    // Flash (layar putih polos) sekarang murni manual toggle. Saat Nova
-    // Strobo aktif, VideoTron sudah di-drive lewat novaStroboVtOn() di atas
-    // (flash wave per-VT, urutan & speed ikut mode Strobo) — bukan lewat
-    // overlay flash biasa.
-    effects._flashLinkedFromStrobe = false;
-    effects.flashActive = effects._flashManualOn;
-
-    // Petir = manual toggle OR Minibrut HOLD currently engaged (mode 1 =
-    // hold beam-off, mode 2 = hold+beam-on — both count as "hold").
-    if (typeof window.state !== 'undefined' && window.state) {
-      var minibrutHoldOn = !!(window.state.miniBruteOn && (window.state.mbMode === 1 || window.state.mbMode === 2));
-      effects._petirLinkedFromMinibrut = minibrutHoldOn;
-    }
-    effects.petirActive = effects._petirManualOn || effects._petirLinkedFromMinibrut;
-  }
-
-  window._vtjTick = vtjTick;
-})();
-
-// ================================================================
-// VT JOCKEY — effect triggers, sequencer, scene presets
-// Ported from vt_jockey_v2.html (startX/stopX, sequencer, scenes).
-// ================================================================
-(function(){
-  'use strict';
-  var V = window._vtj;
-
-  function refreshBtn(id, active){
-    var el = document.getElementById(id);
-    if (el) el.classList.toggle('on-t', active);
-  }
-
-  // ---------- EFFECT TRIGGERS ----------
-  function startFlash(){ V.effects._flashManualOn = true; refreshBtn('vtj-btn-flash', true); }
-  function stopFlash(){ V.effects._flashManualOn = false; refreshBtn('vtj-btn-flash', false); }
-
-  function startShake(){ V.effects.shakeActive = true; refreshBtn('vtj-btn-shake', true); }
-  function stopShake(){ V.effects.shakeActive = false; refreshBtn('vtj-btn-shake', false); }
-
-  function startFlashWave(){ V.effects.flashWaveActive = true; refreshBtn('vtj-btn-flashwave', true); }
-  function stopFlashWave(){ V.effects.flashWaveActive = false; refreshBtn('vtj-btn-flashwave', false); }
-
-  function startRGBFlashWave(){ V.effects.rgbFlashWaveActive = true; refreshBtn('vtj-btn-rgbflashwave', true); }
-  function stopRGBFlashWave(){ V.effects.rgbFlashWaveActive = false; refreshBtn('vtj-btn-rgbflashwave', false); }
-
-  function startPetir(){ V.effects._petirManualOn = true; refreshBtn('vtj-btn-petir', true); }
-  function stopPetir(){ V.effects._petirManualOn = false; refreshBtn('vtj-btn-petir', V.effects._petirLinkedFromMinibrut); }
-
-  function startStrobeFx(){ V.effects.strobeActive = true; refreshBtn('vtj-btn-strobe', true); }
-  function stopStrobeFx(){ V.effects.strobeActive = false; refreshBtn('vtj-btn-strobe', false); }
-
-  function startZoomPulse(){ V.effects.zoomPulseActive = true; refreshBtn('vtj-btn-zoompulse', true); }
-  function stopZoomPulse(){ V.effects.zoomPulseActive = false; refreshBtn('vtj-btn-zoompulse', false); }
-
-  function startGlitch(){ V.effects.glitchActive = true; refreshBtn('vtj-btn-glitch', true); }
-  function stopGlitch(){ V.effects.glitchActive = false; refreshBtn('vtj-btn-glitch', false); }
-
-  function toggleWaveActive(){
-    V.effects.waveActive = !V.effects.waveActive;
-    refreshBtn('vtj-btn-wave-toggle', V.effects.waveActive);
-    var t = document.getElementById('vtj-wave-status-text');
-    if (t) t.textContent = V.effects.waveActive ? 'NYALA' : 'MATI';
-  }
-
-  function stopAllEffects(){
-    stopFlash(); stopShake(); stopFlashWave(); stopRGBFlashWave(); stopPetir();
-    stopStrobeFx(); stopZoomPulse(); stopGlitch();
-    if (V.effects.waveActive) toggleWaveActive();
-  }
-
-  // ---------- SEQUENCER ----------
-  var sequencer = { steps: [], playing: false, loop: true, currentIndex: -1, stepStartTime: 0 };
-  var seqStepIdCounter = 1;
-
-  var EFFECT_LABELS = {
-    flash: '⚡ Flash', wave: '🌈 Wave RGB', shake: '〰 Shake',
-    flashwave: '🌊 FlashWave', rgbflashwave: '🌈 RGBWave', petir: '🌩 Petir',
-    strobe: '▨ Strobe', zoompulse: '◎ ZoomPulse', glitch: '◫ Glitch',
-    blackout: '⬛ Blackout'
-  };
-
-  function addSequencerStep(){
-    var sel = document.getElementById('vtj-seq-effect-select');
-    var durEl = document.getElementById('vtj-seq-duration-input');
-    var eff = sel ? sel.value : 'flash';
-    var dur = durEl ? (parseFloat(durEl.value) || 2) : 2;
-    sequencer.steps.push({ id: seqStepIdCounter++, effect: eff, duration: dur });
-    renderTimeline();
-  }
-
-  function removeSequencerStep(id){
-    sequencer.steps = sequencer.steps.filter(function(s){ return s.id !== id; });
-    renderTimeline();
-  }
-
-  function renderTimeline(){
-    var track = document.getElementById('vtj-tl-track');
-    if (!track) return;
-    track.innerHTML = '';
-    if (sequencer.steps.length === 0){
-      track.innerHTML = '<div class="vtj-empty-hint" style="width:100%">Timeline kosong. Tambahkan step di bawah.</div>';
-      return;
-    }
-    sequencer.steps.forEach(function(step, i){
-      if (i > 0){
-        var arrow = document.createElement('span');
-        arrow.className = 'vtj-tl-arrow';
-        arrow.textContent = '→';
-        track.appendChild(arrow);
-      }
-      var el = document.createElement('div');
-      el.className = 'vtj-tl-step' + (sequencer.currentIndex === i && sequencer.playing ? ' playing' : '');
-      el.innerHTML = '<div class="vtj-tl-name">' + (EFFECT_LABELS[step.effect] || step.effect) + '</div>' +
-        '<div class="vtj-tl-dur">' + step.duration + 's</div>' +
-        '<div class="vtj-tl-del">✕</div>';
-      el.querySelector('.vtj-tl-del').onclick = function(ev){ ev.stopPropagation(); removeSequencerStep(step.id); };
-      track.appendChild(el);
-    });
-  }
-
-  function applySequencerStep(step){
-    stopAllEffects();
-    if (!step) return;
-    switch (step.effect) {
-      case 'flash': startFlash(); break;
-      case 'wave': if (!V.effects.waveActive) toggleWaveActive(); break;
-      case 'shake': startShake(); break;
-      case 'flashwave': startFlashWave(); break;
-      case 'rgbflashwave': startRGBFlashWave(); break;
-      case 'petir': startPetir(); break;
-      case 'strobe': startStrobeFx(); break;
-      case 'zoompulse': startZoomPulse(); break;
-      case 'glitch': startGlitch(); break;
-      case 'blackout': break;
-    }
-  }
-
-  function toggleSequencerPlay(){
-    if (sequencer.steps.length === 0) return;
-    sequencer.playing = !sequencer.playing;
-    var btn = document.getElementById('vtj-seq-play-btn'); if (btn) btn.textContent = sequencer.playing ? '❚❚ PAUSE' : '▶ PLAY';
-    var st = document.getElementById('vtj-seq-status'); if (st) st.textContent = sequencer.playing ? 'PLAYING' : 'PAUSED';
-
-    if (sequencer.playing && sequencer.currentIndex === -1){
-      sequencer.currentIndex = 0;
-      sequencer.stepStartTime = performance.now();
-      applySequencerStep(sequencer.steps[0]);
-    }
-    renderTimeline();
-  }
-
-  function stopSequencer(){
-    sequencer.playing = false;
-    sequencer.currentIndex = -1;
-    var btn = document.getElementById('vtj-seq-play-btn'); if (btn) btn.textContent = '▶ PLAY';
-    var st = document.getElementById('vtj-seq-status'); if (st) st.textContent = 'IDLE';
-    stopAllEffects();
-    renderTimeline();
-  }
-
-  function sequencerTick(nowMs){
-    if (!sequencer.playing || sequencer.steps.length === 0) return;
-    var step = sequencer.steps[sequencer.currentIndex];
-    if (!step) return;
-    var elapsed = (nowMs - sequencer.stepStartTime) / 1000;
-    if (elapsed >= step.duration){
-      var next = sequencer.currentIndex + 1;
-      if (next >= sequencer.steps.length){
-        if (sequencer.loop) next = 0;
-        else { stopSequencer(); return; }
-      }
-      sequencer.currentIndex = next;
-      sequencer.stepStartTime = nowMs;
-      applySequencerStep(sequencer.steps[next]);
-      renderTimeline();
-    }
-  }
-
-  // ---------- SCENE PRESETS ----------
-  var scenes = [];
-  var sceneIdCounter = 1;
-
-  function saveScene(){
-    var nameInput = document.getElementById('vtj-scene-name-input');
-    var name = (nameInput && nameInput.value.trim()) || ('Scene ' + sceneIdCounter);
-    var sc = {
-      id: sceneIdCounter++,
-      name: name,
-      effects: {
-        waveActive: V.effects.waveActive, waveDir: V.effects.waveDir, waveMode: V.effects.waveMode, waveColor: V.effects.waveColor, waveSpeed: V.effects.waveSpeed,
-        flashWaveDir: V.effects.flashWaveDir, flashWaveSpeed: V.effects.flashWaveSpeed,
-        rgbFlashWaveMode: V.effects.rgbFlashWaveMode, rgbFlashWaveColor: V.effects.rgbFlashWaveColor,
-        petirColor: V.effects.petirColor, petirThickness: V.effects.petirThickness,
-        shakePower: V.effects.shakePower, shakeSpeed: V.effects.shakeSpeed,
-        zoomAmount: V.effects.zoomAmount, zoomSpeed: V.effects.zoomSpeed,
-        glitchIntensity: V.effects.glitchIntensity, strobeSpeed: V.effects.strobeSpeed,
-        smoothing: V.effects.smoothing
-      }
-    };
-    scenes.push(sc);
-    if (nameInput) nameInput.value = '';
-    renderSceneList();
-    if (typeof masterSave === 'function') setTimeout(masterSave, 150);
-  }
-
-  function recallScene(id){
-    var sc = scenes.find(function(s){ return s.id === id; });
-    if (!sc) return;
-    Object.assign(V.effects, sc.effects);
-    refreshBtn('vtj-btn-wave-toggle', V.effects.waveActive);
-    var t = document.getElementById('vtj-wave-status-text'); if (t) t.textContent = V.effects.waveActive ? 'NYALA' : 'MATI';
-    var sv = document.getElementById('vtj-smooth-val'); if (sv) sv.textContent = Math.round(V.effects.smoothing * 100) + '%';
-    var se = document.getElementById('vtj-fx-smoothing'); if (se) se.value = Math.round(V.effects.smoothing * 100);
-    if (typeof setStatus === 'function') setStatus('🎬 Scene "' + sc.name + '" dipanggil');
-  }
-
-  function deleteScene(id){
-    var i = scenes.findIndex(function(s){ return s.id === id; });
-    if (i >= 0) scenes.splice(i, 1);
-    renderSceneList();
-  }
-
-  function renderSceneList(){
-    var container = document.getElementById('vtj-scene-list');
-    if (!container) return;
-    if (scenes.length === 0){
-      container.innerHTML = '<span class="vtj-empty-txt">Belum ada scene tersimpan.</span>';
-      return;
-    }
-    container.innerHTML = '';
-    scenes.forEach(function(sc){
-      var wrap = document.createElement('div');
-      wrap.className = 'vtj-chip';
-      wrap.style.paddingRight = '4px';
-      wrap.innerHTML = '<span>' + sc.name + '</span>';
-      var del = document.createElement('span');
-      del.textContent = '✕';
-      del.style.marginLeft = '4px';
-      del.style.color = 'var(--red)';
-      del.style.cursor = 'pointer';
-      del.onclick = function(e){ e.stopPropagation(); deleteScene(sc.id); };
-      wrap.onclick = function(){ recallScene(sc.id); };
-      wrap.appendChild(del);
-      container.appendChild(wrap);
-    });
-  }
-
-  // hook sequencer tick into the shared VT Jockey tick (called from _vtjTick)
-  window._vtjSequencerTick = sequencerTick;
-
-  window._vtjEffectsUI = {
-    startFlash: startFlash, stopFlash: stopFlash,
-    startShake: startShake, stopShake: stopShake,
-    startFlashWave: startFlashWave, stopFlashWave: stopFlashWave,
-    startRGBFlashWave: startRGBFlashWave, stopRGBFlashWave: stopRGBFlashWave,
-    startPetir: startPetir, stopPetir: stopPetir,
-    startStrobeFx: startStrobeFx, stopStrobeFx: stopStrobeFx,
-    startZoomPulse: startZoomPulse, stopZoomPulse: stopZoomPulse,
-    startGlitch: startGlitch, stopGlitch: stopGlitch,
-    toggleWaveActive: toggleWaveActive,
-    stopAllEffects: stopAllEffects,
-    addSequencerStep: addSequencerStep,
-    removeSequencerStep: removeSequencerStep,
-    renderTimeline: renderTimeline,
-    toggleSequencerPlay: toggleSequencerPlay,
-    stopSequencer: stopSequencer,
-    saveScene: saveScene,
-    recallScene: recallScene,
-    deleteScene: deleteScene,
-    renderSceneList: renderSceneList,
-    refreshBtn: refreshBtn,
-    get sequencer(){ return sequencer; },
-    get scenes(){ return scenes; }
-  };
-})();
-
-// ================================================================
-// VT JOCKEY — Editor 3D panel (spawn / select / transform)
-// Mirrors the layout style of Nova's old built-in VT controls.
-// ================================================================
-(function(){
-  'use strict';
-
-  function build(){
-    var host = document.getElementById('vtj-editor3d-panel');
-    if (!host) return;
-
-    host.innerHTML =
-      '<div style="font-size:8px;letter-spacing:.2em;color:var(--purple);margin-bottom:5px;font-family:\'Share Tech Mono\',monospace;display:flex;align-items:center;justify-content:space-between">' +
-        '<span>📺 VIDEO TRON (VT JOCKEY)</span>' +
-        '<span style="display:flex;align-items:center;gap:5px"><span id="vtj-total-badge" class="val">0 VT</span>' +
-        '<button id="vtjPanelToggleBtn" onclick="e3dTogglePanel(\'vtj-panel-body\')" style="background:var(--btn);border:1px solid var(--border2);border-radius:3px;color:var(--lbl);font-size:8px;padding:2px 7px;cursor:pointer;letter-spacing:.05em">👁 HIDE</button></span>' +
-      '</div>' +
-      '<div id="vtj-panel-body">' +
-
-      '<div class="row" style="margin-bottom:5px">' +
-        '<button class="btn on-t" id="vtj-spawn-add" style="flex:1;font-size:9px;font-weight:700">➕ SPAWN</button>' +
-        '<button class="btn on-r" id="vtj-spawn-remove" style="flex:1;font-size:9px;font-weight:700">➖ HAPUS</button>' +
-      '</div>' +
-
-      '<div id="vtj-selector-group" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px"></div>' +
-
-      '<div class="g4" style="margin-bottom:6px">' +
-        '<button class="btn" id="vtj-sel-all" style="font-size:8px">ALL</button>' +
-        '<button class="btn" id="vtj-sel-odd" style="font-size:8px">GANJIL</button>' +
-        '<button class="btn" id="vtj-sel-even" style="font-size:8px">GENAP</button>' +
-        '<button class="btn" id="vtj-sel-hide" style="font-size:8px" title="Hide / Unhide VT terpilih">👁 HIDE/SHOW</button>' +
-      '</div>' +
-
-      '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin:6px 0 3px;letter-spacing:.1em">SHAPE</div>' +
-      '<div id="vtj-shape-grid" class="g4" style="margin-bottom:6px"></div>' +
-
-      '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.5;margin-bottom:6px;background:rgba(0,0,0,.2);padding:5px;border-radius:4px">' +
-        'Panel VT menggunakan rasio default <b>1:1</b>. Untuk posisi, rotasi, dan ukuran keseluruhan (SCALE), pakai panel <b>TRANSFORM</b> Editor 3D Nova di bawah — sama seperti objek lain.' +
-      '</div>' +
-
-      '<div class="row" style="margin-top:6px">' +
-        '<button class="btn on-p" id="vtj-group-make" style="flex:1;font-size:9px">🔗 GABUNGKAN</button>' +
-        '<button class="btn" id="vtj-group-break" style="flex:1;font-size:9px">✂ PISAHKAN</button>' +
-      '</div>' +
-      '<div id="vtj-group-list" style="margin-top:5px"></div>' +
-
-      '<div id="vtj-group-editor" style="display:none;margin-top:6px;padding:6px;border:1px solid var(--border2);border-radius:4px">' +
-        '<div style="font-size:8px;color:var(--purple);margin-bottom:4px" id="vtj-group-editor-name">Group</div>' +
-        '<div class="row"><div class="lbl" style="min-width:56px">Frame Warna</div><input type="color" id="vtj-group-frame-color"></div>' +
-        '<div class="row"><div class="lbl" style="min-width:56px">Frame Size</div><input type="range" class="sldr" id="vtj-group-frame-size" min="0" max="1" step="0.01" style="flex:1"><div class="val" id="vtj-group-frame-size-val" style="min-width:32px">0.05</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:70px">Corner Smooth</div><input type="range" class="sldr" id="vtj-group-corner-smooth" min="0" max="64" step="1" style="flex:1"><div class="val" id="vtj-group-corner-val" style="min-width:24px">0</div></div>' +
-        '<label style="display:flex;align-items:center;gap:6px;font-size:8px;color:var(--lbl);margin-top:4px;cursor:pointer">' +
-          '<input type="checkbox" id="vtj-group-hide-inner-frames"> Sembunyikan frame dalam (seamless wall)' +
-        '</label>' +
-      '</div>' +
-
-      '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.5;margin-top:8px">' +
-        'Upload media, effect trigger (Flash/Wave/Shake/dll), dan Sequencer ada di halaman <b>GERAKAN</b>.' +
-      '</div>' +
-      '</div>';
-
-    buildShapeGrid();
-    bindEvents();
-    if (typeof window.e3dApplyPanelState === 'function') window.e3dApplyPanelState();
-
-    if (window._vtjManage) window._vtjManage.init();
-  }
-
-  var SHAPES = ['RECT','CIRCLE','TRIANGLE','DIAMOND','DROP','HEXAGON','STAR','ARCH','WARU','LOVE','MATAHARI'];
-  var SHAPE_LABELS = {RECT:'▭',CIRCLE:'●',TRIANGLE:'▲',DIAMOND:'◆',DROP:'💧',HEXAGON:'⬡',STAR:'★',ARCH:'⛩',WARU:'☘',LOVE:'❤',MATAHARI:'☀'};
-
-  function buildShapeGrid(){
-    var grid = document.getElementById('vtj-shape-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    SHAPES.forEach(function(shape){
-      var btn = document.createElement('button');
-      btn.className = 'btn vtj-shape-btn';
-      btn.setAttribute('data-vtjshape', shape);
-      btn.style.fontSize = '13px';
-      btn.title = shape;
-      btn.textContent = SHAPE_LABELS[shape] || shape.slice(0,2);
-      btn.onclick = function(){
-        if (window._vtjManage) window._vtjManage.updateSelectedProperties('shape', shape);
-        buildShapeGrid();
-        if (window._vtj) {
-          document.querySelectorAll('.vtj-shape-btn').forEach(function(b){
-            b.classList.toggle('on-p', b.getAttribute('data-vtjshape') === shape);
-          });
-        }
-      };
-      grid.appendChild(btn);
-    });
-  }
-
-  function bindEvents(){
-    var on = function(id, ev, fn){ var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); };
-    var M = function(){ return window._vtjManage; };
-
-    on('vtj-spawn-add', 'click', function(){ M().adjustCount(1); });
-    on('vtj-spawn-remove', 'click', function(){ M().adjustCount(-1); });
-
-    on('vtj-sel-all', 'click', function(){ M().selectMode('all'); });
-    on('vtj-sel-odd', 'click', function(){ M().selectMode('odd'); });
-    on('vtj-sel-even', 'click', function(){ M().selectMode('even'); });
-    on('vtj-sel-hide', 'click', function(){ M().hideSelected(); });
-
-    on('vtj-group-make', 'click', function(){ M().createGroupFromSelected(); });
-    on('vtj-group-break', 'click', function(){ M().ungroupSelected(); });
-
-    on('vtj-group-frame-color', 'input', function(e){ M().updateGroupProperty('frameColor', e.target.value); });
-    on('vtj-group-frame-size', 'input', function(e){
-      M().updateGroupProperty('frameSize', e.target.value);
-      var vEl = document.getElementById('vtj-group-frame-size-val');
-      if (vEl) vEl.textContent = parseFloat(e.target.value).toFixed(2);
-    });
-    on('vtj-group-corner-smooth', 'input', function(e){
-      M().updateGroupProperty('cornerSmooth', e.target.value);
-      var v = document.getElementById('vtj-group-corner-val'); if (v) v.textContent = e.target.value;
-    });
-    on('vtj-group-hide-inner-frames', 'change', function(e){ M().updateGroupProperty('hideInnerFrames', e.target.checked); });
-  }
-
-  window.vtjBuildEditor3DPanel = build;
-})();
-
-// ================================================================
-// VT JOCKEY — Gerakan page section (media upload, effect triggers,
-// sequencer, scene presets). Spawn/transform stays in Editor 3D.
-// ================================================================
-(function(){
-  'use strict';
-
-  function build(){
-    var host = document.getElementById('vtj-gerakan-section');
-    if (!host) return;
-
-    host.innerHTML =
-      '<div class="sec">' +
-        '<div class="sec-h" style="color:var(--purple)">📺 VIDEO TRON — SETTING</div>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">MEDIA</div>' +
-        '<input type="file" id="vtj-media-file-input" accept="image/*,video/*" style="display:none">' +
-        '<button class="btn on-p" id="vtj-media-upload-btn" style="width:100%;font-size:9px;margin-bottom:5px">📁 UPLOAD FOTO / VIDEO</button>' +
-        '<div class="row" style="margin-bottom:5px">' +
-          '<div class="lbl" style="min-width:60px">Mapping</div>' +
-          '<button class="led" id="vtj-map-all" style="flex:1;font-size:8px">SEMUA VT</button>' +
-          '<button class="led" id="vtj-map-selected" style="flex:1;font-size:8px">VT TERPILIH</button>' +
-        '</div>' +
-        '<div id="vtj-media-library" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px"></div>' +
-        '<div class="row" style="margin-bottom:4px">' +
-          '<button class="btn" id="vtj-media-play" style="flex:1;font-size:8px">▶ PLAY</button>' +
-          '<button class="btn" id="vtj-media-pause" style="flex:1;font-size:8px">⏸ PAUSE</button>' +
-        '</div>' +
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:2px" id="vtj-video-status">Belum ada media</div>' +
-        '<div class="row" style="margin-bottom:8px">' +
-          '<div class="lbl" style="min-width:60px">Aspect</div>' +
-          '<select id="vtj-aspect-mode" style="flex:1;background:var(--btn);color:var(--lbl);border:1px solid var(--border2);border-radius:3px;font-size:8px">' +
-            '<option value="contain">Contain</option><option value="cover">Cover</option><option value="stretch">Stretch</option><option value="none">Asli (No Crop)</option>' +
-          '</select>' +
-        '</div>' +
-        '<div id="vtj-media-transform-group" style="display:none;margin-bottom:8px">' +
-          '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:3px;letter-spacing:.1em">POSISI &amp; UKURAN VIDEO (mode Asli)</div>' +
-          '<div class="row"><div class="lbl" style="min-width:60px">Posisi X</div><input type="range" class="sldr" id="vtj-media-offset-x" min="-100" max="100" step="1" value="0" style="flex:1"><div class="val" id="vtj-media-offset-x-val" style="min-width:26px">0</div></div>' +
-          '<div class="row"><div class="lbl" style="min-width:60px">Posisi Y</div><input type="range" class="sldr" id="vtj-media-offset-y" min="-100" max="100" step="1" value="0" style="flex:1"><div class="val" id="vtj-media-offset-y-val" style="min-width:26px">0</div></div>' +
-          '<div class="row"><div class="lbl" style="min-width:60px">Scale</div><input type="range" class="sldr" id="vtj-media-scale" min="0.1" max="5" step="0.05" value="1" style="flex:1"><div class="val" id="vtj-media-scale-val" style="min-width:32px">1.00</div></div>' +
-          '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.4;margin-top:3px">' +
-            'Video tampil di ukuran asli (tanpa crop). Geser posisi &amp; scale — bagian yang keluar dari panel VT otomatis tidak terlihat.' +
-          '</div>' +
-        '</div>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">EFFECT TRIGGER (tahan/tap)</div>' +
-        '<div class="g3" style="margin-bottom:5px">' +
-          '<button class="btn" id="vtj-btn-flash" style="font-size:9px">⚡ FLASH</button>' +
-          '<button class="btn" id="vtj-btn-shake" style="font-size:9px">〰 SHAKE</button>' +
-          '<button class="btn" id="vtj-btn-flashwave" style="font-size:9px">🌊 FLASHWAVE</button>' +
-          '<button class="btn" id="vtj-btn-rgbflashwave" style="font-size:9px">🌈 RGBWAVE</button>' +
-          '<button class="btn" id="vtj-btn-petir" style="font-size:9px">🌩 PETIR</button>' +
-          '<button class="btn" id="vtj-btn-strobe" style="font-size:9px">▨ STROBE</button>' +
-          '<button class="btn" id="vtj-btn-zoompulse" style="font-size:9px">◎ ZOOM</button>' +
-          '<button class="btn" id="vtj-btn-glitch" style="font-size:9px">◫ GLITCH</button>' +
-          '<button class="btn on-r" id="vtj-btn-stopall" style="font-size:9px">⏹ STOP ALL</button>' +
-        '</div>' +
-        '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.4;margin-bottom:8px">' +
-          '⚡ FLASH otomatis ikut aktif saat <b>Strobe Nova</b> menyala.<br>' +
-          '🌩 PETIR otomatis ikut aktif saat <b>Minibrut HOLD</b> ditekan.' +
-        '</div>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">WAVE RGB (frame)</div>' +
-        '<div class="row" style="margin-bottom:3px">' +
-          '<button class="btn" id="vtj-btn-wave-toggle" style="flex:1;font-size:9px">🌈 TOGGLE WAVE</button>' +
-          '<span class="val" id="vtj-wave-status-text">MATI</span>' +
-        '</div>' +
-        '<div class="row"><div class="lbl" style="min-width:44px">Arah</div>' +
-          '<select id="vtj-wave-dir" style="flex:1;background:var(--btn);color:var(--lbl);border:1px solid var(--border2);border-radius:3px;font-size:8px">' +
-            '<option value="left-right">Kiri-Kanan</option><option value="center-out">Tengah-Luar</option><option value="side-center">Luar-Tengah</option>' +
-          '</select></div>' +
-        '<div class="row"><div class="lbl" style="min-width:44px">Mode</div>' +
-          '<select id="vtj-wave-mode" style="flex:1;background:var(--btn);color:var(--lbl);border:1px solid var(--border2);border-radius:3px;font-size:8px">' +
-            '<option value="rgb">RGB Cycle</option><option value="solid">Solid Warna</option>' +
-          '</select></div>' +
-        '<div class="row"><div class="lbl" style="min-width:44px">Warna</div><input type="color" id="vtj-wave-color" value="#00ff66"></div>' +
-        '<div class="row" style="margin-bottom:8px"><div class="lbl" style="min-width:44px">Speed</div><input type="range" class="sldr" id="vtj-wave-speed" min="0.1" max="5" step="0.1" style="flex:1"><div class="val" id="vtj-wave-speed-val">1.0</div></div>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">TAMPILAN VT TERPILIH</div>' +
-        '<div class="row">' +
-          '<div class="lbl" style="min-width:64px">Brightness</div>' +
-          '<input type="range" class="sldr" id="vtj-sel-bright" min="0" max="100" step="1" style="flex:1">' +
-          '<div class="val" id="vtj-sel-bright-val" style="min-width:32px">100%</div>' +
-        '</div>' +
-        '<div class="row"><div class="lbl" style="min-width:56px">Frame Warna</div><input type="color" id="vtj-sel-frame-color"></div>' +
-        '<div class="row"><div class="lbl" style="min-width:56px">Frame Size</div><input type="range" class="sldr" id="vtj-sel-frame-size" min="0" max="1" step="0.01" style="flex:1"><div class="val" id="vtj-sel-frame-size-val" style="min-width:32px">0.05</div></div>' +
-        '<div class="row" style="margin-bottom:8px"><div class="lbl" style="min-width:56px">Edge Smooth</div><input type="range" class="sldr" id="vtj-sel-edgesmooth" min="0" max="64" step="1" style="flex:1"><div class="val" id="vtj-sel-edgesmooth-val" style="min-width:24px">0</div></div>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">PARAMETER EFFECT</div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Shake Power</div><input type="range" class="sldr" id="vtj-shake-power" min="0" max="30" step="0.5" style="flex:1"><div class="val" id="vtj-shake-power-val">5</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Shake Speed</div><input type="range" class="sldr" id="vtj-shake-speed" min="0.1" max="5" step="0.1" style="flex:1"><div class="val" id="vtj-shake-speed-val">1.0</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Zoom Amount</div><input type="range" class="sldr" id="vtj-zoom-amount" min="0" max="0.6" step="0.01" style="flex:1"><div class="val" id="vtj-zoom-amount-val">0.15</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Zoom Speed</div><input type="range" class="sldr" id="vtj-zoom-speed" min="0.1" max="10" step="0.1" style="flex:1"><div class="val" id="vtj-zoom-speed-val">4.0</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Glitch Int.</div><input type="range" class="sldr" id="vtj-glitch-intensity" min="0" max="20" step="0.5" style="flex:1"><div class="val" id="vtj-glitch-intensity-val">5</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Strobe Speed</div><input type="range" class="sldr" id="vtj-strobe-speed" min="1" max="30" step="0.5" style="flex:1"><div class="val" id="vtj-strobe-speed-val">8</div></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Petir Warna</div><input type="color" id="vtj-petir-color" value="#00e5ff"></div>' +
-        '<div class="row"><div class="lbl" style="min-width:60px">Petir Tebal</div><input type="range" class="sldr" id="vtj-petir-thickness" min="1" max="10" step="0.5" style="flex:1"><div class="val" id="vtj-petir-thickness-val">3</div></div>' +
-        '<div class="row" style="margin-bottom:8px"><div class="lbl" style="min-width:60px">Smoothing</div><input type="range" class="sldr" id="vtj-fx-smoothing" min="0" max="100" step="1" style="flex:1"><div class="val" id="vtj-smooth-val">40%</div></div>' +
-
-        '<label style="display:flex;align-items:center;gap:6px;font-size:8px;color:var(--lbl);margin-bottom:8px;cursor:pointer">' +
-          '<input type="checkbox" id="vtj-anti-lag"> Anti-Lag (turunkan resolusi texture)' +
-        '</label>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">SEQUENCER</div>' +
-        '<div id="vtj-tl-track" style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-height:30px;border:1px solid var(--border2);border-radius:4px;padding:5px;margin-bottom:5px"></div>' +
-        '<div class="row" style="margin-bottom:4px">' +
-          '<select id="vtj-seq-effect-select" style="flex:1;background:var(--btn);color:var(--lbl);border:1px solid var(--border2);border-radius:3px;font-size:8px">' +
-            '<option value="flash">⚡ Flash</option><option value="wave">🌈 Wave RGB</option><option value="shake">〰 Shake</option>' +
-            '<option value="flashwave">🌊 FlashWave</option><option value="rgbflashwave">🌈 RGBWave</option><option value="petir">🌩 Petir</option>' +
-            '<option value="strobe">▨ Strobe</option><option value="zoompulse">◎ ZoomPulse</option><option value="glitch">◫ Glitch</option>' +
-            '<option value="blackout">⬛ Blackout</option>' +
-          '</select>' +
-          '<input type="range" class="sldr" id="vtj-seq-duration-input" value="2" min="0.2" max="10" step="0.1" style="width:70px">' +
-          '<div class="val" id="vtj-seq-duration-val" style="min-width:26px">2.0s</div>' +
-          '<button class="btn" id="vtj-seq-add-btn" style="font-size:8px">➕</button>' +
-        '</div>' +
-        '<div class="row" style="margin-bottom:8px">' +
-          '<button class="btn on-t" id="vtj-seq-play-btn" style="flex:1;font-size:9px">▶ PLAY</button>' +
-          '<button class="btn on-r" id="vtj-seq-stop-btn" style="flex:1;font-size:9px">⏹ STOP</button>' +
-          '<span class="val" id="vtj-seq-status">IDLE</span>' +
-        '</div>' +
-
-        '<div style="font-size:7px;color:var(--lbl);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px;letter-spacing:.1em">SCENE PRESET</div>' +
-        '<div class="row" style="margin-bottom:4px">' +
-          '<input type="text" id="vtj-scene-name-input" placeholder="Nama scene..." style="flex:1;background:var(--btn);color:var(--lbl);border:1px solid var(--border2);border-radius:3px;font-size:8px;padding:4px">' +
-          '<button class="btn on-p" id="vtj-scene-save-btn" style="font-size:8px">💾 SAVE</button>' +
-        '</div>' +
-        '<div id="vtj-scene-list" style="display:flex;flex-wrap:wrap;gap:5px"></div>' +
-      '</div>';
-
-    ensureFlashOverlay();
-    bindEvents();
-    syncEffectControlsFromState();
-    if (window._vtjEffectsUI) window._vtjEffectsUI.renderTimeline();
-    if (window._vtjEffectsUI) window._vtjEffectsUI.renderSceneList();
-    if (window._vtjManage) window._vtjManage.updateMediaLibraryUI();
-    refreshMappingButtons();
-  }
-
-  // Isi ulang semua slider/warna/select efek VT dari V.effects yang sudah
-  // ada di memory (baik default awal maupun hasil restoreVtjFromProject).
-  // Tanpa ini, tiap kali panel dibangun ulang (ganti halaman lalu balik lagi,
-  // atau setelah restore project) slider tampil kosong/default meski nilai
-  // aslinya sudah benar tersimpan — user kira setting-nya "hilang" padahal
-  // cuma tampilannya yang belum disinkronkan.
-  function syncEffectControlsFromState(){
-    var V = window._vtj;
-    if (!V || !V.effects) return;
-    var fx = V.effects;
-    function setVal(id, val){ var el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; }
-    function setTxt(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
-
-    setVal('vtj-wave-dir', fx.waveDir);
-    setVal('vtj-wave-mode', fx.waveMode);
-    setVal('vtj-wave-color', fx.waveColor);
-    setVal('vtj-wave-speed', fx.waveSpeed);
-    setTxt('vtj-wave-speed-val', (parseFloat(fx.waveSpeed || 1)).toFixed(1));
-    setTxt('vtj-wave-status-text', fx.waveActive ? 'NYALA' : 'MATI');
-
-    setVal('vtj-shake-power', fx.shakePower);
-    setTxt('vtj-shake-power-val', fx.shakePower !== undefined ? fx.shakePower : 5);
-    setVal('vtj-shake-speed', fx.shakeSpeed);
-    setTxt('vtj-shake-speed-val', (parseFloat(fx.shakeSpeed || 1)).toFixed(1));
-
-    setVal('vtj-zoom-amount', fx.zoomAmount);
-    setTxt('vtj-zoom-amount-val', fx.zoomAmount !== undefined ? fx.zoomAmount : 0.15);
-    setVal('vtj-zoom-speed', fx.zoomSpeed);
-    setTxt('vtj-zoom-speed-val', (parseFloat(fx.zoomSpeed || 4)).toFixed(1));
-
-    setVal('vtj-glitch-intensity', fx.glitchIntensity);
-    setTxt('vtj-glitch-intensity-val', fx.glitchIntensity !== undefined ? fx.glitchIntensity : 5);
-
-    setVal('vtj-strobe-speed', fx.strobeSpeed);
-    setTxt('vtj-strobe-speed-val', fx.strobeSpeed !== undefined ? fx.strobeSpeed : 8);
-
-    setVal('vtj-petir-color', fx.petirColor);
-    setVal('vtj-petir-thickness', fx.petirThickness);
-    setTxt('vtj-petir-thickness-val', fx.petirThickness !== undefined ? fx.petirThickness : 3);
-
-    setVal('vtj-fx-smoothing', Math.round((fx.smoothing !== undefined ? fx.smoothing : 0.4) * 100));
-    setTxt('vtj-smooth-val', Math.round((fx.smoothing !== undefined ? fx.smoothing : 0.4) * 100) + '%');
-
-    var alEl = document.getElementById('vtj-anti-lag');
-    if (alEl) alEl.checked = !!fx.antiLag;
-
-    // Panel "TAMPILAN VT TERPILIH" (brightness/frame/edge smooth) disinkronkan
-    // terpisah oleh updateSelectedPanel() saat ada VT terpilih — lihat
-    // pemanggilannya di vtjManage. Panggil di sini juga sebagai jaring
-    // pengaman kalau ada VT yang sudah terpilih sebelum panel ini dibangun.
-    try{
-      if (window._vtjManage && typeof window._vtjManage.updateUIFromSelected === 'function'){
-        window._vtjManage.updateUIFromSelected();
-      }
-    }catch(e){ console.warn('[Nova][VTJ] Gagal sync panel VT terpilih', e); }
-  }
-  window._vtjSyncEffectControls = syncEffectControlsFromState;
-
-  function ensureFlashOverlay(){
-    // Must live directly under <body>, NOT inside a .page (which is
-    // display:none when inactive — a fixed child would be hidden along
-    // with it). This way the flash is visible from any page/tab.
-    if (document.getElementById('vtj-flash-overlay')) return;
-    var overlay = document.createElement('div');
-    overlay.id = 'vtj-flash-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9999';
-    document.body.appendChild(overlay);
-  }
-
-  function refreshMappingButtons(){
-    var V = window._vtj;
-    if (!V) return;
-    var allBtn = document.getElementById('vtj-map-all');
-    var selBtn = document.getElementById('vtj-map-selected');
-    if (allBtn) allBtn.classList.toggle('on', V.mappingMode === 'all');
-    if (selBtn) selBtn.classList.toggle('on', V.mappingMode === 'selected');
-  }
-
-  function bindEvents(){
-    var on = function(id, ev, fn){ var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); };
-    var FX = function(){ return window._vtjEffectsUI; };
-    var M = function(){ return window._vtjManage; };
-    var V = function(){ return window._vtj; };
-
-    on('vtj-media-upload-btn', 'click', function(){ document.getElementById('vtj-media-file-input').click(); });
-    on('vtj-media-file-input', 'change', function(e){ M().handleMediaUpload(e.target); });
-
-    on('vtj-map-all', 'click', function(){ V().mappingMode = 'all'; refreshMappingButtons(); });
-    on('vtj-map-selected', 'click', function(){ V().mappingMode = 'selected'; refreshMappingButtons(); });
-
-    on('vtj-media-play', 'click', function(){ M().playSelectedMedia(); });
-    on('vtj-media-pause', 'click', function(){ M().pauseSelectedMedia(); });
-
-    on('vtj-aspect-mode', 'change', function(e){
-      M().updateSelectedProperties('aspectMode', e.target.value);
-      var grp = document.getElementById('vtj-media-transform-group');
-      if (grp) grp.style.display = (e.target.value === 'none') ? '' : 'none';
-    });
-
-    on('vtj-media-offset-x', 'input', function(e){
-      M().updateSelectedProperties('mediaOffsetX', e.target.value);
-      var v = document.getElementById('vtj-media-offset-x-val'); if (v) v.textContent = e.target.value;
-    });
-    on('vtj-media-offset-y', 'input', function(e){
-      M().updateSelectedProperties('mediaOffsetY', e.target.value);
-      var v = document.getElementById('vtj-media-offset-y-val'); if (v) v.textContent = e.target.value;
-    });
-    on('vtj-media-scale', 'input', function(e){
-      M().updateSelectedProperties('mediaScale', e.target.value);
-      var v = document.getElementById('vtj-media-scale-val'); if (v) v.textContent = parseFloat(e.target.value).toFixed(2);
-    });
-
-    on('vtj-sel-bright', 'input', function(e){
-      M().updateSelectedProperties('brightness', e.target.value);
-      var lbl = document.getElementById('vtj-sel-bright-val');
-      if (lbl) lbl.textContent = e.target.value + '%';
-    });
-    on('vtj-sel-frame-color', 'input', function(e){ M().updateSelectedProperties('frameColor', e.target.value); });
-    on('vtj-sel-frame-size', 'input', function(e){
-      M().updateSelectedProperties('frameSize', e.target.value);
-      var vEl = document.getElementById('vtj-sel-frame-size-val');
-      if (vEl) vEl.textContent = parseFloat(e.target.value).toFixed(2);
-    });
-    on('vtj-sel-edgesmooth', 'input', function(e){
-      M().updateSelectedProperties('edgeSmooth', e.target.value);
-      var vEl = document.getElementById('vtj-sel-edgesmooth-val');
-      if (vEl) vEl.textContent = e.target.value;
-    });
-
-    var holdPairs = [
-      ['vtj-btn-flash', 'startFlash', 'stopFlash'],
-      ['vtj-btn-shake', 'startShake', 'stopShake'],
-      ['vtj-btn-flashwave', 'startFlashWave', 'stopFlashWave'],
-      ['vtj-btn-rgbflashwave', 'startRGBFlashWave', 'stopRGBFlashWave'],
-      ['vtj-btn-petir', 'startPetir', 'stopPetir'],
-      ['vtj-btn-strobe', 'startStrobeFx', 'stopStrobeFx'],
-      ['vtj-btn-zoompulse', 'startZoomPulse', 'stopZoomPulse'],
-      ['vtj-btn-glitch', 'startGlitch', 'stopGlitch']
-    ];
-    holdPairs.forEach(function(p){
-      var id = p[0], startFn = p[1], stopFn = p[2];
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('pointerdown', function(){ FX()[startFn](); });
-      el.addEventListener('pointerup', function(){ FX()[stopFn](); });
-      el.addEventListener('pointerleave', function(){ FX()[stopFn](); });
-      el.addEventListener('touchstart', function(e){ e.preventDefault(); FX()[startFn](); }, {passive:false});
-      el.addEventListener('touchend', function(e){ e.preventDefault(); FX()[stopFn](); }, {passive:false});
-    });
-
-    on('vtj-btn-stopall', 'click', function(){ FX().stopAllEffects(); });
-    on('vtj-btn-wave-toggle', 'click', function(){ FX().toggleWaveActive(); });
-
-    on('vtj-wave-dir', 'change', function(e){ V().effects.waveDir = e.target.value; });
-    on('vtj-wave-mode', 'change', function(e){ V().effects.waveMode = e.target.value; });
-    on('vtj-wave-color', 'input', function(e){ V().effects.waveColor = e.target.value; });
-    on('vtj-wave-speed', 'input', function(e){ V().effects.waveSpeed = parseFloat(e.target.value); document.getElementById('vtj-wave-speed-val').textContent = parseFloat(e.target.value).toFixed(1); });
-
-    on('vtj-shake-power', 'input', function(e){ V().effects.shakePower = parseFloat(e.target.value); document.getElementById('vtj-shake-power-val').textContent = e.target.value; });
-    on('vtj-shake-speed', 'input', function(e){ V().effects.shakeSpeed = parseFloat(e.target.value); document.getElementById('vtj-shake-speed-val').textContent = parseFloat(e.target.value).toFixed(1); });
-    on('vtj-zoom-amount', 'input', function(e){ V().effects.zoomAmount = parseFloat(e.target.value); document.getElementById('vtj-zoom-amount-val').textContent = e.target.value; });
-    on('vtj-zoom-speed', 'input', function(e){ V().effects.zoomSpeed = parseFloat(e.target.value); document.getElementById('vtj-zoom-speed-val').textContent = parseFloat(e.target.value).toFixed(1); });
-    on('vtj-glitch-intensity', 'input', function(e){ V().effects.glitchIntensity = parseFloat(e.target.value); document.getElementById('vtj-glitch-intensity-val').textContent = e.target.value; });
-    on('vtj-strobe-speed', 'input', function(e){ V().effects.strobeSpeed = parseFloat(e.target.value); document.getElementById('vtj-strobe-speed-val').textContent = e.target.value; });
-    on('vtj-petir-color', 'input', function(e){ V().effects.petirColor = e.target.value; });
-    on('vtj-petir-thickness', 'input', function(e){ V().effects.petirThickness = parseFloat(e.target.value); document.getElementById('vtj-petir-thickness-val').textContent = e.target.value; });
-    on('vtj-fx-smoothing', 'input', function(e){ V().effects.smoothing = parseFloat(e.target.value)/100; document.getElementById('vtj-smooth-val').textContent = e.target.value + '%'; });
-    on('vtj-anti-lag', 'change', function(e){ V().effects.antiLag = e.target.checked; });
-
-    on('vtj-seq-add-btn', 'click', function(){ FX().addSequencerStep(); });
-    on('vtj-seq-duration-input', 'input', function(e){
-      var vEl = document.getElementById('vtj-seq-duration-val');
-      if (vEl) vEl.textContent = parseFloat(e.target.value).toFixed(1) + 's';
-    });
-    on('vtj-seq-play-btn', 'click', function(){ FX().toggleSequencerPlay(); });
-    on('vtj-seq-stop-btn', 'click', function(){ FX().stopSequencer(); });
-
-    on('vtj-scene-save-btn', 'click', function(){ FX().saveScene(); });
-  }
-
-  window.vtjBuildGerakanSection = build;
-})();
-
-
-// ================================================================
-// VT JOCKEY — init (build both UI sections once DOM is ready)
-// ================================================================
-(function(){
-  function vtjWaitForSceneThenBuildEditor3D(){
-    var sc = window._gbScene || (typeof gb_scene!=='undefined' ? gb_scene : null);
-    if (!sc) { setTimeout(vtjWaitForSceneThenBuildEditor3D, 200); return; }
-    if (typeof window.vtjBuildEditor3DPanel === 'function') window.vtjBuildEditor3DPanel();
-  }
-  function vtjInitAll(){
-    // Gerakan section doesn't touch the 3D scene, safe to build immediately.
-    if (typeof window.vtjBuildGerakanSection === 'function') window.vtjBuildGerakanSection();
-    // Editor 3D panel spawns a VT into gb_scene on first build — must wait
-    // until gb_init() (called from window 'load' + its own setTimeout) has
-    // actually created window._gbScene, or the very first VT silently fails
-    // to attach to any scene.
-    vtjWaitForSceneThenBuildEditor3D();
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(vtjInitAll, 400); });
-  } else {
-    setTimeout(vtjInitAll, 400);
-  }
-})();
-
-</script>
-<script>
-// ================================================================
-// VT JOCKEY — Save/Load Project integration
-// Persists VT layout (transform, shape, groups, effect params) via
-// masterSave's wrapped d.vtjLayout key. Media (blob URLs) cannot survive
-// reload, so only metadata is stored — user re-uploads after load, same
-// convention as the rest of Nova's media handling.
-// ================================================================
-(function(){
-  'use strict';
-
-  function buildVtjSaveData(){
-    var V = window._vtj;
-    if (!V || !V.vts.length) return null;
-    return {
-      vts: V.vts.map(function(vt){
-        return {
-          id: vt.id, posX: vt.posX, posY: vt.posY, posZ: vt.posZ,
-          rotX: vt.rotX, rotY: vt.rotY, rotZ: vt.rotZ,
-          width: vt.width, height: vt.height, corner: vt.corner,
-          brightness: vt.brightness, shape: vt.shape,
-          frameColor: vt.frameColor, frameSize: vt.frameSize, edgeSmooth: vt.edgeSmooth,
-          hidden: vt.hidden, aspectMode: vt.aspectMode, loop: vt.loop,
-          mediaOffsetX: vt.mediaOffsetX, mediaOffsetY: vt.mediaOffsetY, mediaScale: vt.mediaScale,
-          mediaId: vt.mediaId, // metadata only — element itself not persisted
-          groupId: vt.groupId
-        };
-      }),
-      groups: V.groups.map(function(g){
-        return { id:g.id, name:g.name, vtIndices:g.vtIndices, frameColor:g.frameColor,
-          frameSize:g.frameSize, cornerSmooth:g.cornerSmooth, hideInnerFrames:g.hideInnerFrames };
-      }),
-      groupIdCounter: V.groupIdCounter,
-      effectParams: {
-        waveDir: V.effects.waveDir, waveMode: V.effects.waveMode, waveColor: V.effects.waveColor, waveSpeed: V.effects.waveSpeed,
-        flashWaveDir: V.effects.flashWaveDir, flashWaveSpeed: V.effects.flashWaveSpeed,
-        rgbFlashWaveDir: V.effects.rgbFlashWaveDir, rgbFlashWaveMode: V.effects.rgbFlashWaveMode, rgbFlashWaveColor: V.effects.rgbFlashWaveColor, rgbFlashWaveSpeed: V.effects.rgbFlashWaveSpeed,
-        petirColor: V.effects.petirColor, petirThickness: V.effects.petirThickness,
-        shakePower: V.effects.shakePower, shakeSpeed: V.effects.shakeSpeed,
-        zoomAmount: V.effects.zoomAmount, zoomSpeed: V.effects.zoomSpeed,
-        glitchIntensity: V.effects.glitchIntensity, strobeSpeed: V.effects.strobeSpeed,
-        smoothing: V.effects.smoothing, antiLag: V.effects.antiLag
-      },
-      sequencerSteps: (window._vtjEffectsUI ? window._vtjEffectsUI.sequencer.steps : []),
-      scenes: (window._vtjEffectsUI ? window._vtjEffectsUI.scenes : [])
-    };
-  }
-
-  function restoreVtjFromProject(saved){
-    if (!saved) return;
-    // Wait until VT Jockey core + Nova's 3D scene are both ready.
-    if (!window._vtj || !window._vtjManage || !(window._gbScene || (typeof gb_scene!=='undefined' && gb_scene))) {
-      setTimeout(function(){ restoreVtjFromProject(saved); }, 400);
-      return;
-    }
-    var V = window._vtj;
-
-    // Clear existing VTs (fresh init created 1 default VT).
-    V.vts.slice().forEach(function(){ window._vtjManage.adjustCount(-1); });
-    // adjustCount refuses to go below 1 VT — remove the last manually too.
-    if (V.vts.length === 1) {
-      var last = V.vts.pop();
-      var sc = V.scene();
-      if (sc) sc.remove(last.group);
-      if (window.e3dState) {
-        var idx = window.e3dState.models.findIndex(function(m){ return m.id === last._e3dId; });
-        if (idx >= 0) window.e3dState.models.splice(idx, 1);
-      }
-    }
-
-    (saved.vts || []).forEach(function(sv){
-      var vt = V.createVTObject();
-      Object.assign(vt, {
-        posX: sv.posX, posY: sv.posY, posZ: sv.posZ,
-        rotX: sv.rotX, rotY: sv.rotY, rotZ: sv.rotZ,
-        width: sv.width, height: sv.height, corner: sv.corner,
-        brightness: sv.brightness, shape: sv.shape,
-        frameColor: sv.frameColor, frameSize: sv.frameSize, edgeSmooth: sv.edgeSmooth || 0,
-        hidden: sv.hidden, aspectMode: sv.aspectMode || 'contain', loop: sv.loop !== false,
-        mediaOffsetX: sv.mediaOffsetX || 0, mediaOffsetY: sv.mediaOffsetY || 0,
-        mediaScale: (sv.mediaScale !== undefined ? sv.mediaScale : 1),
-        groupId: sv.groupId || null
-      });
-      V.vts.push(vt);
-      V.applyVTStateToMesh(vt);
-    });
-    if (window._vtjManage) window._vtjManage.syncIndex();
-
-    (saved.groups || []).forEach(function(g){ V.groups.push(g); });
-    if (saved.groupIdCounter) V.groupIdCounter = saved.groupIdCounter;
-
-    if (saved.effectParams) Object.assign(V.effects, saved.effectParams);
-
-    if (window._vtjEffectsUI) {
-      (saved.sequencerSteps || []).forEach(function(s){ window._vtjEffectsUI.sequencer.steps.push(s); });
-      (saved.scenes || []).forEach(function(s){ window._vtjEffectsUI.scenes.push(s); });
-    }
-
-    if (window.vtjBuildEditor3DPanel) window.vtjBuildEditor3DPanel();
-    if (window.vtjBuildGerakanSection) window.vtjBuildGerakanSection();
-    if (typeof _rebuildLayers === 'function') _rebuildLayers();
-    if (typeof setStatus === 'function') setStatus('📺 VT Jockey layout dipulihkan (' + (saved.vts||[]).length + ' VT — upload ulang media)');
-  }
-
-  window._vtjRestoreFromProject = restoreVtjFromProject;
-  window._vtjBuildSaveData = buildVtjSaveData;
-
-  // Attach vtjLayout onto the same object masterSave persists, mirroring
-  // the existing Fog wrapper pattern.
-  function wireIntoMasterSave(){
-    if (typeof window.masterSave !== 'function' || window.masterSave._vtjWrapped) return;
-    var orig = window.masterSave;
-    window.masterSave = function(){
-      var r = orig.apply(this, arguments);
-      try{
-        if (typeof ls === 'function' && typeof ss === 'function'){
-          var d = ls();
-          var data = buildVtjSaveData();
-          if (data) d.vtjLayout = data;
-          ss(d);
-        }
-      }catch(e){}
-      return r;
-    };
-    window.masterSave._vtjWrapped = true;
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(wireIntoMasterSave, 600); });
-  } else {
-    setTimeout(wireIntoMasterSave, 600);
-  }
-})();
-
-</script>
-<script>
-// ================================================================
 // NOVA — RESTORE GUARD
 // ----------------------------------------------------------------
 // Masalah yang diperbaiki: banyak bagian app (fader mixer, panel VT
@@ -25221,8 +23192,8 @@ if(document.readyState === 'loading'){
     }catch(e){ console.warn('[Nova][RestoreGuard] buildFaders gagal:', e); report.push('fader✗'); }
 
     try{
-      if (window._vtjSyncEffectControls) { window._vtjSyncEffectControls(); report.push('vtj✓'); }
-    }catch(e){ console.warn('[Nova][RestoreGuard] sync VT Jockey gagal:', e); report.push('vtj✗'); }
+      if (typeof window._registerVts === 'function') { window._registerVts(); report.push('vt3d✓'); }
+    }catch(e){ console.warn('[Nova][RestoreGuard] sync Videotron 3D gagal:', e); report.push('vt3d✗'); }
 
     try{
       if (typeof _jawirSpawnFan3D === 'function'){ _jawirSpawnFan3D(); report.push('fanlamp✓'); }
@@ -25285,6 +23256,859 @@ if(document.readyState === 'loading'){
   }
   window.addEventListener('load', function(){ setTimeout(start, 700); });
 })();
+</script>
+<div id="vt3d-crop-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.92); flex-direction:column; align-items:center; justify-content:flex-start; padding:16px 12px; box-sizing:border-box; overflow-y:auto; touch-action:none;">
+  <div style="width:100%;max-width:640px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="color:var(--teal);font-size:11px;font-weight:700;letter-spacing:.1em">CROP / ZOOM VIDEOTRON</div>
+    <button class="btn" style="font-size:9px" onclick="closeVt3DCropModal(false)">✕ TUTUP</button>
+  </div>
+  <div id="vt3d-crop-preview-wrap" style="width:100%;max-width:640px;position:relative;background:#000;border-radius:6px;overflow:hidden">
+    <canvas id="vt3d-crop-canvas" width="640" height="360" style="display:block;width:100%;height:auto"></canvas>
+    <svg id="vt3d-crop-svg" style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 640 360" preserveAspectRatio="none">
+      <defs>
+        <mask id="vt3d-crop-mask">
+          <rect x="0" y="0" width="640" height="360" fill="white"/>
+          <path id="vt3d-crop-shape-hole" fill="black"/>
+        </mask>
+      </defs>
+      <rect x="0" y="0" width="640" height="360" fill="rgba(0,0,0,0.55)" mask="url(#vt3d-crop-mask)"/>
+      <path id="vt3d-crop-shape-border" fill="none" stroke="#00e5ff" stroke-width="2"/>
+      <line id="vt3d-cg1" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+      <line id="vt3d-cg2" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+      <line id="vt3d-cg3" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+      <line id="vt3d-cg4" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+      <path id="vt3d-crop-drag-area" fill="transparent" style="cursor:move"/>
+      <rect id="vt3d-ch-top" fill="#00e5ff" rx="4" style="cursor:ns-resize"/>
+      <text id="vt3d-ch-top-lbl" fill="#000" font-size="9" text-anchor="middle" style="pointer-events:none">▲▼</text>
+      <rect id="vt3d-ch-bot" fill="#00e5ff" rx="4" style="cursor:ns-resize"/>
+      <text id="vt3d-ch-bot-lbl" fill="#000" font-size="9" text-anchor="middle" style="pointer-events:none">▲▼</text>
+      <rect id="vt3d-ch-lft" fill="#00e5ff" rx="4" style="cursor:ew-resize"/>
+      <text id="vt3d-ch-lft-lbl" fill="#000" font-size="9" text-anchor="middle" style="pointer-events:none">◀▶</text>
+      <rect id="vt3d-ch-rgt" fill="#00e5ff" rx="4" style="cursor:ew-resize"/>
+      <text id="vt3d-ch-rgt-lbl" fill="#000" font-size="9" text-anchor="middle" style="pointer-events:none">◀▶</text>
+    </svg>
+  </div>
+  <div style="width:100%;max-width:640px;margin-top:10px">
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--lbl);margin-bottom:2px">
+      <span>ZOOM</span><span id="vt3d-crop-zoom-label">100%</span>
+    </div>
+    <input type="range" id="vt3d-crop-zoom-slider" min="50" max="300" value="100" style="width:100%;margin-bottom:8px" oninput="onVt3DCropZoomSlider(this.value)">
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--lbl);margin-bottom:2px">
+      <span>GESER X</span><span id="vt3d-crop-offx-label">0</span>
+    </div>
+    <input type="range" id="vt3d-crop-offx-slider" min="-100" max="100" value="0" style="width:100%;margin-bottom:8px" oninput="onVt3DCropOffsetSlider('x',this.value)">
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--lbl);margin-bottom:2px">
+      <span>GESER Y</span><span id="vt3d-crop-offy-label">0</span>
+    </div>
+    <input type="range" id="vt3d-crop-offy-slider" min="-100" max="100" value="0" style="width:100%;margin-bottom:10px" oninput="onVt3DCropOffsetSlider('y',this.value)">
+    <div style="display:flex;gap:6px">
+      <button class="btn" style="flex:1" onclick="resetVt3DCropModal()">RESET</button>
+      <button class="btn" style="flex:1;border-color:var(--teal);color:var(--teal)" onclick="closeVt3DCropModal(true)">✓ TERAPKAN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== VIDEOTRON 3D — PORTED DARI index(10) =====================
+// Sistem videotron LAMA (VT Jockey 2D-canvas) diganti TOTAL oleh sistem ini:
+// videotron sekarang objek 3D asli di scene utama (window._gbScene), sama seperti
+// Martin/Mini Brute — bisa didrag/discale di Editor 3D, dan video ditempel sebagai
+// texture langsung di layar 3D-nya. Termasuk fitur CROP/ZOOM (modal terpisah).
+(function(){
+  'use strict';
+
+  var videotrons = [];
+  var selectedVts = [-1];
+  var areVtsVisible = true;
+  var vtSoundEnabled = false;
+  var vtFollowFlashMB = false;
+
+  function _scene(){ return window._gbScene || null; }
+
+  // ── Bentuk (shape) preset — THREE.Shape ──
+  function buildVtShape(shapeName, w, h) {
+    var W = w / 2, H = h / 2;
+    var shape = new THREE.Shape();
+    switch ((shapeName || 'RECT').toUpperCase()) {
+      case 'CIRCLE': {
+        var rx = W, ry = H, segs = 64;
+        shape.moveTo(rx, 0);
+        for (var i = 1; i <= segs; i++) {
+          var a = (i / segs) * Math.PI * 2;
+          shape.lineTo(Math.cos(a) * rx, Math.sin(a) * ry);
+        }
+        shape.closePath();
+        break;
+      }
+      case 'TRIANGLE': {
+        shape.moveTo(0, H); shape.lineTo(-W, -H); shape.lineTo(W, -H); shape.closePath();
+        break;
+      }
+      case 'DIAMOND': {
+        shape.moveTo(0, H); shape.lineTo(W, 0); shape.lineTo(0, -H); shape.lineTo(-W, 0); shape.closePath();
+        break;
+      }
+      case 'HEXAGON': {
+        for (var i2 = 0; i2 < 6; i2++) {
+          var a2 = (i2 / 6) * Math.PI * 2 - Math.PI / 6;
+          var x2 = Math.cos(a2) * W, y2 = Math.sin(a2) * H;
+          i2 === 0 ? shape.moveTo(x2, y2) : shape.lineTo(x2, y2);
+        }
+        shape.closePath();
+        break;
+      }
+      case 'STAR': {
+        var outerR = Math.min(W, H), innerR = outerR * 0.45, pts = 5;
+        for (var i3 = 0; i3 < pts * 2; i3++) {
+          var a3 = (i3 / (pts * 2)) * Math.PI * 2 - Math.PI / 2;
+          var r3 = i3 % 2 === 0 ? outerR : innerR;
+          var x3 = Math.cos(a3) * r3 * (W / Math.min(W, H));
+          var y3 = Math.sin(a3) * r3 * (H / Math.min(W, H));
+          i3 === 0 ? shape.moveTo(x3, y3) : shape.lineTo(x3, y3);
+        }
+        shape.closePath();
+        break;
+      }
+      case 'ARCH': {
+        shape.moveTo(-W, -H); shape.lineTo(-W, 0);
+        shape.absarc(0, 0, W, Math.PI, 0, true);
+        shape.lineTo(W, -H); shape.closePath();
+        break;
+      }
+      default:
+        shape.moveTo(-W, -H); shape.lineTo(W, -H); shape.lineTo(W, H); shape.lineTo(-W, H); shape.closePath();
+    }
+    return shape;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+  }
+
+  function drawBlankScreen(ctx, radius) {
+    ctx.clearRect(0,0,512,288);
+    ctx.fillStyle = '#000';
+    if (radius > 0) { roundRect(ctx, 0, 0, 512, 288, radius * (512/80)); ctx.fill(); }
+    else ctx.fillRect(0,0,512,288);
+  }
+
+  function applyVideoFrame(canvas, ctx, video, cornerR, cropX, cropY, cropZoom) {
+    ctx.clearRect(0,0,512,288);
+    var cw = 512, ch = 288;
+    var zoom = (cropZoom || 100) / 100;
+    var vw = video.videoWidth || cw, vh = video.videoHeight || ch;
+    var srcW = vw / zoom, srcH = vh / zoom;
+    var offX = ((cropX || 0) / 100) * (vw - srcW) * 0.5;
+    var offY = -((cropY || 0) / 100) * (vh - srcH) * 0.5;
+    var sx = Math.max(0, Math.min(vw - srcW, vw/2 - srcW/2 - offX));
+    var sy = Math.max(0, Math.min(vh - srcH, vh/2 - srcH/2 - offY));
+    if (cornerR > 0) { ctx.save(); roundRect(ctx, 0, 0, cw, ch, cornerR * (cw/80)); ctx.clip(); }
+    ctx.drawImage(video, sx, sy, Math.max(1,srcW), Math.max(1,srcH), 0, 0, cw, ch);
+    if (cornerR > 0) ctx.restore();
+  }
+
+  // ── Buat 1 unit videotron 3D ──
+  function createVideotronFixture(st, index, existingVideo) {
+    var sc = _scene(); if (!sc) return null;
+    var group = new THREE.Group();
+    group.position.set(st.posX, st.posY, st.posZ);
+    group.rotation.y = THREE.MathUtils.degToRad(st.rotY);
+    group.rotation.x = THREE.MathUtils.degToRad(st.rotX);
+    group.rotation.z = THREE.MathUtils.degToRad(st.rotZ || 0);
+    if (st.scale) group.scale.setScalar(st.scale);
+
+    var frameMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(st.frameColor||'#222244'), metalness:0.8, roughness:0.2, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:2 });
+    var fw = st.width + st.frameSize*2, fh = st.height + st.frameSize*2;
+    var frameShape = buildVtShape(st.shape, fw, fh);
+    var frameGeo = new THREE.ExtrudeGeometry(frameShape, { depth: 0.8, bevelEnabled: false });
+    frameGeo.translate(0, 0, -0.4);
+    var frame = new THREE.Mesh(frameGeo, frameMat);
+    frame.renderOrder = 0;
+    group.add(frame);
+
+    var screenCanvas = document.createElement('canvas');
+    screenCanvas.width = 512; screenCanvas.height = 288;
+    var ctx2d = screenCanvas.getContext('2d');
+    ctx2d.fillStyle = '#000'; ctx2d.fillRect(0,0,512,288);
+    var screenTex = new THREE.CanvasTexture(screenCanvas);
+    var screenMat = new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-1 });
+    var screenShape = buildVtShape(st.shape, st.width, st.height);
+    var screenGeo = new THREE.ShapeGeometry(screenShape);
+    screenGeo.computeBoundingBox();
+    var bbox = screenGeo.boundingBox;
+    var bw = bbox.max.x - bbox.min.x, bh = bbox.max.y - bbox.min.y;
+    var uvAttr = screenGeo.attributes.uv, posAttr = screenGeo.attributes.position;
+    for (var i = 0; i < posAttr.count; i++) {
+      uvAttr.setXY(i, (posAttr.getX(i) - bbox.min.x) / bw, (posAttr.getY(i) - bbox.min.y) / bh);
+    }
+    uvAttr.needsUpdate = true;
+
+    var maskShape = buildVtShape(st.shape, st.width, st.height);
+    var maskGeo = new THREE.ShapeGeometry(maskShape);
+    maskGeo.computeBoundingBox();
+    var mbbox = maskGeo.boundingBox;
+    var mbw = mbbox.max.x - mbbox.min.x, mbh = mbbox.max.y - mbbox.min.y;
+    var muvAttr = maskGeo.attributes.uv, mposAttr = maskGeo.attributes.position;
+    for (var j = 0; j < mposAttr.count; j++) {
+      muvAttr.setXY(j, (mposAttr.getX(j) - mbbox.min.x) / mbw, (mposAttr.getY(j) - mbbox.min.y) / mbh);
+    }
+    muvAttr.needsUpdate = true;
+    var maskMat = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false });
+    var maskPlane = new THREE.Mesh(maskGeo, maskMat);
+    maskPlane.position.z = 0.40; maskPlane.renderOrder = 0;
+    group.add(maskPlane);
+
+    var screen = new THREE.Mesh(screenGeo, screenMat);
+    screen.position.z = 0.41; screen.renderOrder = 1;
+    group.add(screen);
+
+    var video = existingVideo || document.createElement('video');
+    if (!existingVideo) {
+      video.loop = true;
+      video.muted = !vtSoundEnabled;
+      video.playsInline = true;
+    }
+
+    function updateScreenShape(radius) {
+      var shapeType = (st.shape || 'RECT').toUpperCase();
+      var cropX = st.cropX || 0, cropY = st.cropY || 0, cropZoom = st.cropZoom || 100;
+      if (shapeType !== 'RECT') {
+        ctx2d.clearRect(0,0,512,288);
+        ctx2d.fillStyle = '#000'; ctx2d.fillRect(0,0,512,288);
+        if (video.src && !video.paused) applyVideoFrame(screenCanvas, ctx2d, video, 0, cropX, cropY, cropZoom);
+        screenTex.needsUpdate = true;
+        return;
+      }
+      var r = Math.max(0, (radius/100) * Math.min(st.width, st.height) * 0.45);
+      screenCanvas._cornerRadius = r;
+      if (video.src && !video.paused) applyVideoFrame(screenCanvas, ctx2d, video, r, cropX, cropY, cropZoom);
+      else drawBlankScreen(ctx2d, r);
+      screenTex.needsUpdate = true;
+    }
+    screen.userData.updateShape = updateScreenShape;
+    updateScreenShape(st.cornerRadius||0);
+
+    group.visible = areVtsVisible;
+    sc.add(group);
+    var entry = { group:group, frame:frame, frameMat:frameMat, maskPlane:maskPlane, maskMat:maskMat, screen:screen, screenMat:screenMat, screenTex:screenTex, screenCanvas:screenCanvas, ctx2d:ctx2d, video:video, state:st, originalIndex:index };
+    return entry;
+  }
+
+  function disposeVideotronVisuals(v) {
+    if (!v) return;
+    if (v.frame && v.frame.geometry) v.frame.geometry.dispose();
+    if (v.frameMat) v.frameMat.dispose();
+    if (v.maskPlane && v.maskPlane.geometry) v.maskPlane.geometry.dispose();
+    if (v.maskMat) v.maskMat.dispose();
+    if (v.screen && v.screen.geometry) v.screen.geometry.dispose();
+    if (v.screenMat) v.screenMat.dispose();
+    if (v.screenTex) v.screenTex.dispose();
+  }
+
+  function _defaultVtState(x){
+    return { posX:x, posY:25, posZ:-35, rotY:0, rotX:0, rotZ:0, scale:1, shape:'RECT', width:80, height:45,
+      cornerRadius:0, frameColor:'#222244', frameSize:1, brightness:1, cropX:0, cropY:0, cropZoom:100 };
+  }
+
+  function spawnVts(count) {
+    var sc = _scene(); if (!sc) return;
+    videotrons.forEach(function(v){ if (v.group) sc.remove(v.group); disposeVideotronVisuals(v); });
+    videotrons = [];
+    var spacing = 90;
+    for (var i=0; i<count; i++) {
+      var x = (i - (count-1)/2) * spacing;
+      var s = _defaultVtState(x);
+      var entry = createVideotronFixture(s, i);
+      if (entry) videotrons.push(entry);
+    }
+    selectedVts = [-1];
+    renderVtSelectList(); updateVtFaders();
+    if (typeof window._registerVts === 'function') window._registerVts();
+  }
+
+  function changeVtCount(delta) {
+    var sc = _scene(); if (!sc) return;
+    var next = videotrons.length + delta;
+    if (next < 0 || next > 8) return;
+    var spacing = 90;
+    var prev = videotrons.map(function(v){ return JSON.parse(JSON.stringify(v.state)); });
+    var prevVideos = videotrons.map(function(v){ return v.video; });
+    videotrons.forEach(function(v){ if (v.group) sc.remove(v.group); disposeVideotronVisuals(v); });
+    videotrons = [];
+    for (var i=0; i<next; i++) {
+      var x = (i - (next-1)/2) * spacing;
+      var d = i < prev.length ? prev[i] : _defaultVtState(x);
+      if (i >= prev.length) d.posX = x;
+      var entry = createVideotronFixture(d, i, prevVideos[i]);
+      if (entry) videotrons.push(entry);
+    }
+    if (delta < 0) {
+      prevVideos.slice(next).forEach(function(vid){
+        if (!vid) return;
+        try {
+          vid.pause();
+          if (vid.src && vid.src.indexOf('blob:') === 0) URL.revokeObjectURL(vid.src);
+          vid.removeAttribute('src'); vid.load();
+        } catch(e) {}
+      });
+    }
+    selectedVts = [-1];
+    renderVtSelectList(); updateVtFaders();
+    if (typeof window._registerVts === 'function') window._registerVts();
+    if (typeof saveChannels === 'function') saveChannels();
+  }
+
+  function renderVtSelectList() {
+    var c = document.getElementById('vt3d-select-list'); if (!c) return; c.innerHTML = '';
+    videotrons.forEach(function(_, i){
+      var b = document.createElement('button');
+      b.className = 'audio-btn' + (selectedVts.includes(i) && selectedVts[0] !== -1 ? ' active' : '');
+      b.style.cssText = 'padding:4px 6px;font-size:8px;background:#111;color:#88f;border-color:#44a;' + ((selectedVts.includes(i) && selectedVts[0] !== -1) ? 'background:#334;' : '');
+      b.innerText = 'VT ' + (i+1);
+      b.onclick = function(){ selVt(i); };
+      c.appendChild(b);
+    });
+    var qv = document.getElementById('vt3d-qty-val'); if (qv) qv.innerText = videotrons.length;
+  }
+
+  function selAllVt() { selectedVts = [-1]; renderVtSelectList(); updateVtFaders(); }
+  function selOddVt() { selectedVts = videotrons.map(function(_,i){return i;}).filter(function(i){return i%2===0;}); renderVtSelectList(); updateVtFaders(); }
+  function selEvenVt() { selectedVts = videotrons.map(function(_,i){return i;}).filter(function(i){return i%2!==0;}); renderVtSelectList(); updateVtFaders(); }
+  function selVt(i) {
+    if (selectedVts[0]===-1) selectedVts=[];
+    if (selectedVts.includes(i)) selectedVts = selectedVts.filter(function(x){return x!==i;});
+    else selectedVts.push(i);
+    if (selectedVts.length===0) selectedVts=[-1];
+    renderVtSelectList(); updateVtFaders();
+  }
+  function getSelectedVts() { return selectedVts[0]===-1 ? videotrons.map(function(_,i){return i;}) : selectedVts; }
+
+  function uVt(param, value) {
+    var val = parseFloat(value);
+    getSelectedVts().forEach(function(idx){
+      var v = videotrons[idx]; if (!v) return;
+      if (param==='x') { v.state.posX=val; v.group.position.x=val; }
+      if (param==='y') { v.state.posY=val; v.group.position.y=val; }
+      if (param==='z') { v.state.posZ=val; v.group.position.z=val; }
+      if (param==='rotY') { v.state.rotY=val; v.group.rotation.y=THREE.MathUtils.degToRad(val); }
+      if (param==='rotX') { v.state.rotX=val; v.group.rotation.x=THREE.MathUtils.degToRad(val); }
+      if (param==='rotZ') { v.state.rotZ=val; v.group.rotation.z=THREE.MathUtils.degToRad(val); }
+      if (param==='scale') { v.state.scale=val; v.group.scale.setScalar(val); }
+      if (param==='bright') { v.state.brightness = val / 100; }
+      if (param==='corner') { v.state.cornerRadius=val; v.screen.userData.updateShape(val); }
+      if (param==='cropX') v.state.cropX = val;
+      if (param==='cropY') v.state.cropY = val;
+      if (param==='cropZoom') v.state.cropZoom = val;
+      if (param==='width' || param==='height' || param==='frameSize' || param==='shape') {
+        if (param==='width') v.state.width=val;
+        if (param==='height') v.state.height=val;
+        if (param==='frameSize') v.state.frameSize=val;
+        if (param==='shape') v.state.shape = value;
+        rebuildVt(idx);
+      }
+    });
+    if (param==='shape') {
+      document.querySelectorAll('.vt3d-shape-btn').forEach(function(b){ b.classList.remove('active'); });
+      var ab = document.getElementById('vt3d-shape-' + value);
+      if (ab) ab.classList.add('active');
+    }
+    if (typeof saveChannels === 'function') saveChannels();
+  }
+
+  function uVtFrameColor(val) {
+    getSelectedVts().forEach(function(idx){
+      var v = videotrons[idx]; if (!v) return;
+      v.state.frameColor = val; v.frameMat.color.set(val);
+    });
+    if (typeof saveChannels === 'function') saveChannels();
+  }
+
+  function rebuildVt(idx) {
+    var sc = _scene(); if (!sc) return;
+    var v = videotrons[idx]; if (!v) return;
+    var st = v.state;
+    var existingVideo = v.video;
+    sc.remove(v.group);
+    disposeVideotronVisuals(v);
+    videotrons.splice(idx, 1);
+    var entry = createVideotronFixture(st, idx, existingVideo);
+    if (entry) videotrons.splice(idx, 0, entry);
+    videotrons.sort(function(a,b){ return a.originalIndex - b.originalIndex; });
+    renderVtSelectList();
+    if (typeof window._registerVts === 'function') window._registerVts();
+  }
+
+  function updateVtFaders() {
+    var src = selectedVts[0]===-1 ? videotrons[0] : videotrons[selectedVts[0]];
+    var lbl = document.getElementById('vt3d-selection-label');
+    if (lbl) lbl.innerText = selectedVts[0]===-1 ? 'ALL' : ('VT: ' + selectedVts.map(function(x){return x+1;}).join(', '));
+    if (!src) return;
+    var s = src.state;
+    var set = function(id, val){ var el=document.getElementById(id); if (el) el.value=val; };
+    var setTxt = function(id, val){ var el=document.getElementById(id); if (el) el.innerText=val; };
+    set('vt3d-posX', s.posX); setTxt('vt3d-posX-disp', s.posX);
+    set('vt3d-posY', s.posY); setTxt('vt3d-posY-disp', s.posY);
+    set('vt3d-posZ', s.posZ); setTxt('vt3d-posZ-disp', s.posZ);
+    set('vt3d-rotY', s.rotY); setTxt('vt3d-rotY-disp', s.rotY);
+    set('vt3d-rotX', s.rotX); setTxt('vt3d-rotX-disp', s.rotX);
+    set('vt3d-rotZ', s.rotZ||0); setTxt('vt3d-rotZ-disp', s.rotZ||0);
+    set('vt3d-scale', s.scale||1); setTxt('vt3d-scale-disp', s.scale||1);
+    set('vt3d-width', s.width);
+    set('vt3d-height', s.height);
+    set('vt3d-corner', s.cornerRadius||0);
+    set('vt3d-frame-size', s.frameSize||1);
+    set('vt3d-bright', (s.brightness||1)*100);
+    var fc = document.getElementById('vt3d-frame-color-swatch');
+    if (fc) { fc.style.background = s.frameColor||'#222244'; fc.dataset.color = s.frameColor||'#222244'; }
+    var curShape = (s.shape || 'RECT').toUpperCase();
+    document.querySelectorAll('.vt3d-shape-btn').forEach(function(b){ b.classList.remove('active'); });
+    var sb = document.getElementById('vt3d-shape-' + curShape);
+    if (sb) sb.classList.add('active');
+  }
+
+  function toggleVtVisibility() {
+    areVtsVisible = !areVtsVisible;
+    videotrons.forEach(function(v){ if (v.group) v.group.visible = areVtsVisible; });
+    var btn = document.getElementById('vt3d-toggle-vis-btn');
+    if (btn) {
+      btn.innerText = areVtsVisible ? 'HIDE VT' : 'SHOW VT';
+      btn.style.color = areVtsVisible ? '#ff55ff' : '#ff2222';
+      btn.style.borderColor = areVtsVisible ? '#ff55ff' : '#ff2222';
+    }
+  }
+
+  function _vtWaitReady(video, timeoutMs) {
+    return new Promise(function(resolve){
+      var done = false;
+      function finish(){ if (done) return; done = true; video.removeEventListener('canplay', finish); resolve(); }
+      video.addEventListener('canplay', finish, { once: true });
+      setTimeout(finish, timeoutMs || 4000);
+    });
+  }
+
+  function vtUploadVideo(input) {
+    var file = input.files[0]; if (!file) return;
+    var url = URL.createObjectURL(file);
+    var targets = getSelectedVts();
+    var readyPromises = targets.map(function(idx){
+      var v = videotrons[idx];
+      if (!v || !v.video) return Promise.resolve();
+      v.video.muted = !vtSoundEnabled;
+      v.video.src = url;
+      v.video.load();
+      return _vtWaitReady(v.video, 4000);
+    });
+    Promise.all(readyPromises).then(function(){
+      targets.forEach(function(idx){
+        var v = videotrons[idx];
+        if (v && v.video) v.video.play().catch(function(){});
+      });
+    });
+    var lbl = selectedVts[0] === -1 ? 'ALL' : ('VT ' + targets.map(function(x){return x+1;}).join(', '));
+    var fnEl = document.getElementById('vt3d-filename');
+    if (fnEl) fnEl.textContent = file.name + ' \u2192 ' + lbl;
+  }
+
+  function toggleVtSound(checked) {
+    vtSoundEnabled = !!checked;
+    videotrons.forEach(function(v){ if (v && v.video) v.video.muted = !vtSoundEnabled; });
+    if (typeof setStatus === 'function') setStatus(vtSoundEnabled ? 'Suara Videotron dihidupkan' : 'Suara Videotron dimatikan');
+  }
+  function toggleVtFollowFlashMB(checked) {
+    vtFollowFlashMB = !!checked;
+    if (typeof setStatus === 'function') setStatus(vtFollowFlashMB ? 'Videotron ikut Flash MB' : 'Videotron tidak ikut Flash MB');
+  }
+  function vtPlay() { getSelectedVts().forEach(function(idx){ var v=videotrons[idx]; if (v && v.video) v.video.play(); }); }
+  function vtPause() { getSelectedVts().forEach(function(idx){ var v=videotrons[idx]; if (v && v.video) v.video.pause(); }); }
+  function vtSetLoop(val) { getSelectedVts().forEach(function(idx){ var v=videotrons[idx]; if (v && v.video) v.video.loop = val; }); }
+
+  // ── Render-loop tick: redraw canvas texture kalau video berjalan ──
+  var _isMinibruteFlashActive = function(){ return !!window.isMinibruteActive; };
+  function vt3dTick() {
+    videotrons.forEach(function(v){
+      if (!areVtsVisible) return;
+      var s = v.state;
+      if (vtFollowFlashMB && _isMinibruteFlashActive()) {
+        if (v.screenMat.map !== null) { v.screenMat.map = null; v.screenMat.needsUpdate = true; }
+        v.screenMat.color.setRGB(1,1,1);
+        v._vtWhitedByFlash = true;
+        return;
+      } else if (v._vtWhitedByFlash) {
+        v.screenMat.map = v.screenTex; v.screenMat.needsUpdate = true;
+        v._vtWhitedByFlash = false; v._vtRenderState = null;
+      }
+      var cr = s.cornerRadius || 0;
+      var cropX = s.cropX || 0, cropY = s.cropY || 0, cropZoom = s.cropZoom || 100;
+      var hasFrame = v.video && v.video.src && v.video.readyState >= 2;
+      var isPlaying = hasFrame && !v.video.paused;
+      var stateKey = isPlaying ? 'playing' : (hasFrame ? 'paused' : 'blank');
+      if (isPlaying || v._vtRenderState !== stateKey || v._vtLastCr !== cr || v._vtLastCropX !== cropX || v._vtLastCropY !== cropY || v._vtLastCropZoom !== cropZoom) {
+        if (hasFrame) applyVideoFrame(v.screenCanvas, v.ctx2d, v.video, cr, cropX, cropY, cropZoom);
+        else drawBlankScreen(v.ctx2d, cr);
+        v.screenTex.needsUpdate = true;
+        v._vtRenderState = stateKey;
+        v._vtLastCr = cr; v._vtLastCropX = cropX; v._vtLastCropY = cropY; v._vtLastCropZoom = cropZoom;
+      }
+      var b = (s.brightness !== undefined ? s.brightness : 1);
+      v.screenMat.color.setRGB(b, b, b);
+    });
+  }
+  window._vt3dTick = vt3dTick;
+
+  // ===== CROP MODAL =====
+  var _cropVtIdx = -1;
+  var _cropState = { x:0, y:0, zoom:100 };
+  var _cropDragType = null;
+  var _cropDragStart = null;
+  var _cropBoxState = { left:0, top:0, width:0, height:0 };
+  var _cropAnimId = null;
+
+  function _shapeSvgPath(shape, x, y, w, h) {
+    var cx = x + w/2, cy = y + h/2, rx = w/2, ry = h/2;
+    switch ((shape||'RECT').toUpperCase()) {
+      case 'CIRCLE':
+        return 'M ' + cx + ' ' + y + ' A ' + rx + ' ' + ry + ' 0 1 1 ' + (cx-0.01) + ' ' + y + ' Z';
+      case 'TRIANGLE':
+        return 'M ' + cx + ' ' + y + ' L ' + x + ' ' + (y+h) + ' L ' + (x+w) + ' ' + (y+h) + ' Z';
+      case 'DIAMOND':
+        return 'M ' + cx + ' ' + y + ' L ' + (x+w) + ' ' + cy + ' L ' + cx + ' ' + (y+h) + ' L ' + x + ' ' + cy + ' Z';
+      case 'HEXAGON': {
+        var pts = [];
+        for (var i=0;i<6;i++){
+          var a = (i/6)*Math.PI*2 - Math.PI/6;
+          pts.push((cx+Math.cos(a)*rx) + ' ' + (cy+Math.sin(a)*ry));
+        }
+        return 'M ' + pts.join(' L ') + ' Z';
+      }
+      case 'STAR': {
+        var outerR = Math.min(rx,ry), innerR = outerR*0.45, ptsN=5, pts2=[];
+        for (var j=0;j<ptsN*2;j++){
+          var a2 = (j/(ptsN*2))*Math.PI*2 - Math.PI/2;
+          var r2 = j%2===0 ? outerR : innerR;
+          var xx = cx + Math.cos(a2)*r2*(rx/Math.min(rx,ry));
+          var yy = cy + Math.sin(a2)*r2*(ry/Math.min(rx,ry));
+          pts2.push(xx + ' ' + yy);
+        }
+        return 'M ' + pts2.join(' L ') + ' Z';
+      }
+      case 'ARCH':
+        return 'M ' + x + ' ' + (y+h) + ' L ' + x + ' ' + cy + ' A ' + rx + ' ' + ry + ' 0 0 1 ' + (x+w) + ' ' + cy + ' L ' + (x+w) + ' ' + (y+h) + ' Z';
+      default:
+        return 'M ' + x + ' ' + y + ' L ' + (x+w) + ' ' + y + ' L ' + (x+w) + ' ' + (y+h) + ' L ' + x + ' ' + (y+h) + ' Z';
+    }
+  }
+
+  function _updateCropSVG() {
+    var wrap = document.getElementById('vt3d-crop-preview-wrap'); if (!wrap) return;
+    var ww = wrap.offsetWidth, wh = ww * (360/640);
+    var left = _cropBoxState.left, top = _cropBoxState.top, width = _cropBoxState.width, height = _cropBoxState.height;
+    var v = videotrons[_cropVtIdx];
+    var shape = (v && v.state.shape) || 'RECT';
+    var pathStr = _shapeSvgPath(shape, left, top, width, height);
+    var svg = document.getElementById('vt3d-crop-svg');
+    svg.setAttribute('viewBox', '0 0 ' + ww + ' ' + wh);
+    document.getElementById('vt3d-crop-shape-hole').setAttribute('d', pathStr);
+    document.getElementById('vt3d-crop-shape-border').setAttribute('d', pathStr);
+    document.getElementById('vt3d-crop-shape-clip-path').setAttribute('d', pathStr);
+    document.getElementById('vt3d-crop-drag-area').setAttribute('d', pathStr);
+    var gl = [
+      ['vt3d-cg1', left+width/3, top, left+width/3, top+height],
+      ['vt3d-cg2', left+width*2/3, top, left+width*2/3, top+height],
+      ['vt3d-cg3', left, top+height/3, left+width, top+height/3],
+      ['vt3d-cg4', left, top+height*2/3, left+width, top+height*2/3]
+    ];
+    gl.forEach(function(g){
+      var el = document.getElementById(g[0]); if (!el) return;
+      el.setAttribute('x1',g[1]); el.setAttribute('y1',g[2]); el.setAttribute('x2',g[3]); el.setAttribute('y2',g[4]);
+    });
+    var cx = left+width/2, cy = top+height/2;
+    var hw = Math.min(60, width*0.45), hh = 28;
+    var vhw = 28, vhh = Math.min(60, height*0.45);
+    var cht = document.getElementById('vt3d-ch-top');
+    cht.setAttribute('x', cx-hw/2); cht.setAttribute('y', top-hh/2); cht.setAttribute('width', hw); cht.setAttribute('height', hh);
+    document.getElementById('vt3d-ch-top-lbl').setAttribute('x', cx); document.getElementById('vt3d-ch-top-lbl').setAttribute('y', top+5);
+    var chb = document.getElementById('vt3d-ch-bot');
+    chb.setAttribute('x', cx-hw/2); chb.setAttribute('y', top+height-hh/2); chb.setAttribute('width', hw); chb.setAttribute('height', hh);
+    document.getElementById('vt3d-ch-bot-lbl').setAttribute('x', cx); document.getElementById('vt3d-ch-bot-lbl').setAttribute('y', top+height+5);
+    var chl = document.getElementById('vt3d-ch-lft');
+    chl.setAttribute('x', left-vhw/2); chl.setAttribute('y', cy-vhh/2); chl.setAttribute('width', vhw); chl.setAttribute('height', vhh);
+    document.getElementById('vt3d-ch-lft-lbl').setAttribute('x', left+4); document.getElementById('vt3d-ch-lft-lbl').setAttribute('y', cy);
+    var chr = document.getElementById('vt3d-ch-rgt');
+    chr.setAttribute('x', left+width-vhw/2); chr.setAttribute('y', cy-vhh/2); chr.setAttribute('width', vhw); chr.setAttribute('height', vhh);
+    document.getElementById('vt3d-ch-rgt-lbl').setAttribute('x', left+width+4); document.getElementById('vt3d-ch-rgt-lbl').setAttribute('y', cy);
+  }
+
+  function openVtCropModal() {
+    var idxs = getSelectedVts(); if (!idxs.length) return;
+    _cropVtIdx = idxs[0];
+    var v = videotrons[_cropVtIdx]; if (!v) return;
+    _cropState = { x: v.state.cropX||0, y: v.state.cropY||0, zoom: v.state.cropZoom||100 };
+    var modal = document.getElementById('vt3d-crop-modal');
+    modal.style.display = 'flex';
+    var canvas = document.getElementById('vt3d-crop-canvas');
+    canvas.width = 640; canvas.height = 360;
+    document.getElementById('vt3d-crop-zoom-slider').value = _cropState.zoom;
+    document.getElementById('vt3d-crop-zoom-label').innerText = Math.round(_cropState.zoom) + '%';
+    var ox = document.getElementById('vt3d-crop-offx-slider'); if (ox) ox.value = _cropState.x;
+    var oy = document.getElementById('vt3d-crop-offy-slider'); if (oy) oy.value = _cropState.y;
+    var oxl = document.getElementById('vt3d-crop-offx-label'); if (oxl) oxl.innerText = Math.round(_cropState.x);
+    var oyl = document.getElementById('vt3d-crop-offy-label'); if (oyl) oyl.innerText = Math.round(_cropState.y);
+    _startCropPreview();
+    setTimeout(function(){ _initCropBox(); _setupCropDrag(); }, 50);
+  }
+
+  function _initCropBox() {
+    var wrap = document.getElementById('vt3d-crop-preview-wrap'); if (!wrap) return;
+    var ww = wrap.offsetWidth, wh = ww*(360/640);
+    var zoom = _cropState.zoom/100;
+    var bw = Math.min(ww, ww/zoom), bh = Math.min(wh, wh/zoom);
+    var cx = ww/2 + (_cropState.x/100)*(ww-bw)*0.5 - bw/2;
+    var cy = wh/2 - (_cropState.y/100)*(wh-bh)*0.5 - bh/2;
+    _cropBoxState = { left: Math.max(0, Math.min(ww-bw, cx)), top: Math.max(0, Math.min(wh-bh, cy)), width: bw, height: bh };
+    _updateCropSVG();
+  }
+
+  function _cropBoxToState() {
+    var wrap = document.getElementById('vt3d-crop-preview-wrap'); if (!wrap) return;
+    var ww = wrap.offsetWidth, wh = ww*(360/640);
+    var left = _cropBoxState.left, top = _cropBoxState.top, width = _cropBoxState.width, height = _cropBoxState.height;
+    var zoom = Math.round((ww/Math.max(1,width))*100);
+    var cx = left+width/2, cy = top+height/2;
+    var x = Math.round(((cx-ww/2)/Math.max(1,ww-width))*200);
+    var y = Math.round(-((cy-wh/2)/Math.max(1,wh-height))*200);
+    _cropState.zoom = Math.min(300, Math.max(50, zoom));
+    _cropState.x = Math.min(100, Math.max(-100, x));
+    _cropState.y = Math.min(100, Math.max(-100, y));
+    document.getElementById('vt3d-crop-zoom-slider').value = _cropState.zoom;
+    document.getElementById('vt3d-crop-zoom-label').innerText = _cropState.zoom + '%';
+  }
+
+  function _startCropPreview() {
+    if (_cropAnimId) cancelAnimationFrame(_cropAnimId);
+    var canvas = document.getElementById('vt3d-crop-canvas'); if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    function draw() {
+      var modal = document.getElementById('vt3d-crop-modal');
+      if (!modal || modal.style.display === 'none') return;
+      var v = videotrons[_cropVtIdx];
+      ctx.clearRect(0,0,640,360);
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,640,360);
+      if (v && v.video && v.video.readyState >= 2) {
+        var vw=v.video.videoWidth||640, vh=v.video.videoHeight||360;
+        var zoom=(_cropState.zoom||100)/100;
+        var srcW=vw/zoom, srcH=vh/zoom;
+        var offX=((_cropState.x||0)/100)*(vw-srcW)*0.5;
+        var offY=-((_cropState.y||0)/100)*(vh-srcH)*0.5;
+        var sx=Math.max(0,Math.min(vw-srcW,vw/2-srcW/2-offX));
+        var sy=Math.max(0,Math.min(vh-srcH,vh/2-srcH/2-offY));
+        ctx.drawImage(v.video,sx,sy,Math.max(1,srcW),Math.max(1,srcH),0,0,640,360);
+      } else {
+        ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,0,640,360);
+        ctx.fillStyle='#556'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('Belum ada video / video belum siap', 320, 180);
+      }
+      _cropAnimId = requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  function closeVtCropModal(apply) {
+    if (_cropAnimId) { cancelAnimationFrame(_cropAnimId); _cropAnimId = null; }
+    document.getElementById('vt3d-crop-modal').style.display = 'none';
+    if (apply && _cropVtIdx >= 0) {
+      getSelectedVts().forEach(function(idx){
+        var v = videotrons[idx]; if (!v) return;
+        v.state.cropX = _cropState.x; v.state.cropY = _cropState.y; v.state.cropZoom = _cropState.zoom;
+      });
+      if (typeof saveChannels === 'function') saveChannels();
+    }
+    _cropVtIdx = -1;
+  }
+
+  function _setupCropDrag() {
+    var wrap = document.getElementById('vt3d-crop-preview-wrap'); if (!wrap) return;
+    var modal = document.getElementById('vt3d-crop-modal');
+    if (modal && !modal._touchGuard) {
+      modal._touchGuard = true;
+      modal.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive: false });
+    }
+    function getSvgPos(e) {
+      var rect = wrap.getBoundingClientRect();
+      var ww = wrap.offsetWidth, wh = ww*(360/640);
+      var t = e.touches ? e.touches[0] : e;
+      return { x: (t.clientX - rect.left) / rect.width * ww, y: (t.clientY - rect.top) / rect.height * wh };
+    }
+    function startDrag(e, type) {
+      e.preventDefault(); e.stopPropagation();
+      _cropDragType = type;
+      _cropDragStart = { pos: getSvgPos(e), box: Object.assign({}, _cropBoxState) };
+      document.addEventListener('mousemove', onMove, {passive:false});
+      document.addEventListener('touchmove', onMove, {passive:false});
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchend', onUp);
+    }
+    var dragArea = document.getElementById('vt3d-crop-drag-area');
+    if (dragArea && !dragArea._wired) {
+      dragArea._wired = true;
+      dragArea.addEventListener('mousedown', function(e){ startDrag(e,'move'); });
+      dragArea.addEventListener('touchstart', function(e){ startDrag(e,'move'); }, {passive:false});
+    }
+    [['vt3d-ch-top','top'],['vt3d-ch-bot','bot'],['vt3d-ch-lft','lft'],['vt3d-ch-rgt','rgt']].forEach(function(pair){
+      var el = document.getElementById(pair[0]); if (!el || el._wired) return;
+      el._wired = true;
+      el.addEventListener('mousedown', function(e){ e.stopPropagation(); startDrag(e,pair[1]); });
+      el.addEventListener('touchstart', function(e){ e.stopPropagation(); startDrag(e,pair[1]); }, {passive:false});
+    });
+    function onMove(e) {
+      if (!_cropDragType || !_cropDragStart) return;
+      e.preventDefault();
+      var ww = wrap.offsetWidth, wh = ww*(360/640);
+      var pos = getSvgPos(e);
+      var dx = pos.x - _cropDragStart.pos.x, dy = pos.y - _cropDragStart.pos.y;
+      var orig = _cropDragStart.box;
+      var minS = 40;
+      var left=orig.left, top=orig.top, width=orig.width, height=orig.height;
+      if (_cropDragType === 'move') {
+        left = Math.max(0, Math.min(ww-width, orig.left+dx));
+        top  = Math.max(0, Math.min(wh-height, orig.top+dy));
+      } else if (_cropDragType === 'top') {
+        var nh = Math.max(minS, orig.height-dy);
+        top = Math.max(0, orig.top+orig.height-nh); height = nh;
+      } else if (_cropDragType === 'bot') {
+        height = Math.max(minS, Math.min(wh-orig.top, orig.height+dy));
+      } else if (_cropDragType === 'lft') {
+        var nw = Math.max(minS, orig.width-dx);
+        left = Math.max(0, orig.left+orig.width-nw); width = nw;
+      } else if (_cropDragType === 'rgt') {
+        width = Math.max(minS, Math.min(ww-orig.left, orig.width+dx));
+      }
+      _cropBoxState = { left:left, top:top, width:width, height:height };
+      _updateCropSVG();
+      _cropBoxToState();
+      var ox = document.getElementById('vt3d-crop-offx-slider');
+      var oy = document.getElementById('vt3d-crop-offy-slider');
+      if (ox) { ox.value = _cropState.x; document.getElementById('vt3d-crop-offx-label').innerText = Math.round(_cropState.x); }
+      if (oy) { oy.value = _cropState.y; document.getElementById('vt3d-crop-offy-label').innerText = Math.round(_cropState.y); }
+    }
+    function onUp() {
+      _cropDragType = null; _cropDragStart = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchend', onUp);
+    }
+  }
+
+  function onCropOffsetSlider(axis, val) {
+    if (axis === 'x') { _cropState.x = parseInt(val); document.getElementById('vt3d-crop-offx-label').innerText = val; }
+    else { _cropState.y = parseInt(val); document.getElementById('vt3d-crop-offy-label').innerText = val; }
+    _initCropBox();
+  }
+  function onCropZoomSlider(val) {
+    _cropState.zoom = parseInt(val);
+    document.getElementById('vt3d-crop-zoom-label').innerText = val + '%';
+    _initCropBox();
+  }
+  function resetVtCropModal() {
+    _cropState = { x:0, y:0, zoom:100 };
+    var zs=document.getElementById('vt3d-crop-zoom-slider'); if (zs) zs.value=100;
+    var zl=document.getElementById('vt3d-crop-zoom-label'); if (zl) zl.innerText='100%';
+    var ox=document.getElementById('vt3d-crop-offx-slider'); if (ox) ox.value=0;
+    var oy=document.getElementById('vt3d-crop-offy-slider'); if (oy) oy.value=0;
+    var oxl=document.getElementById('vt3d-crop-offx-label'); if (oxl) oxl.innerText='0';
+    var oyl=document.getElementById('vt3d-crop-offy-label'); if (oyl) oyl.innerText='0';
+    _initCropBox();
+  }
+
+  // ── Registrasi ke Editor 3D (drag/scale) — pola sama seperti _registerMarts ──
+  function _registerVts(){
+    // PENTING: _st/_clearFixtureEntries/_registerObj aslinya didefinisikan di
+    // closure IIFE lain (_fixturesToE3d), jadi harus diakses lewat window.*
+    // (sudah di-expose di sana). Sebelumnya kode ini pakai nama bareword yang
+    // tidak pernah ada di scope closure Videotron 3D ini sendiri, sehingga
+    // fungsi selalu return lebih awal dan Videotron TIDAK PERNAH masuk ke
+    // layer Editor 3D / tidak bisa di-transform dari sana.
+    var st = (typeof window._st === 'function') ? window._st() : null;
+    if (!st || typeof window._clearFixtureEntries !== 'function' || typeof window._registerObj !== 'function') {
+      // e3dState/fixture-registration belum siap — coba lagi sebentar lagi
+      setTimeout(_registerVts, 400);
+      return;
+    }
+    window._clearFixtureEntries('vt3d_');
+    videotrons.forEach(function(v, i){
+      if (!v || !v.group) return;
+      window._registerObj('VIDEOTRON ' + (i+1), 'vt3d_'+i, v.group, '#66aaff');
+    });
+    if (typeof window.e3dRebuildLayerList === 'function') window.e3dRebuildLayerList();
+  }
+  window._registerVts = _registerVts;
+
+  // ── Save / Load project ──
+  function vt3dSerialize() {
+    return videotrons.map(function(v){ return v.state; });
+  }
+  function vt3dRestore(list) {
+    if (!Array.isArray(list)) return;
+    var sc = _scene(); if (!sc) return;
+    videotrons.forEach(function(v){ if (v.group) sc.remove(v.group); disposeVideotronVisuals(v); });
+    videotrons = [];
+    list.forEach(function(st, i){
+      var entry = createVideotronFixture(st, i);
+      if (entry) videotrons.push(entry);
+    });
+    selectedVts = [-1];
+    renderVtSelectList(); updateVtFaders();
+    if (typeof window._registerVts === 'function') window._registerVts();
+  }
+  window._vt3dSerialize = vt3dSerialize;
+  window._vt3dRestore = vt3dRestore;
+  // Dipakai oleh _syncFixtureState (Editor 3D) untuk sinkronisasi balik posisi/
+  // rotasi/scale hasil drag/fader ke dalam v.state milik Videotron 3D.
+  window._vt3dGetPool = function(){ return videotrons; };
+  // Dipanggil setelah Editor 3D mengubah transform videotron, supaya slider
+  // POSISI/ROTASI/SCALE di panel Gerakan > VIDEOTRON 3D langsung ikut update.
+  window.updateVt3DFadersFromE3D = function(){ updateVtFaders(); };
+
+  // ── Expose to global for inline onclick/oninput handlers ──
+  window.changeVt3DCount = changeVtCount;
+  window.selAllVt3D = selAllVt;
+  window.selOddVt3D = selOddVt;
+  window.selEvenVt3D = selEvenVt;
+  window.uVt3D = uVt;
+  window.uVt3DFrameColor = uVtFrameColor;
+  window.toggleVt3DVisibility = toggleVtVisibility;
+  window.vt3DUploadVideo = vtUploadVideo;
+  window.toggleVt3DSound = toggleVtSound;
+  window.toggleVt3DFollowFlashMB = toggleVtFollowFlashMB;
+  window.vt3DPlay = vtPlay;
+  window.vt3DPause = vtPause;
+  window.vt3DSetLoop = vtSetLoop;
+  window.openVt3DCropModal = openVtCropModal;
+  window.closeVt3DCropModal = closeVtCropModal;
+  window.onVt3DCropOffsetSlider = onCropOffsetSlider;
+  window.onVt3DCropZoomSlider = onCropZoomSlider;
+  window.resetVt3DCropModal = resetVtCropModal;
+
+  // Auto-spawn 1 videotron default begitu scene 3D siap, meniru perilaku Martin dkk.
+  function _waitSceneThenInit(triesLeft){
+    if (window._gbScene) { spawnVts(1); return; }
+    if (triesLeft <= 0) return;
+    setTimeout(function(){ _waitSceneThenInit(triesLeft-1); }, 300);
+  }
+  _waitSceneThenInit(40);
+
+})();
+
 </script>
 </body>
 </html>
