@@ -28,8 +28,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Chakra
 /* STAGE */
 #stageWrap{flex:0 0 52vh;position:relative;background:#000;overflow:hidden;min-height:160px;max-height:58vh}
 #viewport{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;cursor:grab}#viewport:active{cursor:grabbing}#viewport canvas{display:block;width:100%!important;height:100%!important;position:relative;z-index:1}
-.master-video{position:absolute;pointer-events:none;transform-origin:center center;opacity:0;z-index:999;object-fit:contain;top:0;left:0;display:none}
-.master-video.overlay-on{opacity:1;display:block}
 #statusBar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);border:1px solid #252a32;border-radius:2px;padding:2px 12px;font-size:10px;letter-spacing:.1em;color:var(--disp);pointer-events:none;z-index:10;white-space:nowrap;font-family:'Share Tech Mono',monospace;transition:opacity .4s}
 #pwrLed{position:absolute;top:8px;right:10px;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);z-index:10;cursor:pointer}
 #pwrLed.off{background:var(--red);box-shadow:0 0 7px var(--red)}
@@ -563,7 +561,7 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
 
 <div id="app">
   <div id="stageWrap" style="position:relative">
-    <div id="viewport"><div id="fps-counter">FPS: --</div><video class="master-video" id="novaMasterVideo" muted playsinline loop></video></div>
+    <div id="viewport"><div id="fps-counter">FPS: --</div></div>
     <div id="e3dSelLabel" style="display:none;position:absolute;top:6px;left:6px;font-size:9px;color:var(--teal);font-family:'Share Tech Mono',monospace;pointer-events:none;z-index:6"></div>
     <div id="e3dViewHint" style="display:none;position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:8px;color:rgba(255,255,255,.5);pointer-events:none;font-family:'Share Tech Mono',monospace;z-index:6;white-space:nowrap">🖱 DRAG:ROTATE  SCROLL:ZOOM</div>
     <span id="e3dDbCount" style="display:none"></span>
@@ -896,87 +894,51 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
           </div>
         </div>
 
-        <!-- Videotron sekarang jadi objek 3D asli di scene utama (window._gbScene),
-             sama seperti Martin/Mini Brute — bisa didrag/discale di Editor 3D.
-             Panel kontrol Videotron 3D ada di bawah ini. Sistem lama "VT Jockey"
-             (2D canvas + panel Editor3D/Gerakan terpisah) sudah dicabut total. -->
+        <!-- PERFORMA: FRAME LIMITER + PIXEL RATIO ADAPTIF (anti patah-patah) -->
         <div class="sec">
-          <div class="sec-h">VIDEOTRON 3D <span id="vt3d-qty-val" style="color:var(--teal)">1</span></div>
-          <div style="display:flex;gap:4px;margin-bottom:6px">
-            <button class="btn" style="flex:1" onclick="changeVt3DCount(-1)">− UNIT</button>
-            <button class="btn" style="flex:1" onclick="changeVt3DCount(1)">+ UNIT</button>
+          <div class="sec-h" style="color:var(--teal)">⚡ PERFORMA (ANTI PATAH-PATAH)</div>
+          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:6px;line-height:1.6">
+            Tidak menghapus efek apa pun. Frame limit menjaga FPS stabil (bukan naik-turun), pixel ratio adaptif menurunkan resolusi render HANYA saat FPS jatuh lalu naik lagi otomatis.
           </div>
-          <div style="display:flex;gap:4px;margin-bottom:6px">
-            <button class="btn" style="flex:1;font-size:8px" onclick="selAllVt3D()">ALL</button>
-            <button class="btn" style="flex:1;font-size:8px" onclick="selOddVt3D()">GANJIL</button>
-            <button class="btn" style="flex:1;font-size:8px" onclick="selEvenVt3D()">GENAP</button>
+          <div id="perfLive" style="font-size:8px;color:var(--teal);font-family:Share Tech Mono,monospace;margin-bottom:8px;padding:4px 6px;background:rgba(0,0,0,.25);border-radius:4px">FPS -- · Pixel ratio --</div>
+
+          <div style="font-size:8px;color:var(--lbl);margin-bottom:3px">FRAME LIMIT</div>
+          <div class="row" style="gap:4px;margin-bottom:2px">
+            <button class="btn on-t" id="perfLimAuto" style="flex:1" onclick="novaPerfSet('limit','auto')">AUTO</button>
+            <button class="btn" id="perfLim30" style="flex:1" onclick="novaPerfSet('limit','30')">30</button>
+            <button class="btn" id="perfLim60" style="flex:1" onclick="novaPerfSet('limit','60')">60</button>
+            <button class="btn" id="perfLimFree" style="flex:1" onclick="novaPerfSet('limit','free')">BEBAS</button>
           </div>
-          <div id="vt3d-select-list" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
-          <div style="font-size:8px;color:var(--teal);margin-bottom:4px" id="vt3d-selection-label">ALL</div>
-
-          <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--btn);border:2px dashed var(--border2);border-radius:6px;text-align:center;cursor:pointer;font-size:9px;font-weight:700;color:var(--teal);margin-bottom:6px">
-            📹 UPLOAD VIDEO
-            <input type="file" accept="video/*" style="display:none" onchange="vt3DUploadVideo(this)">
-          </label>
-          <div id="vt3d-filename" style="font-size:7px;color:var(--lbl);opacity:.7;margin-bottom:6px"></div>
-
-          <div style="display:flex;gap:4px;margin-bottom:6px">
-            <button class="btn" style="flex:1" onclick="vt3DPlay()">▶ PLAY</button>
-            <button class="btn" style="flex:1" onclick="vt3DPause()">⏸ PAUSE</button>
-          </div>
-          <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;font-size:8px">
-            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" onchange="toggleVt3DSound(this.checked)"> SUARA</label>
-            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" checked onchange="vt3DSetLoop(this.checked)"> LOOP</label>
-            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" onchange="toggleVt3DFollowFlashMB(this.checked)"> IKUT FLASH MB</label>
-          </div>
-          <button class="btn" id="vt3d-toggle-vis-btn" style="width:100%;margin-bottom:8px" onclick="toggleVt3DVisibility()">HIDE VT</button>
-
-          <button class="btn" style="width:100%;margin-bottom:8px;border-color:var(--teal);color:var(--teal)" onclick="openVt3DCropModal()">✂ CROP / ZOOM</button>
-
-          <div style="font-size:8px;color:var(--lbl);margin-bottom:3px">SHAPE</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px">
-            <button class="btn vt3d-shape-btn active" id="vt3d-shape-RECT" style="font-size:7px" onclick="uVt3D('shape','RECT')">RECT</button>
-            <button class="btn vt3d-shape-btn" id="vt3d-shape-CIRCLE" style="font-size:7px" onclick="uVt3D('shape','CIRCLE')">CIRCLE</button>
-            <button class="btn vt3d-shape-btn" id="vt3d-shape-TRIANGLE" style="font-size:7px" onclick="uVt3D('shape','TRIANGLE')">TRI</button>
-            <button class="btn vt3d-shape-btn" id="vt3d-shape-DIAMOND" style="font-size:7px" onclick="uVt3D('shape','DIAMOND')">DIAMOND</button>
-            <button class="btn vt3d-shape-btn" id="vt3d-shape-HEXAGON" style="font-size:7px" onclick="uVt3D('shape','HEXAGON')">HEX</button>
-            <button class="btn vt3d-shape-btn" id="vt3d-shape-STAR" style="font-size:7px" onclick="uVt3D('shape','STAR')">STAR</button>
-            <button class="btn vt3d-shape-btn" id="vt3d-shape-ARCH" style="font-size:7px" onclick="uVt3D('shape','ARCH')">ARCH</button>
+          <div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-bottom:8px;line-height:1.5;opacity:.75">
+            AUTO: layar 120Hz+ dikunci ~60 FPS, layar 60/90Hz tidak dibatasi. Layar 90Hz: pakai AUTO atau BEBAS (angka 60 di 90Hz jadi 45 FPS).
           </div>
 
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>POSISI X</span><span id="vt3d-posX-disp">0</span></div>
-          <input type="range" id="vt3d-posX" min="-400" max="400" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('x',this.value);document.getElementById('vt3d-posX-disp').innerText=this.value">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>POSISI Y</span><span id="vt3d-posY-disp">25</span></div>
-          <input type="range" id="vt3d-posY" min="0" max="150" value="25" style="width:100%;margin-bottom:6px" oninput="uVt3D('y',this.value);document.getElementById('vt3d-posY-disp').innerText=this.value">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>POSISI Z</span><span id="vt3d-posZ-disp">-35</span></div>
-          <input type="range" id="vt3d-posZ" min="-200" max="200" value="-35" style="width:100%;margin-bottom:6px" oninput="uVt3D('z',this.value);document.getElementById('vt3d-posZ-disp').innerText=this.value">
+          <div style="font-size:8px;color:var(--lbl);margin-bottom:3px">PIXEL RATIO ADAPTIF</div>
+          <div class="row" style="gap:4px;margin-bottom:8px">
+            <button class="btn on-t" id="perfAdaptOn" style="flex:1" onclick="novaPerfSet('adaptive',true)">ON</button>
+            <button class="btn" id="perfAdaptOff" style="flex:1" onclick="novaPerfSet('adaptive',false)">OFF</button>
+          </div>
 
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>ROTASI Y</span><span id="vt3d-rotY-disp">0</span></div>
-          <input type="range" id="vt3d-rotY" min="-180" max="180" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('rotY',this.value);document.getElementById('vt3d-rotY-disp').innerText=this.value">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>ROTASI X</span><span id="vt3d-rotX-disp">0</span></div>
-          <input type="range" id="vt3d-rotX" min="-90" max="90" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('rotX',this.value);document.getElementById('vt3d-rotX-disp').innerText=this.value">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>ROTASI Z</span><span id="vt3d-rotZ-disp">0</span></div>
-          <input type="range" id="vt3d-rotZ" min="-180" max="180" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('rotZ',this.value);document.getElementById('vt3d-rotZ-disp').innerText=this.value">
+          <div id="perfMaxLbl" style="font-size:8px;color:var(--lbl);margin-bottom:3px">PIXEL RATIO MAKS (batas atas adaptif)</div>
+          <div class="row" style="gap:4px;margin-bottom:8px">
+            <button class="btn" id="perfMax1" style="flex:1" onclick="novaPerfSet('max',1)">1.0</button>
+            <button class="btn" id="perfMax1_5" style="flex:1" onclick="novaPerfSet('max',1.5)">1.5</button>
+            <button class="btn on-t" id="perfMax2" style="flex:1" onclick="novaPerfSet('max',2)">2.0</button>
+          </div>
 
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>SCALE</span><span id="vt3d-scale-disp">1</span></div>
-          <input type="range" id="vt3d-scale" min="0.2" max="4" step="0.05" value="1" style="width:100%;margin-bottom:6px" oninput="uVt3D('scale',this.value);document.getElementById('vt3d-scale-disp').innerText=this.value">
-
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>LEBAR</span></div>
-          <input type="range" id="vt3d-width" min="20" max="300" value="80" style="width:100%;margin-bottom:6px" oninput="uVt3D('width',this.value)">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>TINGGI</span></div>
-          <input type="range" id="vt3d-height" min="10" max="200" value="45" style="width:100%;margin-bottom:6px" oninput="uVt3D('height',this.value)">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>SUDUT (ROUNDED)</span></div>
-          <input type="range" id="vt3d-corner" min="0" max="100" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('corner',this.value)">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>UKURAN FRAME</span></div>
-          <input type="range" id="vt3d-frame-size" min="0" max="10" step="0.2" value="1" style="width:100%;margin-bottom:6px" oninput="uVt3D('frameSize',this.value)">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>KECERAHAN</span></div>
-          <input type="range" id="vt3d-bright" min="10" max="300" value="100" style="width:100%;margin-bottom:6px" oninput="uVt3D('bright',this.value)">
-
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-            <span style="font-size:8px;color:var(--lbl)">WARNA FRAME</span>
-            <div id="vt3d-frame-color-swatch" data-color="#222244" style="width:20px;height:20px;border-radius:4px;background:#222244;border:1px solid var(--border2);cursor:pointer" onclick="var el=document.createElement('input');el.type='color';el.value=this.dataset.color;el.oninput=()=>{this.style.background=el.value;this.dataset.color=el.value;uVt3DFrameColor(el.value);};el.click();"></div>
+          <div id="perfMinRow">
+            <div style="font-size:8px;color:var(--lbl);margin-bottom:3px">PIXEL RATIO MIN (batas bawah adaptif)</div>
+            <div class="row" style="gap:4px">
+              <button class="btn" id="perfMin1" style="flex:1" onclick="novaPerfSet('min',1)">1.0</button>
+              <button class="btn on-t" id="perfMin1_25" style="flex:1" onclick="novaPerfSet('min',1.25)">1.25</button>
+              <button class="btn" id="perfMin1_5" style="flex:1" onclick="novaPerfSet('min',1.5)">1.5</button>
+            </div>
           </div>
         </div>
+
+        <!-- Videotron sekarang jadi objek 3D asli di scene utama (window._gbScene),
+             sama seperti Martin/Mini Brute — bisa didrag/discale di Editor 3D.
+             Panel kontrolnya sudah dipindah ke page GERAKAN > tab VIDEO TRON. -->
 
         <!-- PHOTO LAYERS -->
         <div class="sec">
@@ -2022,26 +1984,70 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
            a harmless no-op. Old "3D MODEL" tab UI removed too; g3dBuildTab()
            kept intact and null-guarded at its other call site.) -->
       <div class="ger-page" id="gp4">
+        <!-- VIDEOTRON 3D — dipindah dari tab SETTING ke sini. Posisi/rotasi/scale
+             sekarang HANYA lewat panel Editor 3D standar (sama seperti Martin/Mini
+             Brute), jadi slider transform di panel ini sudah dihapus. Yang tersisa
+             di sini cuma pengaturan konten layar (lebar/tinggi/sudut/frame/kecerahan)
+             yang bukan properti transform. -->
         <div class="sec">
-          <div class="sec-h" style="color:var(--purple)">🎬 VIDEO OVERLAY (GLOBAL)</div>
-          <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;line-height:1.4;margin-bottom:6px;background:rgba(0,0,0,.2);padding:5px;border-radius:4px">
-            Video mengambang bebas di atas seluruh panggung (tidak terikat ke panel VT manapun, tidak di-crop). Atur posisi/ukuran/rotasi manual di bawah.
+          <div class="sec-h">VIDEOTRON 3D <span id="vt3d-qty-val" style="color:var(--teal)">1</span></div>
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <button class="btn" style="flex:1" onclick="changeVt3DCount(-1)">− UNIT</button>
+            <button class="btn" style="flex:1" onclick="changeVt3DCount(1)">+ UNIT</button>
           </div>
-          <input type="file" id="novaMvFileInput" accept="video/*" style="display:none">
-          <button class="btn on-p" id="novaMvImportBtn" style="width:100%;font-size:9px;margin-bottom:5px">📁 IMPORT VIDEO</button>
-          <div class="row" style="margin-bottom:5px">
-            <button class="btn" id="novaMvOverlayToggle" style="flex:1;font-size:9px">Video Overlay: OFF</button>
-            <button class="btn" id="novaMvLoopToggle" style="flex:1;font-size:9px">Loop: ON</button>
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <button class="btn" style="flex:1;font-size:8px" onclick="selAllVt3D()">ALL</button>
+            <button class="btn" style="flex:1;font-size:8px" onclick="selOddVt3D()">GANJIL</button>
+            <button class="btn" style="flex:1;font-size:8px" onclick="selEvenVt3D()">GENAP</button>
           </div>
-          <div class="row" style="margin-bottom:5px">
-            <button class="btn" id="novaMvPlay" style="flex:1;font-size:8px">▶ PLAY</button>
-            <button class="btn" id="novaMvPause" style="flex:1;font-size:8px">⏸ PAUSE</button>
+          <div id="vt3d-select-list" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+          <div style="font-size:8px;color:var(--teal);margin-bottom:4px" id="vt3d-selection-label">ALL</div>
+
+          <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--btn);border:2px dashed var(--border2);border-radius:6px;text-align:center;cursor:pointer;font-size:9px;font-weight:700;color:var(--teal);margin-bottom:6px">
+            📹 UPLOAD VIDEO
+            <input type="file" accept="video/*" style="display:none" onchange="vt3DUploadVideo(this)">
+          </label>
+          <div id="vt3d-filename" style="font-size:7px;color:var(--lbl);opacity:.7;margin-bottom:6px"></div>
+
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <button class="btn" style="flex:1" onclick="vt3DPlay()">▶ PLAY</button>
+            <button class="btn" style="flex:1" onclick="vt3DPause()">⏸ PAUSE</button>
           </div>
-          <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;margin-bottom:4px" id="novaMvStatus">Belum ada video</div>
-          <div class="row"><div class="lbl">Size</div><input type="range" class="sldr" id="novaMvSize" min="20" max="2000" step="1" value="400" style="flex:1"><div class="val" id="novaMvSizeV">400</div></div>
-          <div class="row"><div class="lbl">Rotasi</div><input type="range" class="sldr" id="novaMvRot" min="-180" max="180" step="1" value="0" style="flex:1"><div class="val" id="novaMvRotV">0°</div></div>
-          <div class="row"><div class="lbl">Pos X</div><input type="range" class="sldr" id="novaMvPosX" min="-100" max="100" step="1" value="0" style="flex:1"><div class="val" id="novaMvPosXV">0</div></div>
-          <div class="row"><div class="lbl">Pos Y</div><input type="range" class="sldr" id="novaMvPosY" min="-100" max="100" step="1" value="0" style="flex:1"><div class="val" id="novaMvPosYV">0</div></div>
+          <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;font-size:8px">
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" onchange="toggleVt3DSound(this.checked)"> SUARA</label>
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" checked onchange="vt3DSetLoop(this.checked)"> LOOP</label>
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" onchange="toggleVt3DFollowFlashMB(this.checked)"> IKUT FLASH MB</label>
+          </div>
+          <button class="btn" id="vt3d-toggle-vis-btn" style="width:100%;margin-bottom:8px" onclick="toggleVt3DVisibility()">HIDE VT</button>
+
+          <button class="btn" style="width:100%;margin-bottom:8px;border-color:var(--teal);color:var(--teal)" onclick="openVt3DCropModal()">✂ CROP / ZOOM</button>
+
+          <div style="font-size:8px;color:var(--lbl);margin-bottom:3px">SHAPE</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px">
+            <button class="btn vt3d-shape-btn active" id="vt3d-shape-RECT" style="font-size:7px" onclick="uVt3D('shape','RECT')">RECT</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-CIRCLE" style="font-size:7px" onclick="uVt3D('shape','CIRCLE')">CIRCLE</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-TRIANGLE" style="font-size:7px" onclick="uVt3D('shape','TRIANGLE')">TRI</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-DIAMOND" style="font-size:7px" onclick="uVt3D('shape','DIAMOND')">DIAMOND</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-HEXAGON" style="font-size:7px" onclick="uVt3D('shape','HEXAGON')">HEX</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-STAR" style="font-size:7px" onclick="uVt3D('shape','STAR')">STAR</button>
+            <button class="btn vt3d-shape-btn" id="vt3d-shape-ARCH" style="font-size:7px" onclick="uVt3D('shape','ARCH')">ARCH</button>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>LEBAR</span></div>
+          <input type="range" id="vt3d-width" min="20" max="300" value="80" style="width:100%;margin-bottom:6px" oninput="uVt3D('width',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>TINGGI</span></div>
+          <input type="range" id="vt3d-height" min="10" max="200" value="45" style="width:100%;margin-bottom:6px" oninput="uVt3D('height',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>SUDUT (ROUNDED)</span></div>
+          <input type="range" id="vt3d-corner" min="0" max="100" value="0" style="width:100%;margin-bottom:6px" oninput="uVt3D('corner',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>UKURAN FRAME</span></div>
+          <input type="range" id="vt3d-frame-size" min="0" max="10" step="0.2" value="1" style="width:100%;margin-bottom:6px" oninput="uVt3D('frameSize',this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--lbl)"><span>KECERAHAN</span></div>
+          <input type="range" id="vt3d-bright" min="10" max="300" value="100" style="width:100%;margin-bottom:6px" oninput="uVt3D('bright',this.value)">
+
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:8px;color:var(--lbl)">WARNA FRAME</span>
+            <div id="vt3d-frame-color-swatch" data-color="#222244" style="width:20px;height:20px;border-radius:4px;background:#222244;border:1px solid var(--border2);cursor:pointer" onclick="var el=document.createElement('input');el.type='color';el.value=this.dataset.color;el.oninput=()=>{this.style.background=el.value;this.dataset.color=el.value;uVt3DFrameColor(el.value);};el.click();"></div>
+          </div>
         </div>
       </div><!-- /gp4 VIDEO TRON -->
 
@@ -2160,10 +2166,11 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
               <button class="btn" id="e3dGridToggleBtn" onclick="if(window.gb_toggleGrid)gb_toggleGrid();" style="width:100%;font-size:9px;border-color:var(--teal);color:var(--teal)">👁 GRID: ON</button>
             </div>
 
-            <!-- Videotron 3D — transform-nya sekarang lewat panel Editor 3D
-                 standar (sama seperti Martin/Mini Brute), tidak perlu panel
-                 khusus lagi seperti VT Jockey dulu. Kontrol dedicated ada di
-                 tab Gerakan (VIDEOTRON 3D). -->
+            <!-- Videotron 3D — transform (posisi/rotasi/scale) sekarang lewat
+                 panel Editor 3D standar (sama seperti Martin/Mini Brute), tidak
+                 perlu panel khusus lagi seperti VT Jockey dulu. Kontrol konten
+                 layar (upload video, shape, lebar/tinggi/sudut/frame/kecerahan,
+                 ikut flash MB, dll) ada di page GERAKAN > tab VIDEO TRON. -->
 
             <!-- UPLOAD GAMBAR (masuk ke LAYERS, bisa di-TRANSFORM) -->
             <div id="e3dImgPanel" style="background:var(--panel);border-bottom:1px solid var(--border);padding:5px 8px 6px">
@@ -3747,6 +3754,222 @@ window._jawirApplyGraphicsQuality = function(q){
   var ab=document.getElementById(activeId); if(ab) ab.classList.add('on-t');
   if(typeof setStatus==='function') setStatus('🖥️ Graphics Quality: '+q.toUpperCase());
 };
+
+// ════════════════════════════════════════════════════════════════
+// PERFORMA: FRAME LIMITER + PIXEL RATIO ADAPTIF
+// ────────────────────────────────────────────────────────────────
+// Tujuan: hilangkan patah-patah di HP dengan GPU Mali (mis. Dimensity)
+// TANPA menghapus efek apa pun.
+//  A) Frame limiter — di layar 120Hz+, render dikunci ~60 FPS stabil
+//     (RAF tetap jalan tiap vsync, frame lebih dilewati sebelum kerja
+//     berat). FPS stabil terasa lebih mulus daripada 120 yang goyang.
+//  B) Pixel ratio adaptif — mulai dari batas atas (default 2.0 = sama
+//     persis seperti sebelumnya). Kalau FPS jatuh di bawah target
+//     beberapa detik berturut-turut, turun bertahap 0.25 sampai batas
+//     bawah; kalau sudah stabil lama, naik lagi (dengan backoff supaya
+//     tidak bolak-balik). Bisa dimatikan (OFF = pixel ratio tetap).
+// Pengaturan disimpan di localStorage (jawir_v3.perfSettings), per
+// device — sengaja TIDAK ikut file project.
+// Mengendalikan window._novaRenderQuality (dipakai pembuat renderer &
+// _jawirApplyGraphicsQuality), jadi Graphics Quality LOW/NORMAL/HIGH
+// tetap bekerja sebagai pengali di atasnya.
+// ════════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+  var PKEY = 'jawir_v3';
+  var S = { limit:'auto', adaptive:true, max:2, min:1.25 };
+
+  function _load(){
+    try{
+      var d = JSON.parse(localStorage.getItem(PKEY) || '{}');
+      var p = d.perfSettings;
+      if (p){
+        if (['auto','30','60','free'].indexOf(String(p.limit)) >= 0) S.limit = String(p.limit);
+        if (typeof p.adaptive === 'boolean') S.adaptive = p.adaptive;
+        if ([1,1.5,2].indexOf(Number(p.max)) >= 0) S.max = Number(p.max);
+        if ([1,1.25,1.5].indexOf(Number(p.min)) >= 0) S.min = Number(p.min);
+      }
+    }catch(e){}
+    if (S.min > S.max) S.min = S.max;
+  }
+  function _save(){
+    try{
+      var d = JSON.parse(localStorage.getItem(PKEY) || '{}');
+      d.perfSettings = S;
+      localStorage.setItem(PKEY, JSON.stringify(d));
+    }catch(e){}
+  }
+
+  function _dpr(){ return window.devicePixelRatio || 1; }
+  function _baseRatio(){ return Math.min(_dpr(), S.max); }
+
+  var cur = 2;              // pixel ratio aktif (sebelum dikali Graphics Quality)
+  var refreshHz = 0;        // refresh rate layar hasil deteksi (0 = belum tahu)
+  var rawDeltas = [];       // jarak antar RAF mentah (untuk deteksi refresh rate)
+  var lastRaw = 0, lastDetect = 0;
+  var lastRender = 0;       // waktu frame terakhir yang benar-benar dirender
+  var startT = 0;           // waktu tick pertama (untuk masa tenang awal)
+  var winStart = 0, winFrames = 0, lastFps = 0;
+  var badWins = 0, goodWins = 0, settleUntil = 0, probeUntil = 0, upNeed = 15;
+
+  function _publish(){ window._novaRenderQuality = cur; }
+
+  function _apply(){
+    _publish();
+    var r = window._gbRenderer, vp = document.getElementById('viewport');
+    if (!r || !vp) return;
+    r.setPixelRatio(Math.min(_dpr(), cur) * (window._novaQualityScale || 1));
+    r.setSize(vp.clientWidth, vp.clientHeight);
+  }
+
+  function _resetCur(){
+    cur = _baseRatio();
+    badWins = 0; goodWins = 0; upNeed = 15; probeUntil = 0; settleUntil = 0;
+  }
+
+  // Interval frame target dalam ms. 0 = tanpa batas.
+  function _interval(){
+    if (S.limit === 'free') return 0;
+    if (S.limit === '30') return 1000 / 30;
+    if (S.limit === '60') return 1000 / 60;
+    // AUTO: hanya layar refresh tinggi yang dibatasi (kelipatan ~60 FPS).
+    if (!refreshHz || refreshHz < 100) return 0;
+    var div = Math.max(1, Math.floor(refreshHz / 55));
+    return div * (1000 / refreshHz);
+  }
+
+  function _detectRefresh(t){
+    lastDetect = t;
+    var a = rawDeltas.slice().sort(function(x, y){ return x - y; });
+    var p = a[Math.floor(a.length * 0.1)];   // persentil 10 = frame tercepat yang wajar
+    if (!p) return;
+    var hz = 1000 / p, std = [60, 72, 90, 120, 144, 165], best = 60, bd = 1e9;
+    for (var i = 0; i < std.length; i++){
+      var dd = Math.abs(std[i] - hz);
+      if (dd < bd){ bd = dd; best = std[i]; }
+    }
+    refreshHz = best;
+  }
+
+  function _updateLive(){
+    var el = document.getElementById('perfLive');
+    if (!el) return;
+    var iv = _interval();
+    var lim = iv > 0 ? Math.round(1000 / iv) + ' fps' : 'bebas';
+    var pr = Math.min(_dpr(), cur) * (window._novaQualityScale || 1);
+    el.textContent = 'FPS ' + Math.round(lastFps) + ' · Pixel ratio ' + pr.toFixed(2) +
+                     ' · Layar ' + (refreshHz ? refreshHz + 'Hz' : '?') + ' · Limit ' + lim;
+  }
+
+  function _refreshUI(){
+    function on(id, v){ var b = document.getElementById(id); if (b) b.classList.toggle('on-t', !!v); }
+    on('perfLimAuto', S.limit === 'auto'); on('perfLim30', S.limit === '30');
+    on('perfLim60', S.limit === '60');     on('perfLimFree', S.limit === 'free');
+    on('perfAdaptOn', S.adaptive);         on('perfAdaptOff', !S.adaptive);
+    on('perfMax1', S.max === 1); on('perfMax1_5', S.max === 1.5); on('perfMax2', S.max === 2);
+    on('perfMin1', S.min === 1); on('perfMin1_25', S.min === 1.25); on('perfMin1_5', S.min === 1.5);
+    var row = document.getElementById('perfMinRow'); if (row) row.style.opacity = S.adaptive ? '1' : '.35';
+    var lbl = document.getElementById('perfMaxLbl');
+    if (lbl) lbl.textContent = S.adaptive ? 'PIXEL RATIO MAKS (batas atas adaptif)' : 'PIXEL RATIO TETAP';
+    _updateLive();
+  }
+
+  // Sampling FPS per ~1 detik pada frame yang benar-benar dirender.
+  function _sample(t){
+    if (!startT) startT = t;
+    if (!winStart){ winStart = t; winFrames = 0; return; }
+    winFrames++;
+    var span = t - winStart;
+    if (span < 1000) return;
+    var fps = winFrames * 1000 / span;
+    lastFps = fps;
+    winStart = t; winFrames = 0;
+    _updateLive();
+
+    if (span > 2500){ badWins = 0; goodWins = 0; return; }   // sempat hang / background
+    if (!S.adaptive || !refreshHz) return;
+    if (t - startT < 5000) return;                           // masa tenang saat app baru dibuka
+    if (t < settleUntil) return;
+
+    var iv = _interval();
+    var tgt = Math.min(iv > 0 ? 1000 / iv : refreshHz, 60);  // 60 FPS sudah dianggap mulus
+    var ceil = _baseRatio();
+    var floor = Math.min(S.min, ceil);
+
+    if (fps < tgt * 0.88){
+      goodWins = 0; badWins++;
+      if (badWins >= 2 && cur > floor + 0.001){
+        if (t < probeUntil) upNeed = Math.min(upNeed * 2, 180);   // naik tadi gagal → tunggu lebih lama
+        cur = Math.max(floor, +(cur - 0.25).toFixed(2));
+        badWins = 0; settleUntil = t + 1500; winStart = 0;
+        _apply();
+      }
+    } else if (fps >= tgt * 0.96){
+      badWins = 0; goodWins++;
+      if (goodWins >= upNeed && cur < ceil - 0.001){
+        cur = Math.min(ceil, +(cur + 0.25).toFixed(2));
+        goodWins = 0; settleUntil = t + 1500; probeUntil = t + 8000; winStart = 0;
+        _apply();
+      }
+    } else {
+      badWins = 0; goodWins = 0;
+    }
+  }
+
+  // Dipanggil dari awal gb_animate tiap requestAnimationFrame.
+  // return true  = LEWATI frame ini (frame limiter)
+  // return false = lanjut render
+  window._novaPerfTick = function(){
+    var t = performance.now();
+    if (lastRaw){
+      var d = t - lastRaw;
+      if (d > 3 && d < 60){
+        rawDeltas.push(d);
+        if (rawDeltas.length > 240) rawDeltas.shift();
+      }
+    }
+    lastRaw = t;
+    if (rawDeltas.length >= 90 && (!refreshHz || t - lastDetect > 5000)) _detectRefresh(t);
+
+    var iv = _interval();
+    if (iv > 0 && (t - lastRender) < iv - 1.5) return true;
+    lastRender = t;
+    _sample(t);
+    return false;
+  };
+
+  // Intip (tanpa mengubah state): apakah frame ini akan dirender?
+  // Dipakai untuk menghemat kerja CPU yang percuma (redraw texture videotron).
+  window._novaPerfPeek = function(){
+    var iv = _interval();
+    if (iv <= 0) return true;
+    return (performance.now() - lastRender) >= iv - 1.5;
+  };
+
+  window.novaPerfSet = function(key, val){
+    if (key === 'limit') S.limit = String(val);
+    else if (key === 'adaptive') S.adaptive = !!val;
+    else if (key === 'max'){ S.max = Number(val); if (S.min > S.max) S.min = S.max; }
+    else if (key === 'min'){ S.min = Math.min(Number(val), S.max); }
+    _resetCur(); winStart = 0;
+    _apply(); _save(); _refreshUI();
+    if (typeof setStatus === 'function'){
+      var iv = _interval();
+      setStatus('⚡ Performa: limit ' + (S.limit === 'auto' ? 'AUTO' : (S.limit === 'free' ? 'BEBAS' : S.limit + ' FPS')) +
+                ' · adaptif ' + (S.adaptive ? 'ON' : 'OFF') + ' · PR maks ' + S.max);
+    }
+  };
+
+  document.addEventListener('visibilitychange', function(){
+    lastRaw = 0; winStart = 0; badWins = 0; goodWins = 0;
+  });
+
+  _load();
+  _resetCur();
+  _publish();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _refreshUI);
+  else _refreshUI();
+})();
 
 // ========================================================
 // CANVAS
@@ -5918,7 +6141,24 @@ function spawnFanLamps(n){
   }
 }
 
-function saveUI(){const d=ls();d.wallwashers=state.wallwashers;d.parleds=state.parleds;d.miniBrutes=state.miniBrutes;d.martins=state.martins;d.fanLamps=state.fanLamps;d.masterVideo=state.masterVideo;d.parPattern=parPatternState.active;d.parPatternSpeeds=parPatternSpeeds;d.parledFollowFlash=state.parledFollowFlash;d.parledMasterDim=state.parledMasterDim;d.gfxQuality=state.gfxQuality;ss(d);}
+function saveUI(){const d=ls();d.wallwashers=state.wallwashers;d.parleds=state.parleds;d.miniBrutes=state.miniBrutes;d.martins=state.martins;d.fanLamps=state.fanLamps;d.parPattern=parPatternState.active;d.parPatternSpeeds=parPatternSpeeds;d.parledFollowFlash=state.parledFollowFlash;d.parledMasterDim=state.parledMasterDim;d.gfxQuality=state.gfxQuality;ss(d);}
+// AUTO-SAVE VIDEOTRON 3D — dipanggil dari modul Videotron 3D tiap kali posisi/
+// rotasi/scale/shape/dll berubah (lewat Editor 3D atau slider panel VIDEO TRON).
+// Disimpan terpisah dari saveUI() karena window._vt3dSerialize baru terdaftar
+// belakangan (modul vt3d ada di IIFE lain, load lebih akhir). Videotron video
+// (blob URL) tidak ikut tersimpan — sama seperti project download manual,
+// user perlu upload ulang video setelah reload, tapi posisi/rotasi/scale/
+// shape/warna/dll otomatis balik seperti semula.
+function saveVt3DLayout(){
+  try{
+    if (typeof window._vt3dSerialize !== 'function') return;
+    var layout = window._vt3dSerialize();
+    var d = ls();
+    d.vt3dLayout = layout;
+    ss(d);
+  }catch(e){ console.warn('[Nova] Gagal auto-save Videotron 3D:', e); }
+}
+window.saveVt3DLayout = saveVt3DLayout;
 function restoreUI(){
   const d=ls();
   if(d.wallwashers) state.wallwashers=d.wallwashers;
@@ -5967,7 +6207,6 @@ function restoreUI(){
   if(d.rainbow!==undefined) state.rainbow=d.rainbow;
   if(d.rainbowSpeed!==undefined) state.rainbowSpeed=d.rainbowSpeed;
   if(d.fanLamps) state.fanLamps=d.fanLamps;
-  if(d.masterVideo) state.masterVideo=Object.assign({size:400,rot:0,posX:0,posY:0,overlay:false,loop:true},d.masterVideo);
   // Gobo settings per-mode — murni dari data tersimpan user (d.goboSettings)
   if(d.goboSettings){
     Object.keys(d.goboSettings).forEach(k=>{
@@ -6070,13 +6309,27 @@ function restoreUI(){
     if (typeof renderFanLampSelectList === 'function') renderFanLampSelectList();
     if (typeof updateFanLampFaders === 'function') updateFanLampFaders();
   }catch(e){ console.warn('[Nova] Gagal sync panel LAMPU KIPAS saat restore', e); }
-  // Sinkronkan panel VIDEO OVERLAY (GLOBAL) — hanya state posisi/size/rot/
-  // overlay/loop yang di-restore; file videonya sendiri (blob URL) tidak
-  // persisten dan tetap perlu diupload ulang, sama seperti media VT Jockey.
+  // AUTO-LOAD VIDEOTRON 3D dari localStorage (jawir_v3.vt3dLayout) — jalan
+  // otomatis tiap kali web/APK dibuka, tanpa perlu load project manual.
+  // Modul Videotron 3D (window._vt3dRestore) + scene 3D (window._gbScene)
+  // baru siap belakangan, jadi dipakai pola retry yang sama seperti restore
+  // project (lihat sLoadProj). Kalau tidak ada data tersimpan, biarkan
+  // auto-spawn default 1 videotron (di modul vt3d) yang jalan seperti biasa.
   try{
-    if (typeof window._novaRefreshMvUI === 'function') window._novaRefreshMvUI();
-    if (typeof window._novaRenderMasterVideoFrame === 'function') window._novaRenderMasterVideoFrame();
-  }catch(e){ console.warn('[Nova] Gagal sync panel VIDEO OVERLAY saat restore', e); }
+    var _vt3dSaved = d.vt3dLayout;
+    if (_vt3dSaved && _vt3dSaved.length) {
+      window._vt3dPendingRestore = _vt3dSaved;
+      (function _tryAutoRestoreVt3d(triesLeft){
+        if (typeof window._vt3dRestore === 'function' && window._gbScene) {
+          window._vt3dRestore(window._vt3dPendingRestore);
+          window._vt3dPendingRestore = null;
+          return;
+        }
+        if (triesLeft <= 0) return;
+        setTimeout(function(){ _tryAutoRestoreVt3d(triesLeft-1); }, 300);
+      })(60);
+    }
+  }catch(e){ console.warn('[Nova] Gagal auto-load Videotron 3D saat restore', e); }
 }
 restoreUI();
 
@@ -9562,8 +9815,10 @@ function loop(now){
 
   updateKFPlayback();
 
-  // Videotron 3D — redraw canvas texture tiap frame kalau video sedang main
-  if(typeof window._vt3dTick === 'function') window._vt3dTick();
+  // Videotron 3D — redraw canvas texture tiap frame kalau video sedang main.
+  // Dilewati di frame yang memang tidak dirender oleh frame limiter (upload
+  // texture ke GPU di frame itu percuma).
+  if(typeof window._vt3dTick === 'function' && (typeof window._novaPerfPeek !== 'function' || window._novaPerfPeek())) window._vt3dTick();
 
   for(let i=0;i<state.heads.length;i++){
     const h=state.heads[i];
@@ -14514,6 +14769,10 @@ gb_animate = function() {
   gb_animate._overridden = true; // tandai sudah di-override
   requestAnimationFrame(gb_animate);
 
+  // FRAME LIMITER + sampling FPS untuk pixel ratio adaptif (lihat modul
+  // "PERFORMA" di dekat Graphics Quality). true = lewati frame ini.
+  if (typeof window._novaPerfTick === 'function' && window._novaPerfTick()) return;
+
   const now = performance.now();
   const deltaTime = now - gb_lastTime;
   gb_lastTime = now;
@@ -16298,189 +16557,6 @@ function toggleFanLampFollowStrobe(){
   // Render awal
   renderFanLampSelectList();
   updateFanLampFaders();
-})();
-
-// ════════════════════════════════════════════════════════════════
-// VIDEO OVERLAY (GLOBAL) — port dari referensi index__3_.html
-// ────────────────────────────────────────────────────────────────
-// Satu video HTML <video> mengambang bebas di atas viewport (DOM
-// overlay, BUKAN texture 3D) — tidak terikat ke panel VT Jockey
-// manapun, tidak pernah di-crop (object-fit:contain). Posisi/ukuran/
-// rotasi diatur manual lewat slider, bisa ON/OFF (Overlay toggle).
-// Mengikuti pola Nova yang sudah ada: hanya STATE (posisi, size, rot,
-// overlay on/off, loop) yang disimpan permanen ke save/load — file
-// videonya sendiri pakai blob URL sementara (URL.createObjectURL),
-// sama seperti media VT Jockey, karena localStorage tidak muat file
-// video besar. Video perlu diupload ulang setelah reload halaman.
-// ════════════════════════════════════════════════════════════════
-(function(){
-  'use strict';
-
-  function _mvState(){
-    if (typeof state === 'undefined') return null;
-    if (!state.masterVideo) {
-      state.masterVideo = { size: 400, rot: 0, posX: 0, posY: 0, overlay: false, loop: true };
-    }
-    return state.masterVideo;
-  }
-
-  function _mvEl(){ return document.getElementById('novaMasterVideo'); }
-
-  function renderMasterVideoFrame(){
-    var mv = _mvState();
-    var el = _mvEl();
-    if (!mv || !el) return;
-    var vp = document.getElementById('viewport');
-    var vpW = vp ? vp.clientWidth : window.innerWidth;
-    var vpH = vp ? vp.clientHeight : window.innerHeight;
-    var w = mv.size;
-    var aspect = (el.videoWidth && el.videoHeight) ? (el.videoWidth / el.videoHeight) : (16/9);
-    var h = w / aspect;
-    el.style.width = w + 'px';
-    el.style.height = h + 'px';
-    // Pos X/Y disimpan sebagai persen (-100..100) dari setengah lebar/tinggi
-    // viewport, supaya proporsional di berbagai ukuran layar — 0,0 = tengah.
-    var cx = vpW / 2 + (mv.posX / 100) * (vpW / 2);
-    var cy = vpH / 2 + (mv.posY / 100) * (vpH / 2);
-    el.style.left = cx + 'px';
-    el.style.top = cy + 'px';
-    el.style.transform = 'translate(-50%,-50%) rotate(' + mv.rot + 'deg)';
-    el.classList.toggle('overlay-on', !!mv.overlay);
-    el.loop = !!mv.loop;
-  }
-  window._novaRenderMasterVideoFrame = renderMasterVideoFrame;
-
-  function refreshMvUI(){
-    var mv = _mvState();
-    if (!mv) return;
-    var el = _mvEl();
-    function setVal(id, val, suffix){
-      var e = document.getElementById(id); if (e && document.activeElement !== e) e.value = val;
-      var vEl = document.getElementById(id + 'V'); if (vEl) vEl.textContent = val + (suffix || '');
-    }
-    setVal('novaMvSize', Math.round(mv.size));
-    setVal('novaMvRot', mv.rot, '°');
-    setVal('novaMvPosX', mv.posX);
-    setVal('novaMvPosY', mv.posY);
-    var ovBtn = document.getElementById('novaMvOverlayToggle');
-    if (ovBtn){ ovBtn.textContent = 'Video Overlay: ' + (mv.overlay ? 'ON' : 'OFF'); ovBtn.classList.toggle('on', !!mv.overlay); }
-    var loopBtn = document.getElementById('novaMvLoopToggle');
-    if (loopBtn){ loopBtn.textContent = 'Loop: ' + (mv.loop ? 'ON' : 'OFF'); loopBtn.classList.toggle('on', !!mv.loop); }
-    var statusEl = document.getElementById('novaMvStatus');
-    if (statusEl) {
-      if (!el || !el.src) {
-        statusEl.textContent = 'Belum ada video';
-      } else if (el.readyState >= 2 && el.videoWidth > 0) {
-        statusEl.textContent = 'Video siap (' + el.videoWidth + '×' + el.videoHeight + ') — ' + (el.paused ? 'PAUSED, tap PLAY' : 'sedang play');
-      } else if (el.error) {
-        statusEl.textContent = 'Gagal memuat video (format/codec tidak didukung)';
-      } else {
-        statusEl.textContent = 'Memuat video...';
-      }
-    }
-  }
-  window._novaRefreshMvUI = refreshMvUI;
-
-  function handleMvUpload(fileInput){
-    var file = fileInput.files && fileInput.files[0];
-    if (!file) return;
-    var el = _mvEl();
-    if (!el) return;
-
-    var url = URL.createObjectURL(file);
-    el.pause();
-    el.src = url;
-    el.load();
-
-    var mv = _mvState();
-    // Upload video otomatis nyalain Overlay, supaya user langsung lihat
-    // hasilnya tanpa perlu klik toggle manual dulu.
-    if (mv) mv.overlay = true;
-
-    function tryPlay(){
-      var p = el.play();
-      if (p && typeof p.catch === 'function') {
-        p.catch(function(err){
-          console.warn('[Nova] Autoplay video overlay diblokir browser, perlu tap PLAY manual:', err);
-        });
-      }
-    }
-
-    el.onloadedmetadata = function(){ renderMasterVideoFrame(); refreshMvUI(); };
-    el.onloadeddata = function(){ renderMasterVideoFrame(); refreshMvUI(); tryPlay(); };
-    el.oncanplay = function(){ tryPlay(); refreshMvUI(); };
-    el.onplaying = function(){ refreshMvUI(); };
-    el.onerror = function(){
-      console.warn('[Nova] Video overlay gagal dimuat (format tidak didukung / file rusak).', el.error);
-      refreshMvUI();
-    };
-
-    renderMasterVideoFrame();
-    refreshMvUI();
-  }
-
-  function bindMvUI(){
-    var on = function(id, ev, fn){ var e = document.getElementById(id); if (e) e.addEventListener(ev, fn); };
-
-    on('novaMvImportBtn', 'click', function(){ var f = document.getElementById('novaMvFileInput'); if (f) f.click(); });
-    on('novaMvFileInput', 'change', function(e){ handleMvUpload(e.target); });
-
-    on('novaMvOverlayToggle', 'click', function(){
-      var mv = _mvState(); if (!mv) return;
-      mv.overlay = !mv.overlay;
-      renderMasterVideoFrame(); refreshMvUI();
-      if (typeof saveUI === 'function') saveUI();
-    });
-    on('novaMvLoopToggle', 'click', function(){
-      var mv = _mvState(); if (!mv) return;
-      mv.loop = !mv.loop;
-      renderMasterVideoFrame(); refreshMvUI();
-      if (typeof saveUI === 'function') saveUI();
-    });
-    on('novaMvPlay', 'click', function(){ var el = _mvEl(); if (el) el.play().catch(function(){}); });
-    on('novaMvPause', 'click', function(){ var el = _mvEl(); if (el) el.pause(); });
-
-    on('novaMvSize', 'input', function(e){
-      var mv = _mvState(); if (!mv) return;
-      mv.size = Math.max(20, Number(e.target.value) || 0);
-      renderMasterVideoFrame();
-      var v = document.getElementById('novaMvSizeV'); if (v) v.textContent = Math.round(mv.size);
-      if (typeof saveUI === 'function') saveUI();
-    });
-    on('novaMvRot', 'input', function(e){
-      var mv = _mvState(); if (!mv) return;
-      mv.rot = Number(e.target.value) || 0;
-      renderMasterVideoFrame();
-      var v = document.getElementById('novaMvRotV'); if (v) v.textContent = mv.rot + '°';
-      if (typeof saveUI === 'function') saveUI();
-    });
-    on('novaMvPosX', 'input', function(e){
-      var mv = _mvState(); if (!mv) return;
-      mv.posX = Number(e.target.value) || 0;
-      renderMasterVideoFrame();
-      var v = document.getElementById('novaMvPosXV'); if (v) v.textContent = mv.posX;
-      if (typeof saveUI === 'function') saveUI();
-    });
-    on('novaMvPosY', 'input', function(e){
-      var mv = _mvState(); if (!mv) return;
-      mv.posY = Number(e.target.value) || 0;
-      renderMasterVideoFrame();
-      var v = document.getElementById('novaMvPosYV'); if (v) v.textContent = mv.posY;
-      if (typeof saveUI === 'function') saveUI();
-    });
-
-    refreshMvUI();
-    renderMasterVideoFrame();
-  }
-
-  // Reposisi otomatis kalau ukuran viewport berubah (rotasi layar HP, dsb)
-  window.addEventListener('resize', function(){ renderMasterVideoFrame(); });
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindMvUI);
-  } else {
-    bindMvUI();
-  }
 })();
 
 // ─── Hook spawn fungsi agar 3D fixture respawn saat user spawn ──
@@ -19096,6 +19172,7 @@ function _syncFixtureState(entry, obj){
       v.state.scale = obj.scale.x;
     }
     if(typeof window.updateVt3DFadersFromE3D === 'function') window.updateVt3DFadersFromE3D();
+    if(typeof window._saveVt3DDebounced === 'function') window._saveVt3DDebounced();
     return;
   }
 
@@ -23201,11 +23278,6 @@ if(document.readyState === 'loading'){
       if (typeof updateFanLampFaders === 'function') updateFanLampFaders();
     }catch(e){ console.warn('[Nova][RestoreGuard] sync LAMPU KIPAS gagal:', e); report.push('fanlamp✗'); }
 
-    try{
-      if (typeof window._novaRefreshMvUI === 'function'){ window._novaRefreshMvUI(); report.push('mastervideo✓'); }
-      if (typeof window._novaRenderMasterVideoFrame === 'function') window._novaRenderMasterVideoFrame();
-    }catch(e){ console.warn('[Nova][RestoreGuard] sync VIDEO OVERLAY gagal:', e); report.push('mastervideo✗'); }
-
     var failed = report.filter(function(r){ return r.indexOf('✗') >= 0; });
     if (failed.length){
       console.warn('[Nova][RestoreGuard] Sebagian gagal disinkronkan:', failed.join(', '));
@@ -23322,6 +23394,17 @@ if(document.readyState === 'loading'){
   var areVtsVisible = true;
   var vtSoundEnabled = false;
   var vtFollowFlashMB = false;
+
+  // Auto-save layout (posisi/rotasi/scale/shape/dll) ke localStorage, di-debounce
+  // supaya slider yang di-drag terus-menerus (oninput) tidak nulis ke localStorage
+  // ratusan kali per detik — cukup ~500ms setelah user berhenti geser.
+  var _saveVt3DTimer = null;
+  function _saveVt3DDebounced(){
+    if (_saveVt3DTimer) clearTimeout(_saveVt3DTimer);
+    _saveVt3DTimer = setTimeout(function(){
+      if (typeof window.saveVt3DLayout === 'function') window.saveVt3DLayout();
+    }, 500);
+  }
 
   function _scene(){ return window._gbScene || null; }
 
@@ -23566,6 +23649,7 @@ if(document.readyState === 'loading'){
     renderVtSelectList(); updateVtFaders();
     if (typeof window._registerVts === 'function') window._registerVts();
     if (typeof saveChannels === 'function') saveChannels();
+    if (typeof window.saveVt3DLayout === 'function') window.saveVt3DLayout();
   }
 
   function renderVtSelectList() {
@@ -23623,6 +23707,7 @@ if(document.readyState === 'loading'){
       if (ab) ab.classList.add('active');
     }
     if (typeof saveChannels === 'function') saveChannels();
+    _saveVt3DDebounced();
   }
 
   function uVtFrameColor(val) {
@@ -23631,6 +23716,7 @@ if(document.readyState === 'loading'){
       v.state.frameColor = val; v.frameMat.color.set(val);
     });
     if (typeof saveChannels === 'function') saveChannels();
+    _saveVt3DDebounced();
   }
 
   function rebuildVt(idx) {
@@ -23656,13 +23742,9 @@ if(document.readyState === 'loading'){
     var s = src.state;
     var set = function(id, val){ var el=document.getElementById(id); if (el) el.value=val; };
     var setTxt = function(id, val){ var el=document.getElementById(id); if (el) el.innerText=val; };
-    set('vt3d-posX', s.posX); setTxt('vt3d-posX-disp', s.posX);
-    set('vt3d-posY', s.posY); setTxt('vt3d-posY-disp', s.posY);
-    set('vt3d-posZ', s.posZ); setTxt('vt3d-posZ-disp', s.posZ);
-    set('vt3d-rotY', s.rotY); setTxt('vt3d-rotY-disp', s.rotY);
-    set('vt3d-rotX', s.rotX); setTxt('vt3d-rotX-disp', s.rotX);
-    set('vt3d-rotZ', s.rotZ||0); setTxt('vt3d-rotZ-disp', s.rotZ||0);
-    set('vt3d-scale', s.scale||1); setTxt('vt3d-scale-disp', s.scale||1);
+    // POSISI/ROTASI/SCALE tidak lagi punya slider di sini — diatur lewat
+    // panel Editor 3D standar. state.posX/posY/dst tetap disimpan di v.state
+    // (dipakai Editor 3D & save/load project), hanya UI fader-nya yang dicabut.
     set('vt3d-width', s.width);
     set('vt3d-height', s.height);
     set('vt3d-corner', s.cornerRadius||0);
@@ -23931,6 +24013,7 @@ if(document.readyState === 'loading'){
         v.state.cropX = _cropState.x; v.state.cropY = _cropState.y; v.state.cropZoom = _cropState.zoom;
       });
       if (typeof saveChannels === 'function') saveChannels();
+      if (typeof window.saveVt3DLayout === 'function') window.saveVt3DLayout();
     }
     _cropVtIdx = -1;
   }
@@ -24078,6 +24161,9 @@ if(document.readyState === 'loading'){
   // Dipanggil setelah Editor 3D mengubah transform videotron, supaya slider
   // POSISI/ROTASI/SCALE di panel Gerakan > VIDEOTRON 3D langsung ikut update.
   window.updateVt3DFadersFromE3D = function(){ updateVtFaders(); };
+  // Expose debounced auto-save supaya bisa dipanggil dari _syncFixtureState
+  // (Editor 3D, di luar IIFE ini) tiap kali videotron di-drag/discale di stage.
+  window._saveVt3DDebounced = _saveVt3DDebounced;
 
   // ── Expose to global for inline onclick/oninput handlers ──
   window.changeVt3DCount = changeVtCount;
@@ -24100,7 +24186,11 @@ if(document.readyState === 'loading'){
   window.resetVt3DCropModal = resetVtCropModal;
 
   // Auto-spawn 1 videotron default begitu scene 3D siap, meniru perilaku Martin dkk.
+  // SKIP kalau ada layout tersimpan (window._vt3dPendingRestore, diisi restoreUI()
+  // dari localStorage) yang sedang menunggu untuk dipulihkan — supaya videotron
+  // hasil save sebelumnya tidak sempat ketiban/di-flash-replace oleh unit default.
   function _waitSceneThenInit(triesLeft){
+    if (window._vt3dPendingRestore && window._vt3dPendingRestore.length) return;
     if (window._gbScene) { spawnVts(1); return; }
     if (triesLeft <= 0) return;
     setTimeout(function(){ _waitSceneThenInit(triesLeft-1); }, 300);
