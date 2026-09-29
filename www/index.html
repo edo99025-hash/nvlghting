@@ -491,6 +491,14 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
 #e3dAssetGrid .e3d-asset-item.selected{border-color:var(--amber);background:var(--panel2)}
 #e3dCatBar .e3d-cat-btn{font-size:8px;padding:2px 5px;border-radius:2px;cursor:pointer;border:1px solid var(--border);background:var(--btn);color:var(--lbl);font-family:'Chakra Petch',monospace;letter-spacing:.06em}
 #e3dCatBar .e3d-cat-btn.active{background:var(--amber);color:#000;border-color:var(--amber)}
+#e3dAssetGrid .e3d-asset-group{display:flex;flex-direction:column;gap:2px}
+#e3dAssetGrid .e3d-vdots{display:flex;gap:3px;margin-left:auto;flex-shrink:0;align-items:center}
+.e3d-vdot{width:9px;height:9px;border-radius:50%;border:1px solid rgba(255,255,255,.4);display:inline-block}
+#e3dAssetGrid .e3d-variant-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:5px 6px;margin-left:8px;border-left:2px solid var(--amber);background:var(--panel2);border-radius:0 3px 3px 0}
+#e3dAssetGrid .e3d-variant-lbl{font-size:7px;letter-spacing:.15em;color:var(--lbl);font-family:'Share Tech Mono',monospace}
+#e3dAssetGrid .e3d-variant-chip{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:14px;border:1px solid var(--border2);background:var(--btn);color:var(--text);font-size:9px;font-family:'Chakra Petch',monospace;letter-spacing:.05em;cursor:pointer;touch-action:manipulation}
+#e3dAssetGrid .e3d-variant-chip.active{border-color:var(--amber);background:rgba(255,170,0,.14);color:var(--amber)}
+.e3d-variant-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.45);display:inline-block}
 .e3d-tprop{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
 .e3d-tprop label{font-size:7px;color:var(--lbl);letter-spacing:.1em;text-transform:uppercase}
 .e3d-fader-smooth{touch-action:none}
@@ -8209,6 +8217,10 @@ const KB_ACTIONS = [
     {id:'gobo2',label:'PRISM 5'},{id:'gobo3',label:'PRISM 16'},{id:'gobo4',label:'FAN'},
     {id:'rotate',label:'ROTATE toggle'},{id:'rainbow',label:'RAINBOW toggle'},
   ]},
+  {group:'STANDBY', items:[
+    {id:'standby1',label:'Standby 1'},{id:'standby2',label:'Standby 2'},
+    {id:'standby3',label:'Standby 3'},{id:'standby4',label:'Standby 4'},
+  ]},
 ];
 
 const KB_DEFAULT_MAP = {
@@ -8220,6 +8232,10 @@ const KB_DEFAULT_MAP = {
   mbToggle:'a', mbHold:'s', mbHoldBeam:'space',
   gobo0:'z',gobo1:'x',gobo2:'c',gobo3:'v',gobo4:'b',
   rotate:'n', rainbow:'m',
+  // Angka 0-9 & huruf a-z sudah habis kepakai shortcut lain, jadi Standby
+  // dipetakan ke tombol tanda baca yang masih kosong (dan bukan '/' — itu
+  // dipakai buka Legend panel). Tetap bisa diubah user di Keyboard Settings.
+  standby1:'[', standby2:']', standby3:';', standby4:"'",
 };
 
 function saveKbMap(){
@@ -18278,6 +18294,10 @@ window._f3Pos = f3Pos; // expose untuk debug
     }
     if(actionId==='rotate'){ doRotate(); return; }
     if(actionId==='rainbow'){ doRainbow(); return; }
+    if(/^standby(\d)$/.test(actionId)){
+      if(typeof loadStandby==='function') loadStandby(parseInt(actionId.slice(8),10)-1);
+      return;
+    }
   }, false);
 
   document.addEventListener('keyup', function(e){
@@ -18327,6 +18347,7 @@ window._f3Pos = f3Pos; // expose untuk debug
       +row(keyDisp('gobo4'),'FAN','#cc44ff')
       +row(keyDisp('rotate'),'ROTATE toggle','#cc44ff')
       +row(keyDisp('rainbow'),'RAINBOW toggle','#cc44ff')
+      +row(rangeKeys('standby',4),'Load Standby 1 – 4','#ffcc00')
       +row('? atau /','Buka/tutup panel ini','#4a5868')
       +'<div style="display:flex;gap:8px;margin-top:16px" onclick="event.stopPropagation()">'
       +'<button id="_kbOpenSettingsBtn" style="flex:1;padding:10px;background:#1a2028;border:1px solid #ffaa00;color:#ffaa00;border-radius:6px;font-family:Share Tech Mono,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer">⚙ SETTING KEYBOARD (halaman Setting)</button>'
@@ -18785,6 +18806,7 @@ window.MODEL_CACHE = window.MODEL_CACHE || {};
 
 // MODEL_DB — dari GitHub JSON
 window.MODEL_DB = window.MODEL_DB || [];
+window.MODEL_GROUPS = window.MODEL_GROUPS || [];
 
 // ---------- DB URL (GitHub Pages) ----------
 var DB_URL = 'https://raw.githubusercontent.com/Agunggt/jwrmodels/main/models.json';
@@ -18896,10 +18918,10 @@ function _fetchDB(){
   fetch(DB_URL)
     .then(function(r){ return r.json(); })
     .then(function(data){
-      window.MODEL_DB = (data.models||data||[]);
+      _setModelDB(data.models||data||[]);
       if(window.MODEL_DB.length === 0) _useFallback();
       else {
-        setTxt(window.MODEL_DB.length + ' MODELS');
+        setTxt(window.MODEL_GROUPS.length + ' MODELS');
         _buildAssetUI();
         // Upgrade placeholder yang sempat ke-spawn sebelum DB ini siap
         _e3dUpgradePlaceholders();
@@ -18924,34 +18946,195 @@ function _useFallback(){
   if(grid) grid.innerHTML = '<div style="padding:10px 6px;font-size:9px;color:var(--red);font-family:Share Tech Mono,monospace;line-height:1.8;text-align:center">⚠ Gagal load database<br><span style="color:var(--lbl)">Cek koneksi internet</span></div>';
 }
 
+// ---------- MODEL DB: NORMALISASI + VARIAN WARNA ----------
+// models.json boleh berisi dua bentuk entri (boleh dicampur):
+//  1) entri biasa  : { id, name, category, url, format }
+//                    → 1 baris di asset browser = 1 model.
+//  2) entri VARIAN : { id, name, category, format, variants:[ {id, label, swatch, url}, ... ] }
+//                    → 1 baris di asset browser; kalau ditekan muncul pilihan warna.
+//                    Tiap warna = FILE MODEL TERSENDIRI (bukan tint dari sistem), jadi
+//                    warnanya persis seperti model aslinya.
+// Hasil normalisasi:
+//   window.MODEL_DB     = daftar DATAR semua model yang bisa di-spawn (tiap varian = 1 entri).
+//                         id inilah yang disimpan project / undo, jadi id varian JANGAN
+//                         diubah setelah dipakai.
+//   window.MODEL_GROUPS = daftar tampilan asset browser [{id,name,category,variants:[def,...]}]
+function _hexToInt(h){
+  var m = /^#?([0-9a-f]{6})$/i.exec(String(h || ''));
+  return m ? parseInt(m[1], 16) : null;
+}
+function _normalizeModelDB(raw){
+  var flat = [], groups = [];
+  if(!Array.isArray(raw)) raw = [];
+  raw.forEach(function(m){
+    if(!m || typeof m !== 'object') return;
+    if(Array.isArray(m.variants) && m.variants.length){
+      var g = { id: m.id, name: m.name || m.id, category: m.category, variants: [] };
+      m.variants.forEach(function(v, i){
+        if(!v || !v.url) return;
+        var def = {
+          id: v.id || (m.id + '_' + i),
+          name: g.name + (v.label ? ' ' + v.label : ''),   // nama di daftar LAYERS, mis. "BOX CLA HITAM"
+          category: v.category || m.category,
+          url: v.url,
+          format: v.format || m.format,
+          scale: (v.scale !== undefined) ? v.scale : m.scale,
+          color: (v.color !== undefined) ? v.color : _hexToInt(v.swatch),  // warna placeholder saat model belum termuat
+          familyId: g.id,
+          variantLabel: v.label || '',
+          swatch: v.swatch || null
+        };
+        flat.push(def);
+        g.variants.push(def);
+      });
+      if(g.variants.length) groups.push(g);
+    } else {
+      flat.push(m);
+      groups.push({ id: m.id, name: m.name || m.id, category: m.category, variants: [m] });
+    }
+  });
+  return { flat: flat, groups: groups };
+}
+function _setModelDB(raw){
+  var n = _normalizeModelDB(raw);
+  window.MODEL_DB = n.flat;
+  window.MODEL_GROUPS = n.groups;
+}
+
+// Warna terakhir yang dipilih per model disimpan (per device) — jadi kalau biasanya
+// pakai CLA hitam, tekan BOX CLA langsung terpilih yang hitam.
+function _loadVariantPick(){
+  try{
+    var d = JSON.parse(localStorage.getItem('jawir_v3') || '{}');
+    if(d.e3dVariantPick && typeof d.e3dVariantPick === 'object') return d.e3dVariantPick;
+  }catch(e){}
+  return {};
+}
+function _saveVariantPick(){
+  try{
+    var d = JSON.parse(localStorage.getItem('jawir_v3') || '{}');
+    d.e3dVariantPick = window.e3dState.variantPick || {};
+    localStorage.setItem('jawir_v3', JSON.stringify(d));
+  }catch(e){}
+}
+function _defaultVariantOf(g){
+  var st = window.e3dState;
+  var want = st.variantPick && st.variantPick[g.id];
+  var hit = want && g.variants.find(function(v){ return v.id === want; });
+  return hit || g.variants[0];
+}
+function _setVariantPick(g, v){
+  var st = window.e3dState;
+  st.selectedAsset = v.id;
+  st.variantPick = st.variantPick || {};
+  st.variantPick[g.id] = v.id;
+  _saveVariantPick();
+  _buildAssetUI();
+}
+
 // ---------- ASSET BROWSER UI ----------
 function _buildAssetUI(){
+  var st = window.e3dState;
+  if(!st.variantPick) st.variantPick = _loadVariantPick();
+  var groups = window.MODEL_GROUPS || [];
   var cats = ['ALL'];
-  window.MODEL_DB.forEach(function(m){ if(cats.indexOf(m.category)<0) cats.push(m.category); });
+  groups.forEach(function(g){ if(cats.indexOf(g.category)<0) cats.push(g.category); });
 
   var catBar = document.getElementById('e3dCatBar');
   if(!catBar) return;
   catBar.innerHTML = '';
   cats.forEach(function(c){
     var btn = document.createElement('button');
-    btn.className = 'e3d-cat-btn' + (c===window.e3dState.activeCategory?' active':'');
+    btn.className = 'e3d-cat-btn' + (c===st.activeCategory?' active':'');
     btn.textContent = c;
-    btn.onclick = function(){ window.e3dState.activeCategory=c; _buildAssetUI(); };
+    btn.onclick = function(){ st.activeCategory=c; _buildAssetUI(); };
     catBar.appendChild(btn);
   });
 
   var grid = document.getElementById('e3dAssetGrid');
   if(!grid) return;
+  var keepScroll = grid.scrollTop;   // jangan loncat ke atas tiap kali item/warna ditekan
   grid.innerHTML = '';
-  var filtered = window.e3dState.activeCategory==='ALL' ? window.MODEL_DB : window.MODEL_DB.filter(function(m){ return m.category===window.e3dState.activeCategory; });
-  filtered.forEach(function(m){
+  var filtered = st.activeCategory==='ALL' ? groups : groups.filter(function(g){ return g.category===st.activeCategory; });
+  filtered.forEach(function(g){
+    var multi = g.variants.length > 1;
+    var curVar = g.variants.find(function(v){ return v.id === st.selectedAsset; }) || null;
+    var isSel = !!curVar;
+
     var item = document.createElement('div');
-    item.className = 'e3d-asset-item' + (window.e3dState.selectedAsset===m.id?' selected':'');
-    item.innerHTML = '<span style="font-size:14px">' + _catIcon(m.category) + '</span><span style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.name + '</span>';
-    item.onclick = function(){ window.e3dState.selectedAsset=m.id; _buildAssetUI(); };
-    item.ondblclick = function(){ window.e3dState.selectedAsset=m.id; e3dSpawnSelected(); };
-    grid.appendChild(item);
+    item.className = 'e3d-asset-item' + (isSel ? ' selected' : '');
+    var ic = document.createElement('span');
+    ic.style.fontSize = '14px';
+    ic.textContent = _catIcon(g.category);
+    var nm = document.createElement('span');
+    nm.style.cssText = 'font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0';
+    nm.textContent = g.name;
+    item.appendChild(ic);
+    item.appendChild(nm);
+    if(multi){
+      var dots = document.createElement('span');
+      dots.className = 'e3d-vdots';
+      dots.title = g.variants.length + ' warna';
+      g.variants.forEach(function(v){
+        var d = document.createElement('span');
+        d.className = 'e3d-vdot';
+        d.style.background = v.swatch || '#888';
+        dots.appendChild(d);
+      });
+      item.appendChild(dots);
+    }
+    // Tekan baris: pilih model ini (yang multi-warna otomatis membuka pilihan warna).
+    item.onclick = function(){
+      st.selectedAsset = curVar ? curVar.id : _defaultVariantOf(g).id;
+      _buildAssetUI();
+    };
+    item.ondblclick = function(){
+      st.selectedAsset = curVar ? curVar.id : _defaultVariantOf(g).id;
+      e3dSpawnSelected();
+    };
+
+    if(!multi){ grid.appendChild(item); return; }
+
+    var wrap = document.createElement('div');
+    wrap.className = 'e3d-asset-group';
+    wrap.appendChild(item);
+    if(isSel){
+      var bar = document.createElement('div');
+      bar.className = 'e3d-variant-bar';
+      var lbl = document.createElement('span');
+      lbl.className = 'e3d-variant-lbl';
+      lbl.textContent = 'WARNA';
+      bar.appendChild(lbl);
+      g.variants.forEach(function(v){
+        var chip = document.createElement('button');
+        chip.className = 'e3d-variant-chip' + (v.id === st.selectedAsset ? ' active' : '');
+        var dot = document.createElement('span');
+        dot.className = 'e3d-variant-dot';
+        dot.style.background = v.swatch || '#888';
+        var tx = document.createElement('span');
+        tx.textContent = v.variantLabel || v.id;
+        chip.appendChild(dot);
+        chip.appendChild(tx);
+        chip.onclick = function(){ _setVariantPick(g, v); };
+        chip.ondblclick = function(){ _setVariantPick(g, v); e3dSpawnSelected(); };
+        bar.appendChild(chip);
+      });
+      wrap.appendChild(bar);
+    }
+    grid.appendChild(wrap);
   });
+  grid.scrollTop = keepScroll;
+
+  // Tombol SPAWN menampilkan persis apa yang akan muncul (nama + warna)
+  var sb = document.getElementById('e3dSpawnBtn');
+  if(sb){
+    var label = '';
+    groups.forEach(function(g){
+      var v = g.variants.find(function(x){ return x.id === st.selectedAsset; });
+      if(v) label = (g.variants.length > 1 && v.variantLabel) ? (g.name + ' · ' + v.variantLabel) : g.name;
+    });
+    sb.textContent = label ? ('⊕ SPAWN ' + label) : '⊕ SPAWN';
+  }
 }
 
 function _catIcon(cat){
@@ -19121,6 +19304,39 @@ function _updateSelLabel(){
 // ---------- TRANSFORM PANEL — 1 FADER + MODE BUTTONS ----------
 // State mode yang aktif: 'px'|'py'|'pz'|'rx'|'ry'|'rz'|'sc'
 var _tActiveMode = 'px';
+
+// ── MODE INPUT TRANSFORM: 'fader' (geser) | 'click' (tombol + / −) | 'text' (ketik nilai) ──
+// Berlaku untuk semua properti (POS X/Y/Z, ROT X/Y/Z, SCALE). Pilihan mode + ukuran step
+// tombol +/− disimpan di localStorage (jawir_v3.e3dTransformUI), jadi diingat setelah
+// web/APK dibuka lagi. Semua mode memakai pipeline apply/sync yang SAMA dengan fader,
+// jadi group-transform, undo, dan sinkron ke state fixture tetap bekerja.
+var _tInputMode = 'fader';
+var _tStepSel = { pos:1, rot:5, sc:0.1 };
+(function(){
+  try{
+    var d = JSON.parse(localStorage.getItem('jawir_v3') || '{}');
+    var u = d.e3dTransformUI;
+    if(u){
+      if(['fader','click','text'].indexOf(u.mode) >= 0) _tInputMode = u.mode;
+      if(u.step){ ['pos','rot','sc'].forEach(function(k){ var n = Number(u.step[k]); if(n > 0) _tStepSel[k] = n; }); }
+    }
+  }catch(e){}
+})();
+function _tSaveUI(){
+  try{
+    var d = JSON.parse(localStorage.getItem('jawir_v3') || '{}');
+    d.e3dTransformUI = { mode:_tInputMode, step:_tStepSel };
+    localStorage.setItem('jawir_v3', JSON.stringify(d));
+  }catch(e){}
+}
+window._e3dSetInputMode = function(m){
+  if(['fader','click','text'].indexOf(m) < 0) return;
+  _tInputMode = m; _tSaveUI(); _updateTransformPanel();
+};
+window._e3dSetStep = function(kind, v){
+  if(!(kind in _tStepSel) || !(Number(v) > 0)) return;
+  _tStepSel[kind] = Number(v); _tSaveUI(); _updateTransformPanel();
+};
 
 // Sync posisi/rotasi/scale obj3d kembali ke state jawir (agar engine tidak override tiap frame).
 // Dipakai oleh transform panel (fader) DAN tombol RESET — diexpose global via window._e3dSyncFixtureState.
@@ -19533,15 +19749,179 @@ function _updateTransformPanel(){
       + m.lbl + '</button>';
   }).join('');
 
+  // ── Kontrol sesuai MODE INPUT (FADER / KLIK ± / TEKS) ──
+  var kindNow = cur.k.charAt(0)==='p' ? 'pos' : (cur.k.charAt(0)==='r' ? 'rot' : 'sc');
+  var STEP_OPTS = { pos:[0.1,0.5,1,5], rot:[1,5,15,45,90], sc:[0.01,0.05,0.1,0.5] };
+  // Batas longgar untuk mode KLIK/TEKS (fader tetap pakai min/max-nya sendiri) —
+  // hanya untuk mencegah angka ngawur (mis. 1e9) yang merusak scene.
+  var CLAMP = { pos:[-1000,1000], rot:[-3600,3600], sc:[0.01,200] };
+  var unitNow = kindNow==='rot' ? '°' : (kindNow==='sc' ? '×' : '');
+  function fmtIn(v){ return String(+(+v).toFixed(kindNow==='rot' ? 2 : 3)); }
+  var inputMode = _tInputMode;
+
+  var imRow = '<div style="display:flex;align-items:center;gap:3px;margin-bottom:6px">'
+    + '<span style="font-size:8px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-right:2px">INPUT</span>'
+    + [['fader','FADER'],['click','KLIK ±'],['text','TEKS']].map(function(x){
+        var a = (inputMode === x[0]);
+        return '<button onclick="window._e3dSetInputMode(\''+x[0]+'\')" style="flex:1;padding:4px 2px;border-radius:3px;border:1px solid '+(a?'var(--teal)':'var(--border2)')+';background:'+(a?'rgba(0,212,255,.12)':'var(--btn)')+';color:'+(a?'var(--teal)':'var(--lbl)')+';font-family:Share Tech Mono,monospace;font-size:8px;font-weight:700;cursor:pointer;letter-spacing:.05em">'+x[1]+'</button>';
+      }).join('')
+    + '</div>';
+
+  var lblHTML = '<div style="font-size:9px;font-weight:700;font-family:Share Tech Mono,monospace;color:'+cur.color+';min-width:46px;letter-spacing:.06em">'+cur.lbl+'</div>';
+  var ctlHTML;
+  if(inputMode === 'click'){
+    var stepNow = _tStepSel[kindNow];
+    var chips = STEP_OPTS[kindNow].map(function(sv){
+      var a = Math.abs(sv - stepNow) < 1e-9;
+      return '<button onclick="window._e3dSetStep(\''+kindNow+'\','+sv+')" style="flex:1;padding:4px 2px;border-radius:3px;border:1px solid '+(a?cur.color:'var(--border2)')+';background:'+(a?'rgba(0,0,0,.4)':'var(--btn)')+';color:'+(a?cur.color:'var(--lbl)')+';font-family:Share Tech Mono,monospace;font-size:8px;font-weight:700;cursor:pointer">'+sv+(kindNow==='rot'?'°':'')+'</button>';
+    }).join('');
+    var pmStyle = 'width:54px;height:40px;border-radius:6px;border:1px solid '+cur.color+';background:var(--btn);color:'+cur.color+';font-family:Share Tech Mono,monospace;font-size:24px;font-weight:700;line-height:1;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
+    ctlHTML =
+      '<div style="display:flex;align-items:center;gap:6px;padding:4px 0">' + lblHTML +
+        '<button id="e3d_btn_minus" style="'+pmStyle+'">−</button>' +
+        '<div id="e3d_main_val" style="flex:1;text-align:center;font-family:Share Tech Mono,monospace;font-size:15px;color:'+cur.color+';font-weight:700">'+cur.fmt(curVal)+'</div>' +
+        '<button id="e3d_btn_plus" style="'+pmStyle+'">+</button>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:3px;margin-top:2px">' +
+        '<span style="font-size:8px;color:var(--lbl);font-family:Share Tech Mono,monospace;margin-right:2px">STEP</span>' + chips +
+      '</div>' +
+      '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.5;margin-top:3px">Tap = 1 step. Tahan tombol = ulang otomatis.</div>';
+  } else if(inputMode === 'text'){
+    var hint = kindNow==='rot' ? 'derajat, mis. 45 atau -90' : (kindNow==='sc' ? 'kelipatan, 1 = ukuran asli' : 'satuan unit stage, mis. 12.5');
+    var smallBtn = 'height:34px;padding:0 9px;border-radius:5px;border:1px solid '+cur.color+';background:var(--btn);color:'+cur.color+';font-family:Share Tech Mono,monospace;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation';
+    ctlHTML =
+      '<div style="display:flex;align-items:center;gap:5px;padding:4px 0">' + lblHTML +
+        '<input id="e3d_txt_input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="'+fmtIn(curVal)+'" onfocus="this.select()" style="flex:1;min-width:0;height:34px;box-sizing:border-box;padding:0 8px;border-radius:5px;border:1px solid '+cur.color+';background:var(--bg);color:'+cur.color+';font-family:Share Tech Mono,monospace;font-size:15px;font-weight:700;outline:none">' +
+        (unitNow ? '<span style="font-family:Share Tech Mono,monospace;font-size:13px;color:'+cur.color+'">'+unitNow+'</span>' : '') +
+        '<button id="e3d_txt_sign" style="'+smallBtn+'">±</button>' +
+        '<button id="e3d_txt_set" style="'+smallBtn+'">SET</button>' +
+      '</div>' +
+      '<div style="font-size:7px;color:var(--lbl);font-family:Share Tech Mono,monospace;line-height:1.5;margin-top:2px">Ketik nilai ('+hint+') lalu Enter / SET.</div>';
+  } else {
+    ctlHTML =
+      '<div style="display:flex;align-items:center;gap:6px;padding:4px 0">' + lblHTML +
+        '<input type="range" id="e3d_main_fader" class="e3d-fader-smooth" value="'+curVal+'" min="'+cur.min+'" max="'+cur.max+'" step="'+cur.step+'" style="-webkit-appearance:none;appearance:none;touch-action:none;flex:1;height:14px;border-radius:7px;background:var(--bg);border:1px solid '+cur.color+';outline:none;cursor:pointer">' +
+        '<div id="e3d_main_val" style="font-family:Share Tech Mono,monospace;font-size:11px;color:'+cur.color+';min-width:44px;text-align:right;font-weight:700">'+cur.fmt(curVal)+'</div>' +
+      '</div>';
+  }
+
   panel.innerHTML =
     headerLabel +
+    imRow +
     '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">' + btnHTML + '</div>' +
-    '<div style="display:flex;align-items:center;gap:6px;padding:4px 0">' +
-      '<div style="font-size:9px;font-weight:700;font-family:Share Tech Mono,monospace;color:'+cur.color+';min-width:46px;letter-spacing:.06em">'+cur.lbl+'</div>' +
-      '<input type="range" id="e3d_main_fader" class="e3d-fader-smooth" value="'+curVal+'" min="'+cur.min+'" max="'+cur.max+'" step="'+cur.step+'" style="-webkit-appearance:none;appearance:none;touch-action:none;flex:1;height:14px;border-radius:7px;background:var(--bg);border:1px solid '+cur.color+';outline:none;cursor:pointer">' +
-      '<div id="e3d_main_val" style="font-family:Share Tech Mono,monospace;font-size:11px;color:'+cur.color+';min-width:44px;text-align:right;font-weight:700">'+cur.fmt(curVal)+'</div>' +
-    '</div>' +
+    ctlHTML +
     '<button onclick="window._e3dResetCurMode()" style="margin-top:4px;width:100%;padding:3px;border-radius:3px;border:1px solid var(--border2);background:var(--btn);color:var(--lbl);font-family:Share Tech Mono,monospace;font-size:8px;cursor:pointer">↺ RST '+cur.lbl+((groupName||multiMode)?' (GROUP)':'')+'</button>';
+
+  // ── Bind mode KLIK (+/−) dan TEKS ──
+  // Tiap aksi = 1 "edit diskret" lewat pipeline yang sama dengan fader:
+  //   beginEdit (undo + snapshot grup + tandai drag-id anti snap-back)
+  //   → applyEdit (set/applyGroup + sync state fixture)
+  //   → endEdit (reset snapshot, final sync, simpan).
+  if(inputMode !== 'fader'){
+    var valEl2 = document.getElementById('e3d_main_val');
+    var txtEl = document.getElementById('e3d_txt_input');
+    var dispVal = curVal, lastApplied = curVal;
+    var isGrp = !!(groupName || multiMode);
+
+    function _clampV(v){ var c = CLAMP[kindNow]; return Math.min(c[1], Math.max(c[0], v)); }
+    function _rnd(v){ return +v.toFixed(4); }
+    function _syncSel(){
+      selIds.forEach(function(sid){
+        var ent = st.models.find(function(m){ return m.id===sid; });
+        if(ent && ent._jawirFixture && ent.obj3d) _syncFixtureState(ent, ent.obj3d);
+      });
+    }
+    function showVal(v){
+      if(valEl2) valEl2.textContent = cur.fmt(v);
+      if(txtEl && document.activeElement !== txtEl) txtEl.value = fmtIn(v);
+    }
+    function beginEdit(){
+      if(typeof window.e3dPushUndo==='function') window.e3dPushUndo();
+      if(isGrp){
+        _snapGroup();
+        window._e3dDragIds = selIds.map(function(sid){
+          var e = st.models.find(function(m){ return m.id===sid; });
+          return e && e._jawirFixture ? e._jawirFixture : null;
+        }).filter(Boolean);
+      } else if(entry && entry._jawirFixture){
+        window._e3dDragId = entry._jawirFixture;
+      }
+    }
+    function applyEdit(v){
+      if(isGrp && cur.applyGroup){
+        if(!window._e3dGroupSnap) _snapGroup();
+        cur.applyGroup(v);
+        _syncSel();
+      } else {
+        cur.set(v);
+        if(entry && entry._jawirFixture) _syncFixtureState(entry, o);
+      }
+    }
+    function endEdit(){
+      window._e3dGroupSnap = null;
+      if(isGrp) _snapGroup();
+      _syncSel();
+      window._e3dDragId = null;
+      window._e3dDragIds = null;
+      if(typeof masterSave==='function') setTimeout(masterSave,200);
+    }
+
+    if(inputMode === 'click'){
+      function stepOnce(dir){
+        dispVal = _rnd(_clampV(dispVal + dir * _tStepSel[kindNow]));
+        applyEdit(dispVal);
+        showVal(dispVal);
+      }
+      function bindHold(btn, dir){
+        if(!btn) return;
+        var active = false, tmr = null, rep = null;
+        function stop(){
+          if(!active) return;
+          active = false;
+          clearTimeout(tmr); clearInterval(rep); tmr = rep = null;
+          endEdit();
+        }
+        btn.addEventListener('pointerdown', function(ev){
+          ev.preventDefault();
+          if(active) return;
+          active = true;
+          beginEdit();
+          dispVal = cur.get();   // baca nilai terbaru (setelah snapshot grup)
+          stepOnce(dir);
+          tmr = setTimeout(function(){ rep = setInterval(function(){ stepOnce(dir); }, 70); }, 380);
+          try{ btn.setPointerCapture(ev.pointerId); }catch(e){}
+        });
+        ['pointerup','pointercancel','lostpointercapture'].forEach(function(t){ btn.addEventListener(t, stop); });
+        btn.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+      }
+      bindHold(document.getElementById('e3d_btn_minus'), -1);
+      bindHold(document.getElementById('e3d_btn_plus'), 1);
+    } else if(txtEl){
+      function applyText(){
+        var raw = String(txtEl.value).replace(',', '.').trim();
+        var v = parseFloat(raw);
+        if(!isFinite(v)){ txtEl.value = fmtIn(lastApplied); return; }   // kosong/ngawur → kembalikan nilai lama
+        v = _rnd(_clampV(v));
+        if(Math.abs(v - lastApplied) < 1e-9){ txtEl.value = fmtIn(v); return; }
+        beginEdit(); applyEdit(v); endEdit();
+        lastApplied = v; dispVal = v;
+        txtEl.value = fmtIn(v);
+      }
+      txtEl.addEventListener('change', applyText);
+      txtEl.addEventListener('keydown', function(ev){
+        if(ev.key === 'Enter'){ ev.preventDefault(); applyText(); txtEl.blur(); }
+      });
+      var setBtn = document.getElementById('e3d_txt_set');
+      if(setBtn) setBtn.addEventListener('click', applyText);
+      var signBtn = document.getElementById('e3d_txt_sign');
+      if(signBtn) signBtn.addEventListener('click', function(){
+        var t = String(txtEl.value).replace(',', '.').trim();
+        if(t === '' || !isFinite(parseFloat(t))) return;
+        txtEl.value = t.charAt(0) === '-' ? t.slice(1) : '-' + t;
+        applyText();
+      });
+    }
+  }
 
   // Bind fader
   setTimeout(function(){
