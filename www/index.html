@@ -996,8 +996,17 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
               <div class="val" id="sGoboCustomSpreadV">3.5</div>
             </div>
             <div class="row">
-              <button class="btn" id="sGoboCustomReset" style="width:100%;font-size:8px">↺ RESET KE DEFAULT</button>
+              <button class="btn" id="sGoboCustomReset" style="width:100%;font-size:8px">↺ RESET MODE INI (3.5 / 16°)</button>
             </div>
+          </div>
+          <!-- SAVE AS DEFAULT: jenis prisma aktif + angle + spread SEMUA mode
+               disimpan sebagai default permanen. Default ini yang dipakai KF
+               Editor (KF tidak punya prisma sendiri lagi) dan otomatis dimuat
+               lagi tiap kali web/APK dibuka. Ganti-ganti prisma untuk preview
+               TIDAK mengubah default ini sampai tombol ini ditekan. -->
+          <button class="btn on-p" id="sSaveGoboDefault" style="width:100%;font-size:9px;font-weight:700;margin-top:6px;margin-bottom:2px">💾 SAVE SEBAGAI DEFAULT</button>
+          <div style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace;line-height:1.5;margin-bottom:6px">
+            Simpan jenis prisma + angle + spread saat ini jadi default tetap. KF Editor & buka app berikutnya ikut nilai ini, sampai kamu SAVE ulang.
           </div>
           <div class="row">
             <div class="lbl">Prism Rotate</div>
@@ -1519,7 +1528,10 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
 
           <!-- ROW 4: EFEK (PRISMA + ROTATE) compact -->
           <div style="flex-shrink:0;display:flex;gap:5px;padding:2px 0 6px">
-            <!-- PRISMA -->
+            <!-- PRISMA — ON/OFF + pilihan jenis TETAP ADA di KF. Yang dihapus
+                 CUMA slider Angle/Spread custom: angle/spread sekarang selalu
+                 ikut state.goboSettings (nilai yang sudah di-SAVE di halaman
+                 SETTING), bukan slider terpisah lagi di sini. -->
             <div style="flex:1;background:#0a1215;border-radius:5px;padding:5px;border:1px solid var(--border)">
               <div style="font-size:8px;color:var(--teal);font-family:'Chakra Petch',monospace;margin-bottom:4px">GOBO/PRISMA</div>
               <button class="kfb" id="kfPrismaToggle" style="width:100%;font-size:8px;padding:4px 2px;margin-bottom:3px">💡 OFF</button>
@@ -1537,22 +1549,6 @@ body.creator-has-joiner #pages{ flex:1!important;max-height:100vh!important; }
                 <option value="prism16">PRISM8</option>
                 <option value="fan">FAN</option>
               </select>
-              <!-- Setting Angle & Spread KHUSUS mode gobo yg dipilih di KF ini —
-                   nulis ke state.goboSettings[mode] yang SAMA dgn di halaman
-                   SETTING, jadi kalau kamu ubah di sini otomatis ke-update juga
-                   di SETTING (dan sebaliknya). Cuma muncul saat Prisma KF ON. -->
-              <div id="kfGoboCustomRow" style="display:none;margin-top:5px;padding:5px;background:rgba(0,212,255,.06);border:1px solid var(--border2);border-radius:5px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-                  <span style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace">Angle</span>
-                  <span style="font-size:8px;color:var(--teal);font-family:'Share Tech Mono',monospace" id="kfGoboAngleV">16°</span>
-                </div>
-                <input type="range" class="sldr" id="kfGoboAngle" min="2" max="60" step="0.5" value="16" style="width:100%;margin-bottom:4px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-                  <span style="font-size:7px;color:var(--lbl);font-family:'Share Tech Mono',monospace">Spread</span>
-                  <span style="font-size:8px;color:var(--teal);font-family:'Share Tech Mono',monospace" id="kfGoboSpreadV">3.5</span>
-                </div>
-                <input type="range" class="sldr" id="kfGoboSpread" min="0.5" max="20" step="0.1" value="3.5" style="width:100%">
-              </div>
             </div>
             <!-- ROTATE -->
             <div style="flex:1;background:#0a1215;border-radius:5px;padding:5px;border:1px solid var(--border)">
@@ -4593,9 +4589,14 @@ function buildGoboGrid(){
     card.appendChild(lbl);
     card.addEventListener('click',()=>{
       state.goboMode=def.id;
-      state._goboUserOverride = (def.id !== 'off');
-      // Clear per-head overrides supaya global berlaku
-      state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
+      // Kalau KF sedang playing, JANGAN aktifkan override / hapus per-head gobo —
+      // itu bikin prisma frame KF "ke-ikut" prisma yang dipencet di sini. Biarkan
+      // KF tetap pegang gobo/prisma-nya sendiri; state.goboMode di atas cuma
+      // dipakai kalau nanti KF di-stop.
+      if(!state.kfPlay.playing){
+        state._goboUserOverride = (def.id !== 'off');
+        state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
+      }
       document.querySelectorAll('.gobo-card').forEach(c=>c.classList.toggle('active',c.dataset.gid===def.id));
       setStatus('Gobo: '+def.name);
       updateGoboPrismaState();
@@ -6198,8 +6199,20 @@ function restoreUI(){
   if(d.strobeSpeeds) state.strobeSpeeds=d.strobeSpeeds;
   if(d.strobeCurves) state.strobeCurves=d.strobeCurves;
   if(d.strobeFadeDur) state.strobeFadeDur=d.strobeFadeDur;
-  if(d.prismaMode) state.prismaMode=d.prismaMode;
-  if(d.goboMode) state.goboMode=d.goboMode;
+  // Gobo/Prisma default: BUKAN dari d.prismaMode/d.goboMode/d.goboSettings
+  // (itu sudah tidak di-auto-save lagi, lihat masterSave) — dimuat dari
+  // d.goboDefault, yang hanya ditulis lewat tombol SAVE di panel SETTING.
+  // Jadi default ini tidak akan pernah berubah sendiri, cuma berubah kalau
+  // user eksplisit tekan SAVE.
+  if(d.goboDefault){
+    if(d.goboDefault.goboMode) state.goboMode=d.goboDefault.goboMode;
+    if(d.goboDefault.prismaMode) state.prismaMode=d.goboDefault.prismaMode;
+    if(d.goboDefault.goboSettings){
+      Object.keys(d.goboDefault.goboSettings).forEach(k=>{
+        state.goboSettings[k]={...(state.goboSettings[k]||{spread:3.5,angle:16}),...d.goboDefault.goboSettings[k]};
+      });
+    }
+  }
   state.ringgings=[]; // ringging dinonaktifkan
   if(d.rainbow!==undefined) state.rainbow=d.rainbow;
   if(d.beamRenderMode) state.beamRenderMode=d.beamRenderMode;
@@ -6215,12 +6228,6 @@ function restoreUI(){
   if(d.rainbow!==undefined) state.rainbow=d.rainbow;
   if(d.rainbowSpeed!==undefined) state.rainbowSpeed=d.rainbowSpeed;
   if(d.fanLamps) state.fanLamps=d.fanLamps;
-  // Gobo settings per-mode — murni dari data tersimpan user (d.goboSettings)
-  if(d.goboSettings){
-    Object.keys(d.goboSettings).forEach(k=>{
-      state.goboSettings[k]={...(state.goboSettings[k]||{spread:3.5,angle:16}),...d.goboSettings[k]};
-    });
-  }
   // === RE-APPLY GOBO/PRISMA/SPREAD ===
   // Sebelumnya cuma nilai mentahnya yang ditulis ke `state` (goboMode,
   // prismaMode, goboSettings) — TIDAK ada yang benar-benar "menerapkan" ulang
@@ -7125,8 +7132,8 @@ function addKeyframe(si){
   const positions=state.heads.map((h,j)=>({
     pan:parseFloat(h.pan.toFixed(2)),
     tilt:parseFloat(h.tilt.toFixed(2)),
-    goboMode:h.goboMode!==undefined?h.goboMode:(state.goboMode||'off'),
-    prismaMode:h.prismaMode!==undefined?h.prismaMode:(state.prismaMode||'none'),
+    // goboMode/prismaMode TIDAK dicapture lagi — KF selalu ikut settingan
+    // utama (state.goboMode/prismaMode dari halaman SETTING), lihat applyKFFrame.
     color:h.color||state.globalColor||'#ffffff',
     rotateEnabled: selBeams.length===0||selBeams.includes(j) ? kfRotateOn : (h.rotateEnabled||false),
     rotateMode:    selBeams.length===0||selBeams.includes(j) ? kfRotateMode : (h.rotateMode||'auto'),
@@ -7138,7 +7145,6 @@ function addKeyframe(si){
   beamsToCapture.forEach(bi=>{const h=state.heads[bi];if(h)colors[bi]=h.color||state.globalColor||'#ffffff';});
   const frame={
     dur,positions,selectedBeams:selBeams,colors,
-    goboMode:state.goboMode,prismaMode:state.prismaMode,
     prismaRotate:kfRotateOn,rotateMode:kfRotateMode,rotateSpeed:kfRotateSpeed,
     goboColorFx:state.goboColorFx,
     beamMuted:[...(state.csBeamMuted||[])],
@@ -7167,19 +7173,9 @@ function playKF(si, _fromChannel){
   state.presetActive.fill(false);
   // Jangan reset activeChannel kalau dipanggil dari playChannel
   if(!_fromChannel) state.activeChannel=null;
-  // FIX: _goboUserOverride memaksa applyKFFrame() mengabaikan gobo/prisma yang
-  // di-capture di tiap frame KF (lihat applyKFFrame di updateKFPlayback) — kalau
-  // user sebelumnya sempat pilih gobo manual di SETTING/MAIN, animasi KF yang
-  // baru di-play jadi tidak menampilkan gobo/prisma sesuai yang dicapture.
-  // Matikan sementara selama KF playing, restore begitu KF berhenti. Backup
-  // dipakai bersama dgn toggle KF Prisma (lihat blok kfPrismaToggle) — jangan
-  // ditimpa ulang kalau backup sudah ada (misal Prisma toggle sudah nyimpen duluan).
-  if(!state.kfPlay.playing){
-    if(state._kfGoboOverrideBackup===undefined || state._kfGoboOverrideBackup===null){
-      state._kfGoboOverrideBackup = state._goboUserOverride;
-    }
-    state._goboUserOverride = false;
-  }
+  // Gobo/Prisma KF SUDAH DIHAPUS — KF Editor tidak lagi punya gobo/prisma
+  // sendiri, selalu ikut state.goboMode/prismaMode (SETTING utama). Jadi
+  // tidak perlu lagi backup/restore _goboUserOverride di sini.
   state.kfPlay={playing:true,slotIdx:si,startTime:performance.now()};
   document.querySelectorAll('#kfSlotRow .kf-sb').forEach((b,i)=>b.classList.toggle('playing',i===si));
   document.getElementById('kfPlay').classList.add('on');
@@ -7194,17 +7190,10 @@ function stopKF(){
   state.heads.forEach(h=>{h.rotateEnabled=undefined;});
   // FIX: clear beam muted state agar semua beam hidup kembali
   state.csBeamMuted=[];
-  // FIX: reset goboMode/prismaMode per-head agar kembali ikut state global
+  // Reset goboMode/prismaMode per-head agar kembali ikut state global
   // (kecuali CS strobe sedang playing — biarkan CS yang handle)
   if(!csPlayState.playing){
     state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
-  }
-  // Restore _goboUserOverride ke kondisi sebelum KF diplay/Prisma-ON (lihat
-  // playKF & blok kfPrismaToggle) — hanya kalau toggle KF Prisma juga sudah OFF,
-  // supaya tidak konflik kalau keduanya sama2 pegang backup yg sama.
-  if(!kfPrismaOn && state._kfGoboOverrideBackup!==undefined && state._kfGoboOverrideBackup!==null){
-    state._goboUserOverride = state._kfGoboOverrideBackup;
-    state._kfGoboOverrideBackup = null;
   }
   document.querySelectorAll('#kfSlotRow .kf-sb').forEach(b=>b.classList.remove('playing'));
   const pb=document.getElementById('kfPlay');if(pb)pb.classList.remove('on');
@@ -7230,12 +7219,15 @@ function updateKFPlayback(){
     const p1=(f1&&f1.positions[j])||p0;
     h.targetPan=lerp(p0.pan,p1.pan,ea); h.targetTilt=lerp(p0.tilt,p1.tilt,ea);
     h.pan=h.targetPan; h.tilt=h.targetTilt;
-    // Kalau CS strobe sedang playing → skip gobo/prisma override juga, CS yang atur
+    // Saat KF benar-benar PLAY, gobo/prisma per-head SELALU direset ke undefined
+    // di sini (bukan dibaca dari frame) — supaya render 3D (hGoboMode/hPrismaMode)
+    // jatuh ke state.goboMode/prismaMode/goboSettings, yaitu settingan utama yang
+    // sudah di-SAVE di halaman SETTING. Toggle+dropdown PRISMA di panel KF Editor
+    // (kfPrismaToggle/kfPrismaSelect) cuma preview manual waktu sedang mengedit —
+    // tidak ikut tersimpan ke frame dan tidak dipakai lagi begitu KF di-PLAY.
+    // Kecuali CS strobe sedang playing, biarkan CS yang atur per-head-nya sendiri.
     if(!csPlayState.playing){
-      if(!state._goboUserOverride){
-        h.goboMode=p0.goboMode!==undefined?p0.goboMode:'off';
-        h.prismaMode=p0.prismaMode||'none';
-      } else { h.goboMode=undefined; h.prismaMode=undefined; }
+      h.goboMode=undefined; h.prismaMode=undefined;
     }
     if(!state.prismaRotate){
       // Hanya override rotate per-head kalau global rotate OFF
@@ -7615,8 +7607,7 @@ function captureChFnStandby(){
       goboMode: state.goboMode,
       prismaRotate: state.prismaRotate,
       rotateMode: state.rotateMode||'auto',
-      rotateSpeed: state.rotateSpeed!==undefined?state.rotateSpeed:0.4,
-      goboSettingsSnapshot: JSON.parse(JSON.stringify(state.goboSettings||{}))
+      rotateSpeed: state.rotateSpeed!==undefined?state.rotateSpeed:0.4
     };
     saveChannels();
     updateChFnStandbyInfo(mc);
@@ -7729,9 +7720,9 @@ function playMultiChStandby(s){
   if(!s||!s.positions||!s.positions.length)return;
   if(state.kfPlay && state.kfPlay.playing && typeof stopKF==='function')stopKF();
   s.positions.forEach((p,j)=>{if(state.heads[j]){state.heads[j].targetPan=p.pan;state.heads[j].targetTilt=p.tilt;if(p.color)state.heads[j].color=p.color;}});
-  if(s.goboSettingsSnapshot){
-    Object.keys(s.goboSettingsSnapshot).forEach(function(k){ state.goboSettings[k]={...s.goboSettingsSnapshot[k]}; });
-  }
+  // goboSettingsSnapshot SENGAJA TIDAK dipulihkan (lihat catatan di loadStandby) —
+  // menimpa state.goboSettings global bikin custom angle/spread yang baru diset user
+  // di KF Editor/SETTING jadi kereset ke nilai lama dan ter-auto-save permanen.
   if(s.goboMode!==undefined){
     state.goboMode=s.goboMode;
     state.prismaMode=s.prismaMode||'none';
@@ -8571,11 +8562,9 @@ function saveStandby(){
   state.standbySlots[i].prismaRotate=state.prismaRotate;
   state.standbySlots[i].rotateMode=state.rotateMode||'auto';
   state.standbySlots[i].rotateSpeed=state.rotateSpeed!==undefined?state.rotateSpeed:0.4;
-  // FIX: Simpan SNAPSHOT lengkap goboSettings (angle & spread tiap mode gobo/prisma) ke slot ini.
-  // Ini mencegah angle "kembali kecil/lidi" kalau di antara SAVE dan LOAD ada channel/gobo lain
-  // yang ikut mengubah state.goboSettings global — slot ini selalu memutar ulang persis config
-  // yang aktif saat di-SAVE, gak peduli apa yang terjadi di antaranya.
-  state.standbySlots[i].goboSettingsSnapshot = JSON.parse(JSON.stringify(state.goboSettings || {}));
+  // goboSettingsSnapshot TIDAK disimpan lagi (lihat catatan di loadStandby) — angle/
+  // spread custom murni mengikuti state.goboSettings global yang sedang aktif, supaya
+  // load Standby tidak pernah menimpa balik setting yang baru diubah user di KF Editor.
   // Simpan teks & warna Martin (mode teks, teks default, warna default, override per-unit)
   const m3st = window._m3State || {};
   state.standbySlots[i].martinText={
@@ -8597,14 +8586,14 @@ function loadStandby(i){
   if(s.positions.length){
     s.positions.forEach((p,j)=>{if(state.heads[j]){state.heads[j].targetPan=p.pan;state.heads[j].targetTilt=p.tilt;if(p.color)state.heads[j].color=p.color;}});
   }
-  // FIX: Pulihkan dulu snapshot goboSettings (angle/spread tiap mode) SEBELUM apply goboMode,
-  // supaya angle-nya pasti balik ke config asli slot ini — nggak kebawa nilai global yang
-  // sempat berubah gara-gara channel/gobo lain dipakai di antara SAVE dan LOAD.
-  if(s.goboSettingsSnapshot){
-    Object.keys(s.goboSettingsSnapshot).forEach(function(k){
-      state.goboSettings[k] = {...s.goboSettingsSnapshot[k]};
-    });
-  }
+  // goboSettingsSnapshot SENGAJA TIDAK dipulihkan ke state.goboSettings di sini.
+  // state.goboSettings adalah pengaturan GLOBAL satu sumber (dipakai bareng oleh
+  // halaman SETTING & KF Editor) — kalau di-load Standby akan MENIMPA custom
+  // angle/spread yang baru saja diset user, dan karena hampir semua aksi lain
+  // memicu auto-save, nilai lama itu jadi permanen mengganti nilai baru padahal
+  // user tidak pernah menyentuh slot Standby ini sejak set custom-nya.
+  // Standby cukup memuat goboMode/prismaMode (JENIS prisma-nya) di bawah;
+  // angle/spread tetap ikut state.goboSettings yang sedang aktif sekarang.
   // Load prisma dan rotate state jika tersimpan
   if(s.goboMode!==undefined){
     state.goboMode=s.goboMode;
@@ -8714,10 +8703,13 @@ function buildMainGoboGrid(){
       state.goboMode=def.id;updateGoboPrismaState();
       document.querySelectorAll('#mGoboGrid button').forEach(b=>{ b.style.borderColor=''; b.style.background='var(--btn)'; b.style.color='var(--lbl)'; });
       btn.style.borderColor='var(--purple)';btn.style.background='#140a20';btn.style.color='var(--purple)';
-      // Set flag user override — KF tidak akan tindih gobo ini
-      state._goboUserOverride = (def.id !== 'off');
-      // Clear per-head overrides agar global state.goboMode berlaku
-      state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
+      // Kalau KF sedang playing, JANGAN set override / hapus per-head gobo —
+      // supaya prisma frame KF tidak ke-ikut prisma yang dipencet di MAIN.
+      // state.goboMode di atas tetap ke-update, cuma dipakai kalau KF di-stop.
+      if(!state.kfPlay.playing){
+        state._goboUserOverride = (def.id !== 'off');
+        state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
+      }
       const gd=document.getElementById('mActiveGoboDisp');if(gd)gd.textContent=def.name;
       if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
       setStatus('Gobo: '+def.name);
@@ -9964,8 +9956,11 @@ function masterSave(){
   d.strobeSpeeds=state.strobeSpeeds;
   d.strobeCurves=state.strobeCurves;
   d.strobeFadeDur=state.strobeFadeDur;
-  d.prismaMode=state.prismaMode;
-  d.goboMode=state.goboMode;
+  // prismaMode/goboMode/goboSettings SENGAJA TIDAK auto-save lagi di sini.
+  // Kalau ikut auto-save, gonta-ganti prisma buat preview bikin "default" ikut
+  // berubah diam-diam. Sekarang jenis prisma + angle + spread yang jadi DEFAULT
+  // permanen (dipakai KF & dimuat ulang tiap app dibuka) hanya berubah lewat
+  // tombol SAVE di panel SETTING (lihat sSaveGoboDefault / d.goboDefault).
   d.ringging=false; // legacy compat
   d.rainbow=state.rainbow;
   d.beamRenderMode=state.beamRenderMode;
@@ -9984,8 +9979,6 @@ function masterSave(){
   d.fanLamps=state.fanLamps;
   d.csStrobeChannels=state.csStrobeChannels;
   d.locks=state.locks;
-  // Gobo per-mode settings (spread & angle)
-  if(state.goboSettings) d.goboSettings=state.goboSettings;
   // Fixtures & their positions
   d.wallwashers=state.wallwashers;
   d.parleds=state.parleds;
@@ -10273,25 +10266,32 @@ slink('sGoboCustomSpread',e=>{
   if(_vs) _vs.value = Math.round(v * 5.5);
   masterSave();
 });
+// Reset HANYA angle/spread mode yang lagi aktif, balik ke 3.5/16 — ini cuma
+// mengubah state di memori (preview), TIDAK menyentuh default tersimpan.
+// Kalau mau reset ini jadi default permanen juga, tetap perlu tekan SAVE.
 sbtn('sGoboCustomReset',()=>{
   const gm = (state.goboMode&&state.goboMode!=='off') ? state.goboMode
             : state.goboInnerColor ? '__inner__' : null;
   if(!gm)return;
   state.goboSettings[gm]={spread:3.5,angle:16};
   loadGoboSettingsToSliders();
-  masterSave();
-  setStatus('↺ '+gm.toUpperCase()+' direset ke default');
+  setStatus('↺ '+gm.toUpperCase()+' (preview) direset — SAVE lagi kalau mau jadi default');
 });
 
-sbtn('sSaveGoboSettings',()=>{
-  const gm=state.goboMode;
-  if(!gm||gm==='off'){setStatus('Pilih gobo dulu!');return;}
+// SAVE SEBAGAI DEFAULT — satu-satunya cara mengubah default permanen.
+// Simpan jenis prisma aktif (goboMode/prismaMode) + angle/spread SEMUA mode
+// yang pernah di-set (state.goboSettings) ke d.goboDefault. Inilah yang
+// dibaca ulang oleh restoreUI() tiap app dibuka, dan satu-satunya sumber
+// gobo/prisma yang dipakai KF Editor (lihat applyKFFrame).
+sbtn('sSaveGoboDefault',()=>{
   const d=ls();
-  if(!d.goboSettings)d.goboSettings={};
-  if(!state.goboSettings[gm])state.goboSettings[gm]={spread:18,angle:12};
-  d.goboSettings[gm]={...state.goboSettings[gm]};
+  d.goboDefault = {
+    goboMode: state.goboMode || 'off',
+    prismaMode: state.prismaMode || 'none',
+    goboSettings: JSON.parse(JSON.stringify(state.goboSettings || {}))
+  };
   ss(d);
-  setStatus('✓ Seting '+gm.toUpperCase()+' disimpan');
+  setStatus('💾 Default GOBO/PRISMA disimpan ('+(state.goboMode||'off').toUpperCase()+') — dipakai KF & saat app dibuka lagi');
 });
 sbtn('sPrismaRotate',()=>{
   state.prismaRotate=!state.prismaRotate;
@@ -11384,25 +11384,14 @@ function doLoadProject(jsonText){
 sbtn('kfAdd',()=>addKeyframe(state.kfActiveSlot));
 sbtn('kfPlay',()=>playKF(state.kfActiveSlot));
 
-// PRISMA per beam in KF
+// PRISMA per beam in KF — ON/OFF + pilihan JENIS prisma tetap ada di KF Editor
+// (buat preview saat mengedit beam/posisi). Slider Angle/Spread custom SUDAH
+// DIHAPUS — angle/spread selalu ikut state.goboSettings (nilai yang sudah
+// di-SAVE di halaman SETTING), tidak ada lagi input angle/spread terpisah
+// di KF. Saat KF benar-benar di-PLAY, applyKFFrame() tetap selalu memakai
+// state.goboMode/prismaMode global (bukan pilihan di sini) — toggle/dropdown
+// ini murni bantu preview manual waktu sedang capture frame di editor.
 let kfPrismaOn=false;
-// Panel Angle/Spread custom KHUSUS mode gobo yg dipilih di KF Editor — nulis
-// ke state.goboSettings[mode] yang SAMA dgn slider di halaman SETTING, jadi
-// selalu satu sumber data (tidak ada duplikasi yang bisa bikin nilai beda2 lagi).
-function syncKFGoboCustomPanel(){
-  const row=document.getElementById('kfGoboCustomRow');
-  const ptSel=document.getElementById('kfPrismaSelect');
-  if(!row||!ptSel)return;
-  const gm=ptSel.value;
-  if(!kfPrismaOn || !gm || gm==='off'){ row.style.display='none'; return; }
-  row.style.display='block';
-  if(!state.goboSettings[gm]) state.goboSettings[gm]={spread:3.5,angle:16};
-  const gs=state.goboSettings[gm];
-  const angEl=document.getElementById('kfGoboAngle'), angVEl=document.getElementById('kfGoboAngleV');
-  const sprEl=document.getElementById('kfGoboSpread'), sprVEl=document.getElementById('kfGoboSpreadV');
-  if(angEl){angEl.value=gs.angle;} if(angVEl){angVEl.textContent=gs.angle+'°';}
-  if(sprEl){sprEl.value=gs.spread;} if(sprVEl){sprVEl.textContent=Number(gs.spread).toFixed(1);}
-}
 {
   const ptBtn=document.getElementById('kfPrismaToggle');
   const ptSel=document.getElementById('kfPrismaSelect');
@@ -11412,25 +11401,7 @@ function syncKFGoboCustomPanel(){
       ptBtn.textContent='💡 PRISMA '+(kfPrismaOn?'ON':'OFF');
       ptBtn.style.borderColor=kfPrismaOn?'var(--amber)':'';
       ptBtn.style.color=kfPrismaOn?'var(--amber)':'';
-      // FIX: _goboUserOverride memaksa renderer pakai state.goboMode GLOBAL,
-      // mengabaikan h.goboMode per-head yang di-set di sini — jadi kalau user
-      // sebelumnya sempat pilih gobo lain di halaman SETTING/MAIN (override
-      // masih nyala), preview KF Prisma jadi salah baca angle/spread (kepakai
-      // punya mode global, bukan mode yg dipilih di KF). Matikan override
-      // sementara selama KF Prisma ON, biar h.goboMode di sini yang berlaku.
-      // Pakai backup yang sama dengan playKF()/stopKF() supaya konsisten
-      // (kalau backup sudah ada dari playKF, jangan ditimpa ulang).
-      if(kfPrismaOn){
-        if(state._kfGoboOverrideBackup===undefined || state._kfGoboOverrideBackup===null){
-          state._kfGoboOverrideBackup = state._goboUserOverride;
-        }
-        state._goboUserOverride = false;
-      } else if(!state.kfPlay.playing && state._kfGoboOverrideBackup!==undefined && state._kfGoboOverrideBackup!==null){
-        // Restore hanya kalau KF juga tidak sedang playing (playKF/stopKF pegang backup yg sama)
-        state._goboUserOverride = state._kfGoboOverrideBackup;
-        state._kfGoboOverrideBackup = null;
-      }
-      // Apply to selected beams immediately for preview
+      // Apply ke beam terpilih untuk preview langsung di editor
       const beams=kfSelBeams.length?kfSelBeams:state.heads.map((_,i)=>i);
       const selGobo=ptSel?ptSel.value:'off';
       const def=GOBO_DEFS.find(d=>d.id===selGobo)||GOBO_DEFS[0];
@@ -11445,13 +11416,11 @@ function syncKFGoboCustomPanel(){
           h.prismaMode=undefined;
         }
       });
-      if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
-      syncKFGoboCustomPanel();
     });
   }
   if(ptSel){
     ptSel.addEventListener('change',()=>{
-      if(!kfPrismaOn){ syncKFGoboCustomPanel(); return; }
+      if(!kfPrismaOn)return;
       const selGobo=ptSel.value;
       const def=GOBO_DEFS.find(d=>d.id===selGobo)||GOBO_DEFS[0];
       const beams=kfSelBeams.length?kfSelBeams:state.heads.map((_,i)=>i);
@@ -11466,33 +11435,8 @@ function syncKFGoboCustomPanel(){
                      def.type==='fan_flat'?'fan_flat':
                      def.type==='prism16'?'prism16':'none';
       });
-      if(typeof loadGoboSettingsToSliders==='function')loadGoboSettingsToSliders();
-      syncKFGoboCustomPanel();
     });
   }
-  // Slider Angle custom KF — ubah angle KHUSUS mode gobo yg lagi dipilih di KF ini
-  const kfAngEl=document.getElementById('kfGoboAngle');
-  if(kfAngEl) kfAngEl.addEventListener('input',e=>{
-    const gm=ptSel?ptSel.value:null;
-    if(!gm||gm==='off')return;
-    const v=Number(e.target.value);
-    if(!state.goboSettings[gm]) state.goboSettings[gm]={spread:3.5,angle:16};
-    state.goboSettings[gm].angle=v;
-    state.goboAngle=v;
-    const vEl=document.getElementById('kfGoboAngleV'); if(vEl) vEl.textContent=v+'°';
-    if(typeof masterSave==='function') masterSave();
-  });
-  // Slider Spread custom KF — ubah spread KHUSUS mode gobo yg lagi dipilih di KF ini
-  const kfSprEl=document.getElementById('kfGoboSpread');
-  if(kfSprEl) kfSprEl.addEventListener('input',e=>{
-    const gm=ptSel?ptSel.value:null;
-    if(!gm||gm==='off')return;
-    const v=Number(e.target.value);
-    if(!state.goboSettings[gm]) state.goboSettings[gm]={spread:3.5,angle:16};
-    state.goboSettings[gm].spread=v;
-    const vEl=document.getElementById('kfGoboSpreadV'); if(vEl) vEl.textContent=v.toFixed(1);
-    if(typeof masterSave==='function') masterSave();
-  });
 }
 
 // ROTATION per beam in KF
