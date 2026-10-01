@@ -11206,6 +11206,22 @@ function doLoadProject(jsonText){
         setTimeout(function(){ _tryRestoreVt3d(triesLeft-1); }, 300);
       })(40);
     }
+    // LED MARTIN restore — state.martins (di atas) sudah berisi posisi/rotasi/
+    // scale hasil drag Editor 3D (e3dX/Y/Z, e3dRotX/Y/Z, e3dScale, e3dMoved),
+    // tapi cuma mengisi DATA — unit Three.js di scene tidak otomatis pindah
+    // sendiri. Harus panggil _m3Spawn() supaya benar2 dibangun ulang dengan
+    // transform dari file. Sama seperti Videotron 3D di atas, pakai retry
+    // kalau scene 3D belum siap saat project baru di-load.
+    if(d.martins && d.martins.length){
+      (function _tryRestoreMart(triesLeft){
+        if(typeof window._m3Spawn === 'function' && window._gbScene){
+          window._m3Spawn(d.martins.length);
+          return;
+        }
+        if(triesLeft <= 0) return;
+        setTimeout(function(){ _tryRestoreMart(triesLeft-1); }, 300);
+      })(40);
+    }
     // FOG restore
     if(d.vtedFog && typeof window.vtedApplyFog === 'function'){
       window._vtedFogSettings = d.vtedFog;
