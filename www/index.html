@@ -3621,6 +3621,17 @@ function setPage(n){
   });
   // Update P8 Miring live panel when entering Gerakan page
   if(n===1)updateP8LivePanel();
+  // Keluar dari page GERAKAN (n!==1) → matikan tombol toggle PRISMA ON di KF
+  // Editor (tampilan tombolnya saja, kfPrismaOn=false), TANPA mengubah
+  // state.goboMode — supaya pilihan gobo yang lagi aktif (dari SETTING atau
+  // dari toggle KF barusan) tidak ke-reset diam2 cuma karena pindah halaman.
+  // Jaring pengaman tambahan selain reset di setGerTab (user bisa lompat
+  // langsung dari Gerakan ke page lain lewat navbar bawah).
+  if(n!==1 && typeof kfPrismaOn!=='undefined' && kfPrismaOn){
+    kfPrismaOn=false;
+    const ptBtn2=document.getElementById('kfPrismaToggle');
+    if(ptBtn2){ ptBtn2.textContent='💡 OFF'; ptBtn2.style.borderColor=''; ptBtn2.style.color=''; }
+  }
   // e3dCanvas sudah dihapus — pakai flag _e3dTabActive + grid/axes visibility
   var wasE3d = window._e3dTabActive;
   window._e3dTabActive = (n===3);
@@ -3718,6 +3729,16 @@ function setGerTab(n){
   const chTabBarEl=document.getElementById('chTabBar');
   if(chTabBarEl) chTabBarEl.style.display=(n===0)?'flex':'none';
   if(n===1){renderKFTimeline(state.kfActiveSlot);buildKFBeamBtns();syncKFSlidersToSelection();}
+  // Tinggalkan sub-tab KF EDITOR (n!==1) → matikan tampilan tombol toggle
+  // PRISMA ON (kfPrismaOn=false), TANPA mengubah state.goboMode — toggle KF
+  // sekarang langsung menulis ke state.goboMode/state.prismaMode (sama
+  // seperti klik card di SETTING), jadi tidak ada lagi data per-head yang
+  // perlu dibersihkan di sini.
+  if(n!==1 && typeof kfPrismaOn!=='undefined' && kfPrismaOn){
+    kfPrismaOn=false;
+    const ptBtn=document.getElementById('kfPrismaToggle');
+    if(ptBtn){ ptBtn.textContent='💡 OFF'; ptBtn.style.borderColor=''; ptBtn.style.color=''; }
+  }
   if(n===2){renderSbyGrid();buildSbyBeamBtns();}
   if(n===3){
     // Reset seleksi beam Custom Strobe tiap kali tab STROBO dibuka, supaya
@@ -6746,6 +6767,9 @@ function buildKFBeamBtns(){
       btn.classList.toggle('sel', kfSelBeams.includes(i));
       updateKFSelCount();
       syncKFSlidersToSelection();
+      // Seleksi beam berubah sementara PRISMA ON → re-apply supaya prisma
+      // langsung ikut ke beam yang baru dipilih/dilepas.
+      if(typeof kfPrismaOn!=='undefined' && kfPrismaOn && typeof _applyKfPrismaToGlobal==='function') _applyKfPrismaToGlobal();
     });
     wrap.appendChild(btn);
   });
@@ -6881,8 +6905,8 @@ function applyKFColor(color){
 }
 
 // KF controller events
-document.getElementById('kfSelAll').addEventListener('click',()=>{ kfSelBeams=[]; document.querySelectorAll('#kfBeamBtns .bc-bb').forEach(b=>b.classList.remove('sel')); updateKFSelCount(); syncKFSlidersToSelection(); });
-document.getElementById('kfSelNone').addEventListener('click',()=>{ kfSelBeams=state.heads.map(h=>h.id); document.querySelectorAll('#kfBeamBtns .bc-bb').forEach((b,i)=>{ b.classList.add('sel'); if(!kfSelBeams.includes(i)) kfSelBeams.push(i); }); kfSelBeams=[...new Set(kfSelBeams)]; updateKFSelCount(); syncKFSlidersToSelection(); });
+document.getElementById('kfSelAll').addEventListener('click',()=>{ kfSelBeams=[]; document.querySelectorAll('#kfBeamBtns .bc-bb').forEach(b=>b.classList.remove('sel')); updateKFSelCount(); syncKFSlidersToSelection(); if(typeof kfPrismaOn!=='undefined' && kfPrismaOn && typeof _applyKfPrismaToGlobal==='function') _applyKfPrismaToGlobal(); });
+document.getElementById('kfSelNone').addEventListener('click',()=>{ kfSelBeams=state.heads.map(h=>h.id); document.querySelectorAll('#kfBeamBtns .bc-bb').forEach((b,i)=>{ b.classList.add('sel'); if(!kfSelBeams.includes(i)) kfSelBeams.push(i); }); kfSelBeams=[...new Set(kfSelBeams)]; updateKFSelCount(); syncKFSlidersToSelection(); if(typeof kfPrismaOn!=='undefined' && kfPrismaOn && typeof _applyKfPrismaToGlobal==='function') _applyKfPrismaToGlobal(); });
 document.getElementById('kfSelOdd').addEventListener('click',()=>{ kfSelBeams=state.heads.filter((_,i)=>i%2===0).map(h=>h.id); document.querySelectorAll('#kfBeamBtns .bc-bb').forEach((b,i)=>b.classList.toggle('sel',i%2===0)); updateKFSelCount(); syncKFSlidersToSelection(); });
 document.getElementById('kfSelEven').addEventListener('click',()=>{ kfSelBeams=state.heads.filter((_,i)=>i%2===1).map(h=>h.id); document.querySelectorAll('#kfBeamBtns .bc-bb').forEach((b,i)=>b.classList.toggle('sel',i%2===1)); updateKFSelCount(); syncKFSlidersToSelection(); });
 
@@ -11407,50 +11431,85 @@ sbtn('kfPlay',()=>playKF(state.kfActiveSlot));
 // di KF. Saat KF benar-benar di-PLAY, applyKFFrame() tetap selalu memakai
 // state.goboMode/prismaMode global (bukan pilihan di sini) — toggle/dropdown
 // ini murni bantu preview manual waktu sedang capture frame di editor.
+// Toggle+dropdown PRISMA di KF Editor SEKARANG LANGSUNG MENGUBAH
+// state.goboMode/state.prismaMode KALAU tidak ada beam yang di-select (ALL),
+// atau ke h.goboMode/h.prismaMode PER-BEAM kalau ada beam tertentu yang
+// dipilih (kfSelBeams) — supaya tombol pilih beam di KF tetap berfungsi buat
+// prisma. Nilai ANGLE/SPREAD selalu tetap satu sumber: goboSettings[def.id],
+// sama persis dengan SETTING, tidak peduli lewat jalur global atau per-head
+// (lihat gb_syncFromJawir: gs = goboSettings[hGoboMode] dipakai di kedua
+// kasus) — jadi beam select berfungsi lagi TANPA membuka celah angle/spread
+// beda lagi seperti bug sebelumnya.
 let kfPrismaOn=false;
+// ptSel/ptBtn di scope global (bukan const di dalam blok {} di bawah) supaya
+// _applyKfPrismaToGlobal() bisa mengaksesnya — fungsi ini juga dipanggil dari
+// buildKFBeamBtns() yang ada jauh di atas, saat user ganti seleksi beam
+// sementara PRISMA ON.
+const kfPrismaToggleBtn=document.getElementById('kfPrismaToggle');
+const kfPrismaSelectEl=document.getElementById('kfPrismaSelect');
+function _applyKfPrismaToGlobal(){
+    // ALL beam (kfSelBeams kosong) → pakai state.goboMode global, persis
+    // klik card di SETTING. Beam tertentu dipilih → prisma HANYA kena beam
+    // itu via h.goboMode per-head, sisanya dipaksa 'off'. Index dipaksa
+    // Number() + dibandingkan dgn Number(i) supaya tidak gagal match gara2
+    // beda tipe data (mis. "2" string vs 2 number).
+    const selGobo=kfPrismaSelectEl?kfPrismaSelectEl.value:'off';
+    const def=GOBO_DEFS.find(d=>d.id===selGobo)||GOBO_DEFS[0];
+    const pmOf=(d)=>d.type==='scatter32'?'scatter32':d.type==='split5_real'?'split5_real':d.type==='split'?'split'+d.n:d.type==='linear'?'linear':d.type==='combo'?'combo':d.type==='fan_flat'?'fan_flat':d.type==='prism16'?'prism16':'none';
+    const sel = (kfSelBeams||[]).map(Number).filter(n=>Number.isFinite(n));
+
+    if(sel.length===0){
+      // ALL beam → state.goboMode BENAR-BENAR berubah, jadi sinkronisasi UI
+      // SETTING (slider angle/spread, val-spread hidden, grid card aktif)
+      // valid dipanggil di sini — sama seperti user klik card di SETTING.
+      state.goboMode = kfPrismaOn ? selGobo : 'off';
+      state.heads.forEach(h=>{h.goboMode=undefined;h.prismaMode=undefined;});
+      if(typeof updateGoboPrismaState==='function') updateGoboPrismaState();
+      if(typeof loadGoboSettingsToSliders==='function') loadGoboSettingsToSliders();
+      if(typeof buildGoboGrid==='function') buildGoboGrid();
+      if(typeof buildMainGoboGrid==='function') buildMainGoboGrid();
+    } else {
+      // Beam tertentu dipilih → state.goboMode TIDAK disentuh sama sekali
+      // (tetap apa adanya). JANGAN panggil loadGoboSettingsToSliders()/dkk di
+      // sini — fungsi2 itu baca dari state.goboMode GLOBAL, bukan per-beam,
+      // jadi kalau dipanggil di cabang ini dia salah baca (goboMode global
+      // masih 'off') dan ikut me-reset val-spread (dipakai render 3D) ke 99,
+      // yang bikin SEMUA beam — termasuk yang dipilih — ikut salah lebar.
+      // Angle/Spread utk beam yang dipilih di sini tetap otomatis benar
+      // karena render (gb_syncFromJawir) baca goboSettings[h.goboMode]
+      // langsung dari h.goboMode per-head, tidak lewat val-spread.
+      state.heads.forEach((h,i)=>{
+        const picked = sel.includes(Number(i));
+        if(picked && kfPrismaOn){ h.goboMode=def.id; h.prismaMode=pmOf(def); }
+        else { h.goboMode='off'; h.prismaMode='none'; }
+      });
+      // val-spread (dipakai utk jarak SEBAR sub-beam prisma, bukan lebar beam
+      // utama — lihat komentar di gb_animate dekat "spreadFactor") tetap perlu
+      // diset manual di sini, TANPA lewat loadGoboSettingsToSliders() (yang
+      // baca state.goboMode global dan akan salah di kasus per-beam ini).
+      if(kfPrismaOn){
+        if(!state.goboSettings[def.id]) state.goboSettings[def.id] = {spread:3.5, angle:16};
+        const _vs = document.getElementById('val-spread');
+        if(_vs) _vs.value = Math.round(state.goboSettings[def.id].spread * 5.5);
+      }
+    }
+}
 {
-  const ptBtn=document.getElementById('kfPrismaToggle');
-  const ptSel=document.getElementById('kfPrismaSelect');
+  const ptBtn=kfPrismaToggleBtn;
+  const ptSel=kfPrismaSelectEl;
   if(ptBtn){
     ptBtn.addEventListener('click',()=>{
       kfPrismaOn=!kfPrismaOn;
       ptBtn.textContent='💡 PRISMA '+(kfPrismaOn?'ON':'OFF');
       ptBtn.style.borderColor=kfPrismaOn?'var(--amber)':'';
       ptBtn.style.color=kfPrismaOn?'var(--amber)':'';
-      // Apply ke beam terpilih untuk preview langsung di editor
-      const beams=kfSelBeams.length?kfSelBeams:state.heads.map((_,i)=>i);
-      const selGobo=ptSel?ptSel.value:'off';
-      const def=GOBO_DEFS.find(d=>d.id===selGobo)||GOBO_DEFS[0];
-      beams.forEach(bi=>{
-        const h=state.heads[bi];if(!h)return;
-        if(kfPrismaOn){
-          h.goboMode=def.id;
-          const _pm=def.type==='scatter32'?'scatter32':def.type==='split5_real'?'split5_real':def.type==='split'?'split'+def.n:def.type==='linear'?'linear':def.type==='combo'?'combo':def.type==='fan_flat'?'fan_flat':def.type==='prism16'?'prism16':'none';
-          h.prismaMode=_pm;
-        } else {
-          h.goboMode=undefined;
-          h.prismaMode=undefined;
-        }
-      });
+      _applyKfPrismaToGlobal();
     });
   }
   if(ptSel){
     ptSel.addEventListener('change',()=>{
       if(!kfPrismaOn)return;
-      const selGobo=ptSel.value;
-      const def=GOBO_DEFS.find(d=>d.id===selGobo)||GOBO_DEFS[0];
-      const beams=kfSelBeams.length?kfSelBeams:state.heads.map((_,i)=>i);
-      beams.forEach(bi=>{
-        const h=state.heads[bi];if(!h)return;
-        h.goboMode=def.id;
-        h.prismaMode=def.type==='scatter32'?'scatter32':
-                     def.type==='split5_real'?'split5_real':
-                     def.type==='split'?'split'+def.n:
-                     def.type==='linear'?'linear':
-                     def.type==='combo'?'combo':
-                     def.type==='fan_flat'?'fan_flat':
-                     def.type==='prism16'?'prism16':'none';
-      });
+      _applyKfPrismaToGlobal();
     });
   }
 }
@@ -14661,16 +14720,20 @@ function gb_syncFromJawir() {
     s.strobeMode = 'STANDARD';
 
     // ── GOBO / PRISMA sync ──────────────────────────────────────
-    // Gobo mode: kalau _goboUserOverride aktif → selalu pakai global state.goboMode
-    // Kalau tidak → per-head override dari KF frame takes priority
-    let hGoboMode, hPrismaMode;
-    if ((typeof state !== 'undefined') && state._goboUserOverride) {
-      hGoboMode  = state.goboMode  || 'off';
-      hPrismaMode = state.prismaMode || 'none';
-    } else {
-      hGoboMode = (h.goboMode !== undefined && h.goboMode !== 'off') ? h.goboMode : (typeof state !== 'undefined' ? state.goboMode : 'off');
-      hPrismaMode = (hGoboMode === 'off') ? 'none' : (h.prismaMode !== undefined ? h.prismaMode : (typeof state !== 'undefined' ? state.prismaMode : 'none'));
-    }
+    // h.goboMode/h.prismaMode TETAP dibaca di sini — itu dipakai CS (Custom
+    // Strobe) dan Preset untuk kasih gobo berbeda per-head (lihat baris yang
+    // menulis h.goboMode di CS/preset code). KF Editor TIDAK LAGI menulis
+    // h.goboMode sama sekali (toggle PRISMA KF sekarang langsung menulis ke
+    // state.goboMode, persis seperti klik card di SETTING) — jadi selama CS/
+    // Preset tidak aktif, h.goboMode selalu undefined dan otomatis fallback
+    // ke state.goboMode di bawah: hasil KF dijamin identik dengan SETTING.
+    // FIX: h.goboMode==='off' (beam TIDAK dipilih di KF) harus tetap OFF — sebelumnya
+    // 'off' dianggap "tidak ada override" lalu jatuh ke state.goboMode global, sehingga
+    // beam yang tidak dipilih ikut kena prisma/gobo global. Hanya undefined yang fallback.
+    let hGoboMode = (h.goboMode !== undefined) ? h.goboMode : (typeof state !== 'undefined' ? state.goboMode : 'off');
+    let hPrismaMode = (hGoboMode === 'off') ? 'none' : (h.prismaMode !== undefined ? h.prismaMode : (typeof state !== 'undefined' ? state.prismaMode : 'none'));
+    hGoboMode = hGoboMode || 'off';
+    hPrismaMode = hPrismaMode || 'none';
 
     s.jawirGoboMode   = hGoboMode   || 'off';
     s.jawirPrismaMode = hPrismaMode || 'none';
@@ -23075,8 +23138,24 @@ gb_rebuildSubBeamsMeshBridge = function(lamp, now){
       });
     }
   }
-  var spreadEl = document.getElementById('val-spread');
-  var spreadFactor = spreadEl ? Math.max(0.3, parseFloat(spreadEl.value)/100) : 1.0;
+  // FIX: sebelumnya spreadFactor diambil dari hidden #val-spread GLOBAL (satu nilai utk semua
+  // lampu). Saat prisma cuma di beam terpilih, val-spread di-set ke nilai prisma (~30) dan
+  // ikut mengecilkan beam utama SEMUA lampu — termasuk yang tidak kena prisma. Sekarang
+  // faktor dihitung PER LAMPU: lampu tanpa prisma/gobo = lebar normal, lampu berprisma
+  // pakai spread mode-nya sendiri (hasil sama persis seperti mode ALL).
+  var spreadFactor = 0.99;
+  (function(){
+    var _gm = state.jawirGoboMode || 'off';
+    var _gst = (typeof window.state !== 'undefined' && window.state && window.state.goboSettings) ? window.state.goboSettings : null;
+    var _vsEl = document.getElementById('val-spread');
+    var _vsGlobal = _vsEl ? Math.max(0.3, parseFloat(_vsEl.value)/100) : 1.0;
+    if(_gm !== 'off'){
+      var _g = _gst ? _gst[_gm] : null;
+      spreadFactor = (_g && _g.spread != null) ? Math.max(0.3, Math.round(_g.spread*5.5)/100) : _vsGlobal;
+    } else if(typeof window.state !== 'undefined' && window.state && window.state.goboInnerColor){
+      spreadFactor = _vsGlobal; // gobo warna: tetap ikut slider global seperti sebelumnya
+    }
+  })();
   var zoomMult = (state.zoom/40)*spreadFactor;
 
 
